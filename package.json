@@ -4,14 +4,14 @@
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
-  "ng": "ng",
-  "start": "ng serve",
-  "build": "ng build",
-  "build:dist": "ng build --output-path=dist",
-  "build:docs": "npm run build:dist && robocopy dist docs /MIR",
-  "watch": "ng build --watch --configuration development",
-  "test": "ng test",
-  "lint": "ng lint"
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:dist": "ng build --output-path=dist",
+    "build:docs": "npm run build:dist && robocopy dist docs /MIR",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -19,6 +19,7 @@
     "@angular/common": "^17.0.2",
     "@angular/compiler": "^17.0.2",
     "@angular/core": "^17.0.2",
+    "@angular/fire": "^17.0.0",
     "@angular/forms": "^17.0.2",
     "@angular/material": "^17.2.2",
     "@angular/platform-browser": "^17.0.2",
@@ -43,6 +44,7 @@
     "cordova-plugin-file": "^8.0.1",
     "cordova-plugin-fingerprint-aio": "^6.0.0",
     "cordova-plugin-x-socialsharing": "^6.0.4",
+    "firebase": "^10.14.1",
     "flatpickr": "^4.6.13",
     "ionicons": "^7.0.0",
     "moment": "^2.30.1",
