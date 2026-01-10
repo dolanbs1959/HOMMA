@@ -67,6 +67,21 @@ exports.quickbaseProxy = onCall({cors: true}, async (request) => {
       body: body ? JSON.stringify(body) : undefined,
     });
 
+    const contentType = response.headers.get('content-type') || '';
+
+    // If the response is an image or binary, return base64 so the client can render it
+    if (contentType.startsWith('image/') || contentType.includes('application/octet-stream')) {
+      const buffer = await response.buffer();
+      const base64 = `data:${contentType};base64,${buffer.toString('base64')}`;
+      if (!response.ok) {
+        logger.error('Quickbase API Error (binary)', {status: response.status});
+        throw new Error(`Quickbase API error: ${response.status}`);
+      }
+      logger.info('Quickbase Proxy Success (binary)', {endpoint, status: response.status});
+      return {success: true, data: base64};
+    }
+
+    // Otherwise assume JSON
     const data = await response.json();
 
     if (!response.ok) {
