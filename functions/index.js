@@ -12,14 +12,25 @@ const cors = require("cors")({origin: true});
 // Set global options for all functions
 setGlobalOptions({maxInstances: 10});
 
-// IMPORTANT: Set this as an environment variable when deploying
-// For now, we'll use it directly,
-// but you should use: firebase functions:config:set
+// IMPORTANT: Do NOT hardcode secrets in source. Configure them securely.
+// Recommended options:
+// 1) Set environment variables in your hosting environment (preferred for CI/CD):
+//    QUICKBASE_API_KEY, QUICKBASE_REALM, QUICKBASE_BASE_URL, QUICKBASE_QUERY_URL
+// 2) Or use `firebase functions:config:set quickbase.apikey="KEY" quickbase.realm="..."`
+// This code will first try `process.env`, then fall back to `functions.config()` if present.
+let ffConfig = {};
+try {
+  const ff = require('firebase-functions');
+  ffConfig = ff.config && ff.config().quickbase ? ff.config().quickbase : {};
+} catch (e) {
+  ffConfig = {};
+}
+
 const QUICKBASE_CONFIG = {
-  apiKey: "b7gwzr_dcp8_0_dvzja4mbs6b3bpdzddrekikqfkm",
-  realm: "bobfaulk.quickbase.com",
-  baseUrl: "https://api.quickbase.com/v1/records",
-  queryUrl: "https://api.quickbase.com/v1/records/query",
+  apiKey: process.env.QUICKBASE_API_KEY || ffConfig.apikey || '',
+  realm: process.env.QUICKBASE_REALM || ffConfig.realm || 'bobfaulk.quickbase.com',
+  baseUrl: process.env.QUICKBASE_BASE_URL || 'https://api.quickbase.com/v1/records',
+  queryUrl: process.env.QUICKBASE_QUERY_URL || 'https://api.quickbase.com/v1/records/query',
 };
 
 /**
@@ -35,6 +46,12 @@ exports.quickbaseProxy = onCall({cors: true}, async (request) => {
   }
 
   logger.info("Quickbase Proxy Request", {method, endpoint});
+
+  // Ensure API key is configured server-side
+  if (!QUICKBASE_CONFIG.apiKey) {
+    logger.error('Quickbase API key not configured on server');
+    throw new Error('Server misconfigured: Quickbase API key not set');
+  }
 
   try {
     // Use require instead of dynamic import for compatibility
