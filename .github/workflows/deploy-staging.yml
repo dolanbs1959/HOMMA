@@ -1,7 +1,9 @@
 name: Deploy functions to staging
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 env:
   FIREBASE_PROJECT: homma-analytics
@@ -15,6 +17,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+      - name: Cache npm (root)
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Cache functions node_modules
+        uses: actions/cache@v4
+        with:
+          path: functions/node_modules
+          key: ${{ runner.os }}-functions-node-${{ hashFiles('functions/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-functions-node-
       - name: Install firebase-tools
         run: npm install -g firebase-tools
       - name: Configure Firebase token
@@ -22,13 +38,16 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           echo "Using FIREBASE_TOKEN"
-      - name: Set Quickbase secret (CI)
-        env:
-          QUICKBASE_API_KEY: ${{ secrets.QUICKBASE_API_KEY }}
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          FIREBASE_PROJECT: ${{ env.FIREBASE_PROJECT }}
+      # NOTE: Quickbase secret should be set once in Secret Manager manually.
+      # CI will no longer set/overwrite the secret on every run.
+      - name: Install functions dependencies
+        working-directory: ./functions
         run: |
-          printf "%s" "$QUICKBASE_API_KEY" | firebase functions:secrets:set QUICKBASE_API_KEY --project "$FIREBASE_PROJECT"
+          # Use npm install (safer when package-lock.json may not be present in CI)
+          npm install --no-audit --no-fund
+          # show installed versions for debugging
+          node -v
+          npm -v
       - name: Deploy functions to staging
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
