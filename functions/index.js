@@ -41,7 +41,9 @@ const QUICKBASE_CONFIG = {
  * This function accepts requests from your Angular app
  * and forwards them to Quickbase
  */
-exports.quickbaseProxy = onCall({cors: true}, async (request) => {
+// Bind the secret so Firebase injects it into `process.env.QUICKBASE_API_KEY` at runtime.
+// See: https://firebase.google.com/docs/functions/config-env#secret-manager
+exports.quickbaseProxy = onCall({cors: true, secrets: ['QUICKBASE_API_KEY']}, async (request) => {
   // Log incoming payload as early as possible for emulator diagnostics
   try { logger.debug('quickbaseProxy invoked - request.data keys', Object.keys(request.data || {})); } catch (e) { logger.debug('quickbaseProxy invoked - (could not stringify request.data)'); }
   const {method, endpoint, body} = request.data;
