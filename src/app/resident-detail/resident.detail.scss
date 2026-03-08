@@ -1,0 +1,313 @@
+// File: resident.detail.scss
+ion-header {
+    --ion-background-color: #4194ab !important; /* Header background color */
+    --ion-color-base: #fff !important; /* Text color */
+  }
+  ion-title {
+    --ion-color-base: #fff !important; /* Text color */
+    font-size: 16px;
+  }
+  ion-card-header {
+    padding-bottom: 0; /* Adjust as needed */
+    font-weight: bold;
+  }
+
+  .thumbnail {
+    width: 100px; /* Set the desired width for the thumbnail */
+    height: 130px; /* Set the desired height for the thumbnail */
+    object-fit: cover; /* Ensure the image covers the area without distortion */
+    // border-radius: 5px; /* Optional: Add rounded corners */
+    // border: 1px solid #ccc; /* Optional: Add a border */
+  }
+  
+  ion-card-subtitle {
+    --ion-color-base: #fff !important; /* Text color */
+    font-size: 10px;
+    padding-top: 10;
+    margin-top: 5px;
+  }
+  ion-card-title {
+      text-align: left;
+    }
+    .error-message {
+      color: red;
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  
+    ion-grid.main {
+      --ion-grid-padding: 20px;
+    
+      --ion-grid-padding-xs: 20px;
+      --ion-grid-padding-sm: 20px;
+      --ion-grid-padding-md: 20px;
+      --ion-grid-padding-lg: 20px;
+      --ion-grid-padding-xl: 20px;
+    
+      --ion-grid-column-padding: 30px;
+    
+      --ion-grid-column-padding-xs: 30px;
+      --ion-grid-column-padding-sm: 30px;
+      --ion-grid-column-padding-md: 30px;
+      --ion-grid-column-padding-lg: 30px;
+      --ion-grid-column-padding-xl: 30px;
+    }
+    
+    ion-col.main {
+      background-color: transparent;
+      border: solid 1px #4194ab;
+      color: #0a056f;
+      text-align: center;
+      
+      // Specific styling for CCO info column
+      &.cco-info {
+        font-size: x-small;
+      }
+    }
+  
+    .ion-activatable {
+      margin-bottom: 10px;
+    }
+    .phone-link {
+      margin-bottom: 10px;
+    }
+  
+    // Ripple effect styles
+      .ripple-effect-blue {
+      color: #010384;
+    }
+    .ripple-effect-green {
+      color: #08782a;
+    }
+    
+    .ripple-effect-lightblue {
+      color: #00c8ff;
+    }
+    
+    .ripple-effect-red {
+      color: #980707;
+    }
+
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+        
+    b {
+      width: 100%;
+    }
+    
+    .ripple-parent {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #4194ab;
+      width: 100%;
+      border-radius: 8px;
+    }
+    
+    
+    .rounded-rectangle {
+      width: 80%;
+      max-width: 300px;
+      height: auto;
+      min-height: 50px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    
+
+    .scrollable-content {
+      max-height: 80vh; /* Adjust as needed */
+      overflow-y: auto;
+    }
+    /* Style for HOM Bulletin Board title */
+.bulletin-title {
+  text-align: center; /* Center the title */
+  font-size: 1.5rem; /* Adjust font size */
+  font-weight: bold; /* Make it bold */
+  margin: 0; /* Remove default margin */
+  padding: 10px; /* Add some padding */
+}
+
+/* Style for announcement card */
+.announcement-card {
+  border: 2px solid #3498db; /* Add a blue border */
+  border-radius: 10px; /* Round the corners */
+  margin-bottom: 20px; /* Add spacing between cards */
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/*
+ * Dark Mode Support
+ * -----------------
+ */
+body.dark {
+  // Grid and column text visibility
+  ion-grid.main {
+    color: var(--ion-text-color) !important;
+    
+    ion-col {
+      color: var(--ion-text-color) !important;
+      
+      // Ensure all text elements in columns are visible
+      * {
+        color: var(--ion-text-color) !important;
+      }
+      
+      // Links should remain blue but visible
+      a {
+        color: #66b3ff !important; // Lighter blue for dark mode
+        text-decoration: underline;
+      }
+    }
+  }
+
+  // Card headers and content
+  ion-card-header {
+    color: var(--ion-text-color) !important;
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--ion-text-color) !important;
+    }
+  }
+
+  ion-card-content {
+    color: var(--ion-text-color) !important;
+    
+    // Ensure all nested content is visible
+    * {
+      color: var(--ion-text-color) !important;
+    }
+    
+    // Override any inline styles that might set dark text
+    div[innerHTML] {
+      color: var(--ion-text-color) !important;
+      
+      * {
+        color: var(--ion-text-color) !important;
+      }
+    }
+  }
+
+  // Card subtitles - override the forced white color
+  ion-card-subtitle {
+    --ion-color-base: var(--ion-text-color) !important;
+    color: var(--ion-text-color) !important;
+    
+    a {
+      color: #66b3ff !important;
+    }
+  }
+
+  // Phone links
+  .phone-link {
+    color: var(--ion-text-color) !important;
+    
+    a {
+      color: #66b3ff !important;
+    }
+  }
+
+  // Bulletin board styling for dark mode
+  .bulletin-title {
+    color: var(--ion-text-color) !important;
+  }
+
+  .announcement-card {
+    background: var(--ion-card-background);
+    border-color: #4a9eff; // Lighter blue border for dark mode
+    
+    ion-card-content {
+      color: var(--ion-text-color) !important;
+      
+      * {
+        color: var(--ion-text-color) !important;
+      }
+    }
+  }
+
+  // Ensure buttons and interactive elements are visible
+  .rounded-rectangle {
+    background: var(--ion-color-step-100);
+    color: var(--ion-text-color) !important;
+    border-color: var(--ion-color-step-300);
+  }
+
+  // Error messages
+  .error-message {
+    color: #ff6b6b !important; // Red that works in dark mode
+  }
+
+  // Thumbnail borders
+  .thumbnail {
+    border: 1px solid var(--ion-color-step-200);
+  }
+  
+  // Comprehensive button overrides for resident detail page
+  ion-button, .button, button {
+    color: var(--ion-text-color) !important;
+    --color: var(--ion-text-color) !important;
+    
+    // Button text and icons
+    ion-icon, span, .button-inner {
+      color: var(--ion-text-color) !important;
+    }
+    
+    // Specific button variants
+    &.button-clear {
+      color: var(--ion-text-color) !important;
+      --color: var(--ion-text-color) !important;
+    }
+    
+    &.button-outline {
+      color: var(--ion-text-color) !important;
+      --color: var(--ion-text-color) !important;
+      --border-color: var(--ion-color-step-300) !important;
+    }
+    
+    &.button-fill {
+      color: var(--ion-text-color) !important;
+      --color: var(--ion-text-color) !important;
+      --background: var(--ion-color-step-150) !important;
+    }
+  }
+  
+  // Header toolbar buttons
+  ion-toolbar {
+    ion-buttons {
+      ion-button {
+        color: var(--ion-text-color) !important;
+        --color: var(--ion-text-color) !important;
+        
+        ion-icon {
+          color: var(--ion-text-color) !important;
+        }
+      }
+    }
+  }
+  
+  // Action buttons in content
+  .action-buttons, .form-buttons {
+    ion-button {
+      color: var(--ion-text-color) !important;
+      --color: var(--ion-text-color) !important;
+    }
+  }
+}
+
+

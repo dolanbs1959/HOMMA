@@ -1,0 +1,62 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Message Center
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <ion-card-header>
+      <ion-card-title>Send a Message</ion-card-title>
+      <ion-card-subtitle>Send a message to a specific HOM staff member, let us know what's on your mind. Tell us if you get a job! Or report any changes. Select who you want to message, enter your message and hit Submit! The staff member will be notified, and when they respond you will receive an email.</ion-card-subtitle>
+      <hr>
+    </ion-card-header>
+    <ion-card-content>
+      <form [formGroup]="messageForm" (ngSubmit)="submitMessage()">
+        <!-- Dropdown for active staff members -->
+        <ion-item>
+          <ion-select formControlName="staff" label="Staff Member" required interface="action-sheet">
+            <ion-select-option *ngFor="let staff of activeStaff" [value]="staff.sendValue || staff.email || staff.userId">
+              {{ staff.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Text area for the message -->
+        <ion-item>
+          <ion-textarea class="bordered-input"
+            formControlName="Comment"
+            label="Enter Message"
+            labelPlacement="floating"
+            placeholder="Please enter your text here. Be as detailed as possible." 
+            value=""
+            autoGrow="true"
+            rows="6">
+          </ion-textarea>
+        </ion-item> 
+
+        <!-- Submit button -->
+        <ion-card>
+          <ion-card-content class="scrollable-content">
+            <div class="wrapper">
+              <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="submitMessage()">
+              <!-- <div class="btn-submit" (click)="submitMessage()"> -->
+                Submit Message
+                <ion-ripple-effect></ion-ripple-effect>
+              </div>      
+              <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
+                <!-- <div class="btn-submit" (click)="goBack()"> -->
+                Return to Participant Details
+                  <ion-ripple-effect></ion-ripple-effect>
+                  </div>
+              <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
+                <!-- <div class="btn-submit" (click)="exitApp()"> -->
+                Sign Out/Exit App
+                  <ion-ripple-effect></ion-ripple-effect>
+                  </div>
+          </div>
+          </ion-card-content>
+        </ion-card>

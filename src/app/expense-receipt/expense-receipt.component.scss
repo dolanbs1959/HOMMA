@@ -1,0 +1,488 @@
+.pdf-preview {
+  text-align: center;
+  padding: 20px;
+}
+
+.pdf-icon {
+  font-size: 64px;
+}
+
+.pdf-filename {
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.pdf-caption {
+  font-size: 12px;
+  color: #666;
+}
+.grant-section-card {
+  border: 1.5px solid #4194ab;
+  border-radius: 10px;
+  margin: 12px 0 16px 0;
+  padding: 10px 12px 6px 12px;
+  box-shadow: 0 2px 8px rgba(65, 148, 171, 0.08);
+  background: #fafdff;
+  color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+  .grant-section-card {
+    background: #181c1f;
+    border-color: #3bb3e0;
+    box-shadow: 0 2px 8px rgba(59, 179, 224, 0.10);
+    color: #f1f1f1;
+  }
+  .grant-option-item .grant-label {
+    color: #e0e0e0 !important;
+  }
+  .field-hint.grant-section-label {
+    color: #b0b0b0;
+  }
+  .leader-line {
+    border-bottom: 2px dotted #444;
+  }
+}
+
+.grant-section-label {
+  margin-bottom: 4px !important;
+  padding-bottom: 0 !important;
+}
+
+.grant-option-item {
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+#container {
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.body-text {
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 0px;
+}
+
+.logo-container {
+  text-align: center;
+  margin-left: 15px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#container strong {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+ion-card-title.ion-text-center {
+  font-size: 26px;
+  font-weight: bolder;
+  color: #980707;
+}
+
+.fields-container {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+#container p {
+  font-size: 12px;
+  line-height: 16px;
+  color: #2b9c4d;
+  margin: 0;
+}
+
+.info-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+ul {
+  list-style-type: decimal;
+  padding: 1;
+}
+
+.expense-steps {
+  font-size: 12px;
+  color: #2600ff;
+  padding-left: 5px;
+  padding-right: 15px;
+  padding-top: 0px;
+}
+
+.expense-intro {
+  font-size: 13px;
+  color: #555;
+  padding: 8px 16px;
+  text-align: center;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: #666;
+  padding: 4px 16px 2px 16px;
+  margin-top: 4px;
+}
+
+.grant-option {
+  --min-height: 36px;
+  
+  ion-radio {
+    margin-right: 8px;
+  }
+}
+
+ion-radio-group {
+  padding: 0 8px;
+}
+
+.info-item {
+  padding: 0;
+}
+
+#container a {
+  text-decoration: none;
+}
+
+ion-card-header {
+  font-family: 'Trebuchet MS';
+  font-size: 22px;
+  font-weight: bolder;
+  color: #2600ff;
+  padding-bottom: 0px;
+}
+
+ion-header {
+  --ion-background-color: #4194ab !important;
+  --ion-color-base: #fff !important;
+}
+
+ion-toolbar {
+  --background: #4194ab !important;
+  --color: #fff !important;
+}
+
+ion-title {
+  color: #fff !important;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.error-message-text {
+  color: red;
+  font-size: 12px;
+  padding-left: 16px;
+  padding-top: 4px;
+}
+
+.bordered-input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.stacked-label {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+  }
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+
+.rounded-rectangle {
+  background-color: #4194ab;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.ripple-effect-blue {
+  --ripple-color: #2b9c4d;
+}
+
+.disabled-button {
+  background-color: #ccc;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// Photo Section Styles
+.photo-section-header {
+  font-size: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.camera-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+
+.camera-view {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 8px;
+  background-color: #000;
+}
+
+.hidden-canvas {
+  display: none;
+}
+
+.camera-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.photo-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+
+.photo-preview {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.photo-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  flex-wrap: wrap;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+
+  ion-spinner {
+    width: 40px;
+    height: 40px;
+  }
+
+  p {
+    margin-top: 8px;
+    color: #666;
+  }
+}
+
+// Vendor autocomplete styles
+.vendor-autocomplete {
+  position: relative;
+  width: 100%;
+}
+
+.vendor-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  .vendor-item {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    cursor: pointer;
+
+    &:hover {
+      --background: #f0f0f0;
+    }
+  }
+}
+
+.selected-vendor {
+  padding: 8px 16px;
+  
+  ion-chip {
+    cursor: pointer;
+    
+    ion-icon {
+      margin-left: 4px;
+    }
+  }
+}
+
+// Qty and Amount side by side layout
+.qty-amount-row {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px;
+
+  .qty-field {
+    flex: 1;
+    max-width: 100px;
+  }
+
+  .amount-field {
+    flex: 2;
+  }
+
+  ion-item {
+    --padding-start: 0;
+  }
+}
+// New styles for the Leader Line layout
+.grant-option-item {
+  --min-height: 40px;
+  --inner-padding-end: 16px;
+  
+  // This ensures the item clicks trigger the radio
+  cursor: pointer;
+}
+
+.grant-label {
+  /* Prevent the text from wrapping or shrinking too much */
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 5px;
+  font-size: 14px;
+  color: #333;
+}
+
+.leader-line {
+  /* This makes the div fill all remaining width */
+  flex-grow: 1;
+  
+  /* The visual "dots" */
+  border-bottom: 2px dotted #ccc;
+  
+  /* Alignment tweaks to make the line sit at the text baseline */
+  margin-bottom: 5px;
+  margin-right: 10px;
+  margin-left: 5px;
+  opacity: 0.6;
+}
+
+/* Ensure the radio inner 'mark' is visible in modern Ionic across browsers */
+.grant-section-card ion-radio::part(mark) {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid rgba(0,0,0,0.18);
+  box-sizing: border-box;
+}
+
+.grant-section-card ion-radio[aria-checked="true"]::part(mark) {
+  background-color: var(--ion-color-primary, #4194ab);
+  border-color: var(--ion-color-primary, #4194ab);
+}
+
+@media (prefers-color-scheme: dark) {
+  .grant-section-card ion-radio::part(mark) {
+    border: 2px solid rgba(255,255,255,0.14);
+  }
+  .grant-section-card ion-radio[aria-checked="true"]::part(mark) {
+    background-color: var(--ion-color-primary, #3bb3e0);
+    border-color: var(--ion-color-primary, #3bb3e0);
+  }
+}
+
+/* Optional: Make the selected item's text bold/colored */
+.item-radio-checked .grant-label {
+  font-weight: bold;
+  color: #2600ff; /* Matches your existing theme */
+}
+.success-message {
+  color: #2b9c4d; /* Green */
+  font-size: 20px; /* Larger */
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.error-message {
+  color: var(--ion-color-danger, #eb445a); /* Red */
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.grant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+}
+
+.grant-title {
+  font-weight: 700;
+  font-size: 16px;
+  padding-left: 6px;
+}
+
+.grant-yesno {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.grant-yesno ion-item {
+  --background: transparent;
+  --min-height: 32px;
+  padding: 0 6px;
+  align-items: center;
+}
+
+.grant-yesno ion-label {
+  font-weight: 600;
+  margin-right: 6px;
+}

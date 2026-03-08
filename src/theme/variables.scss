@@ -1,0 +1,522 @@
+// Ionic Variables and Theming. For more info, please see:
+// http://ionicframework.com/docs/theming/
+
+/** Ionic CSS Variables **/
+:root {
+  /** primary **/
+  --ion-color-primary: #3880ff;
+  --ion-color-primary-rgb: 56, 128, 255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #3171e0;
+  --ion-color-primary-tint: #4c8dff;
+
+  /** secondary **/
+  --ion-color-secondary: #3dc2ff;
+  --ion-color-secondary-rgb: 61, 194, 255;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #36abe0;
+  --ion-color-secondary-tint: #50c8ff;
+
+  /** tertiary **/
+  --ion-color-tertiary: #5260ff;
+  --ion-color-tertiary-rgb: 82, 96, 255;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #4854e0;
+  --ion-color-tertiary-tint: #6370ff;
+
+  /** success **/
+  --ion-color-success: #2dd36f;
+  --ion-color-success-rgb: 45, 211, 111;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #28ba62;
+  --ion-color-success-tint: #42d77d;
+
+  /** warning **/
+  --ion-color-warning: #ffc409;
+  --ion-color-warning-rgb: 255, 196, 9;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #e0ac08;
+  --ion-color-warning-tint: #ffca22;
+
+  /** danger **/
+  --ion-color-danger: #fc0303;
+  --ion-color-danger-rgb: 235, 68, 90;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #cf3c4f;
+  --ion-color-danger-tint: #ed576b;
+
+  /** dark **/
+  --ion-color-dark: #222428;
+  --ion-color-dark-rgb: 34, 36, 40;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #1e2023;
+  --ion-color-dark-tint: #383a3e;
+
+  /** medium **/
+  --ion-color-medium: #92949c;
+  --ion-color-medium-rgb: 146, 148, 156;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #808289;
+  --ion-color-medium-tint: #9d9fa6;
+
+  /** light **/
+  --ion-color-light: #f4f5f8;
+  --ion-color-light-rgb: 244, 245, 248;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #d7d8da;
+  --ion-color-light-tint: #f5f6f9;
+}
+
+/*
+ * Dark Mode Theme
+ * -------------------------------------------
+ * Uses the .dark class selector instead of media query
+ * This allows for manual control of dark mode
+ */
+
+body.dark {
+  /*
+   * Dark Colors
+   * -------------------------------------------
+   */
+
+  --ion-color-primary: #428cff;
+  --ion-color-primary-rgb: 66,140,255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255,255,255;
+  --ion-color-primary-shade: #3a7be0;
+  --ion-color-primary-tint: #5598ff;
+
+  --ion-color-secondary: #50c8ff;
+  --ion-color-secondary-rgb: 80,200,255;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255,255,255;
+  --ion-color-secondary-shade: #46b0e0;
+  --ion-color-secondary-tint: #62ceff;
+
+  --ion-color-tertiary: #6a64ff;
+  --ion-color-tertiary-rgb: 106,100,255;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255,255,255;
+  --ion-color-tertiary-shade: #5d58e0;
+  --ion-color-tertiary-tint: #7974ff;
+
+  --ion-color-success: #2fdf75;
+  --ion-color-success-rgb: 47,223,117;
+  --ion-color-success-contrast: #000000;
+  --ion-color-success-contrast-rgb: 0,0,0;
+  --ion-color-success-shade: #29c467;
+  --ion-color-success-tint: #44e283;
+
+  --ion-color-warning: #ffd534;
+  --ion-color-warning-rgb: 255,213,52;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0,0,0;
+  --ion-color-warning-shade: #e0bb2e;
+  --ion-color-warning-tint: #ffd948;
+
+  --ion-color-danger: #ff4961;
+  --ion-color-danger-rgb: 255,73,97;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255,255,255;
+  --ion-color-danger-shade: #e04055;
+  --ion-color-danger-tint: #ff5b71;
+
+  --ion-color-dark: #f4f5f8;
+  --ion-color-dark-rgb: 244,245,248;
+  --ion-color-dark-contrast: #000000;
+  --ion-color-dark-contrast-rgb: 0,0,0;
+  --ion-color-dark-shade: #d7d8da;
+  --ion-color-dark-tint: #f5f6f9;
+
+  --ion-color-medium: #989aa2;
+  --ion-color-medium-rgb: 152,154,162;
+  --ion-color-medium-contrast: #000000;
+  --ion-color-medium-contrast-rgb: 0,0,0;
+  --ion-color-medium-shade: #86888f;
+  --ion-color-medium-tint: #a2a4ab;
+
+  --ion-color-light: #222428;
+  --ion-color-light-rgb: 34,36,40;
+  --ion-color-light-contrast: #ffffff;
+  --ion-color-light-contrast-rgb: 255,255,255;
+  --ion-color-light-shade: #1e2023;
+  --ion-color-light-tint: #383a3e;
+
+  /*
+   * Dark Theme Background and Text Colors
+   * -------------------------------------------
+   */
+
+  --ion-background-color: #121212;
+  --ion-background-color-rgb: 18,18,18;
+
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255,255,255;
+
+  --ion-border-color: #222222;
+
+  --ion-color-step-50: #1e1e1e;
+  --ion-color-step-100: #2a2a2a;
+  --ion-color-step-150: #363636;
+  --ion-color-step-200: #414141;
+  --ion-color-step-250: #4d4d4d;
+  --ion-color-step-300: #595959;
+  --ion-color-step-350: #656565;
+  --ion-color-step-400: #717171;
+  --ion-color-step-450: #7d7d7d;
+  --ion-color-step-500: #898989;
+  --ion-color-step-550: #949494;
+  --ion-color-step-600: #a0a0a0;
+  --ion-color-step-650: #acacac;
+  --ion-color-step-700: #b8b8b8;
+  --ion-color-step-750: #c4c4c4;
+  --ion-color-step-800: #d0d0d0;
+  --ion-color-step-850: #dbdbdb;
+  --ion-color-step-900: #e7e7e7;
+  --ion-color-step-950: #f3f3f3;
+
+  --ion-item-background: #1e1e1e;
+  --ion-toolbar-background: #1f1f1f;
+  --ion-tab-bar-background: #1f1f1f;
+  --ion-card-background: #1e1e1e;
+
+  // Card backgrounds
+  ion-card {
+    --background: var(--ion-card-background);
+    --color: var(--ion-text-color);
+  }
+
+  // Input and form elements
+  ion-input, ion-textarea, ion-select {
+    --background: var(--ion-color-step-100);
+    --color: var(--ion-text-color);
+  }
+
+  // Button colors
+  ion-button {
+    --color: var(--ion-text-color);
+    
+    // Ensure all button variants respect theme
+    &.button-clear {
+      --color: var(--ion-text-color);
+    }
+    
+    &.button-outline {
+      --color: var(--ion-text-color);
+      --border-color: var(--ion-color-step-300);
+    }
+    
+    &.button-fill {
+      --color: var(--ion-text-color);
+      --background: var(--ion-color-step-150);
+    }
+  }
+  
+  // Ensure all button containers respect theme
+  ion-buttons {
+    --color: var(--ion-text-color);
+    
+    ion-button {
+      --color: var(--ion-text-color);
+    }
+  }
+  
+  // FAB buttons
+  ion-fab-button {
+    --color: var(--ion-text-color);
+    --background: var(--ion-color-step-150);
+  }
+
+  /*
+   * Global Color Override System for Dark Mode
+   * ------------------------------------------
+   * Automatically converts common hardcoded colors to dark-mode friendly versions
+   */
+  
+  // Override all common blue colors used in the app
+  * {
+    // Dark blue colors (#010384, #0a056f) → Lighter blue
+    &[style*="color: #010384"], &[style*="color:#010384"] {
+      color: #6bb6ff !important;
+    }
+    &[style*="color: #0a056f"], &[style*="color:#0a056f"] {
+      color: #6bb6ff !important;
+    }
+    
+    // App primary blue (#4194ab) → Lighter blue
+    &[style*="color: #4194ab"], &[style*="color:#4194ab"] {
+      color: #5ac8fa !important;
+    }
+    
+    // Cyan colors (#00c8ff) → Slightly dimmed cyan
+    &[style*="color: #00c8ff"], &[style*="color:#00c8ff"] {
+      color: #40d4ff !important;
+    }
+    
+    // Green colors (#2b9c4d, #08782a) → Lighter green
+    &[style*="color: #2b9c4d"], &[style*="color:#2b9c4d"] {
+      color: #4ade80 !important;
+    }
+    &[style*="color: #08782a"], &[style*="color:#08782a"] {
+      color: #4ade80 !important;
+    }
+    
+    // Red colors (#fa071b, #980707, #721c24) → Softer red
+    &[style*="color: #fa071b"], &[style*="color:#fa071b"] {
+      color: #ff6b6b !important;
+    }
+    &[style*="color: #980707"], &[style*="color:#980707"] {
+      color: #ff6b6b !important;
+    }
+    &[style*="color: #721c24"], &[style*="color:#721c24"] {
+      color: #ff8a80 !important;
+    }
+    
+    // Success green (#155724) → Lighter success green
+    &[style*="color: #155724"], &[style*="color:#155724"] {
+      color: #4ade80 !important;
+    }
+  }
+  
+  // Global SCSS color overrides for specific classes
+  .wrapper, .body-text, .alert-format, .info-container, .info-item {
+    color: var(--ion-text-color) !important;
+  }
+  
+  // Force all ion components to respect theme colors
+  ion-card, ion-card-header, ion-card-content, ion-card-title, ion-card-subtitle {
+    --color: var(--ion-text-color);
+    color: var(--ion-text-color) !important;
+  }
+  
+  ion-grid, ion-row, ion-col {
+    --color: var(--ion-text-color);
+    color: var(--ion-text-color) !important;
+  }
+  
+  // Override borders and backgrounds
+  ion-col.main {
+    border-color: var(--ion-color-step-300) !important;
+    background-color: transparent !important;
+    color: var(--ion-text-color) !important;
+  }
+  
+  // Comprehensive button overrides for all variants
+  ion-button, .button, button {
+    color: var(--ion-text-color) !important;
+    --color: var(--ion-text-color) !important;
+    
+    // Override any inline styles on buttons
+    &[style*="color:"], &[style*="color "] {
+      color: var(--ion-text-color) !important;
+    }
+  }
+  
+  // Specific button classes and variants
+  .ion-color-primary {
+    --ion-color-base: var(--ion-color-primary) !important;
+    --ion-color-contrast: var(--ion-text-color) !important;
+  }
+  
+  .ion-color-secondary {
+    --ion-color-base: var(--ion-color-secondary) !important;
+    --ion-color-contrast: var(--ion-text-color) !important;
+  }
+  
+  .ion-color-tertiary {
+    --ion-color-base: var(--ion-color-tertiary) !important;
+    --ion-color-contrast: var(--ion-text-color) !important;
+  }
+  
+  // Override any button text with hardcoded colors
+  ion-button span, ion-button ion-label, .button-inner {
+    color: var(--ion-text-color) !important;
+  }
+  
+  // Additional comprehensive button text overrides
+  .button-native, .button-text {
+    color: var(--ion-text-color) !important;
+  }
+  
+  // Ionic specific button classes
+  .ion-activatable {
+    color: var(--ion-text-color) !important;
+  }
+  
+  // Menu button text
+  ion-menu-button {
+    color: var(--ion-text-color) !important;
+    --color: var(--ion-text-color) !important;
+  }
+  
+  // Toolbar button text
+  ion-toolbar ion-button {
+    color: var(--ion-text-color) !important;
+    --color: var(--ion-text-color) !important;
+  }
+
+  /*
+   * Custom App Dark Mode Colors
+   * -------------------------------------------
+   */
+  
+  // Success/Error message colors for dark mode
+  .success-message {
+    background-color: #1a4d2e !important;
+    color: #4ade80 !important;
+    border-color: #22c55e !important;
+  }
+
+  .error-message {
+    background-color: #4d1a1a !important;
+    color: #f87171 !important;
+    border-color: #ef4444 !important;
+  }
+}
+
+html {
+  /* 
+   * For more information on dynamic font scaling, visit the documentation:
+   * https://ionicframework.com/docs/layout/dynamic-font-scaling
+   */
+  --ion-dynamic-font: var(--ion-default-dynamic-font);
+}
+
+/* App design tokens for buttons (global) */
+:root {
+  --app-btn-radius: 12px;
+  --app-btn-pad-y: 10px;
+  --app-btn-pad-x: 16px;
+  --app-btn-font-size: 14px;
+  --app-btn-min-height: 44px;
+
+  /* Use Ionic colors where appropriate */
+  --app-btn-bg: var(--ion-color-primary);
+  --app-btn-text: var(--ion-color-primary-contrast);
+  /* make secondary a light surface color with dark text by default (better contrast in light theme) */
+  --app-btn-secondary-bg: #E8F3FF; /* pale blue */
+  --app-btn-secondary-text: #07243a; /* dark navy */
+  --app-btn-elev: 0 6px 18px rgba(11,132,255,0.14);
+}
+
+/* Ensure tokens adapt in dark mode (body.dark already sets ion colors above) */
+:root.body-dark, body.dark {
+  --app-btn-bg: var(--ion-color-primary);
+  --app-btn-text: var(--ion-color-primary-contrast);
+  --app-btn-secondary-bg: var(--ion-color-secondary);
+  --app-btn-secondary-text: var(--ion-color-secondary-contrast);
+}
+
+/* Global button normalization — forces consistent look app-wide
+   - Uses Ionic variables where possible so platform theming still works
+   - Keeps destructive/danger variants by more specific selectors if needed
+*/
+ion-button, button, .button, .button-native {
+  --border-radius: var(--app-btn-radius);
+  border-radius: var(--app-btn-radius) !important;
+  min-height: var(--app-btn-min-height);
+  font-size: var(--app-btn-font-size);
+  --padding-top: var(--app-btn-pad-y);
+  --padding-bottom: var(--app-btn-pad-y);
+  --padding-start: var(--app-btn-pad-x);
+  --padding-end: var(--app-btn-pad-x);
+  padding: var(--app-btn-pad-y) var(--app-btn-pad-x) !important;
+  box-sizing: border-box;
+  transition: transform 160ms cubic-bezier(.2,.8,.2,1), box-shadow 160ms ease, background-color 160ms ease;
+}
+
+/* Make the default filled button use primary color */
+ion-button.button-fill, ion-button.button-solid, .button.fill, .button-fill {
+  --background: var(--app-btn-bg) !important;
+  --color: var(--app-btn-text) !important;
+  background: var(--app-btn-bg) !important;
+  color: var(--app-btn-text) !important;
+  box-shadow: var(--app-btn-elev);
+}
+
+/* Outline / ghost buttons use secondary background with visible text */
+ion-button.button-outline, .button-outline {
+  --background: transparent !important;
+  --border-color: var(--app-btn-bg) !important;
+  border: 1px solid rgba(0,0,0,0.06);
+  color: var(--app-btn-text) !important;
+}
+
+/* Small fix for text-only buttons to keep contrast */
+ion-button.button-clear, .button-clear {
+  color: var(--app-btn-text) !important;
+}
+
+/* Respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  ion-button, button, .button, .button-native { transition: none !important; }
+}
+
+/* Generic app button class for non-ionic elements (div-based buttons used across the app) */
+.app-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--app-btn-min-height);
+  padding: var(--app-btn-pad-y) var(--app-btn-pad-x) !important;
+  font-size: var(--app-btn-font-size);
+  border-radius: var(--app-btn-radius);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 160ms cubic-bezier(.2,.8,.2,1), box-shadow 160ms ease, background-color 160ms ease;
+  background: var(--app-btn-bg);
+  color: var(--app-btn-text);
+  border: none;
+  box-shadow: var(--app-btn-elev);
+}
+.app-btn.app-secondary { background: var(--app-btn-secondary-bg); color: var(--app-btn-secondary-text); box-shadow: none }
+.app-btn:active { transform: scale(0.98); }
+/* Stronger, high-specificity overrides to ensure text color for app-btn is always readable */
+.app-btn, ion-button.app-btn {
+  color: var(--app-btn-text) !important;
+}
+.app-btn.app-primary, ion-button.app-btn.app-primary {
+  background: var(--app-btn-bg) !important;
+  color: var(--app-btn-text) !important;
+  border: none !important;
+}
+.app-btn.app-secondary, ion-button.app-btn.app-secondary {
+  background: var(--app-btn-secondary-bg) !important;
+  color: var(--app-btn-secondary-text) !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+}
+
+/* Make existing ripple-based divs follow app button tokens so pages update without markup changes */
+.ripple-parent, .rounded-rectangle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--app-btn-bg) !important;
+  color: var(--app-btn-text) !important;
+  border-radius: var(--app-btn-radius) !important;
+  min-height: var(--app-btn-min-height) !important;
+  padding: var(--app-btn-pad-y) var(--app-btn-pad-x) !important;
+  box-shadow: var(--app-btn-elev) !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+/* Preserve explicit red variant for pay/exit buttons */
+.ripple-parent.ripple-effect-red, .rounded-rectangle.ripple-effect-red {
+  background: var(--ion-color-danger) !important;
+  color: var(--ion-color-danger-contrast) !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+}

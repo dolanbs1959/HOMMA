@@ -1,0 +1,227 @@
+ion-header {
+  --ion-background-color: #4194ab !important; /* Header background color */
+  --ion-color-base: #fff !important; /* Text color */
+}
+ion-title {
+  --ion-color-base: #fff !important; /* Text color */
+  font-size: 16px;
+}
+/* Local design tokens for button preview */
+:host {
+  --btn-radius: 12px;
+  --btn-pad-y: 10px;
+  --btn-pad-x: 16px;
+  --btn-font-size: 14px;
+  --btn-min-height: 44px;
+
+  --btn-primary-bg: #0B84FF;
+  --btn-primary-text: #FFFFFF;
+  --btn-secondary-bg: #E8F3FF;
+  --btn-secondary-text: #07243a;
+  --btn-ghost-border: rgba(11,132,255,0.18);
+  --btn-destructive-bg: #D64545;
+  --btn-elev: 0 6px 18px rgba(11,132,255,0.18);
+  --btn-press-scale: 0.98;
+  --btn-transition: 160ms cubic-bezier(.2,.8,.2,1);
+
+  /* map local tokens to global app tokens so .app-btn rules see the same values */
+  --app-btn-radius: var(--btn-radius);
+  --app-btn-pad-y: var(--btn-pad-y);
+  --app-btn-pad-x: var(--btn-pad-x);
+  --app-btn-font-size: var(--btn-font-size);
+  --app-btn-min-height: var(--btn-min-height);
+  --app-btn-bg: var(--btn-primary-bg);
+  --app-btn-text: var(--btn-primary-text);
+  --app-btn-secondary-bg: var(--btn-secondary-bg);
+  --app-btn-secondary-text: var(--btn-secondary-text);
+}
+
+/* Dark theme from ancestor */
+:host-context([data-theme="dark"]) {
+  --btn-primary-bg: #2B6CFF;
+  --btn-secondary-bg: rgba(43,108,255,0.12);
+  --btn-secondary-text: #000000;
+}
+/* Also support Ionic/body dark class which this app uses (body.dark) */
+:host-context(.dark) {
+  --btn-primary-bg: #2B6CFF;
+  --btn-secondary-bg: rgba(43,108,255,0.12);
+  --btn-secondary-text: #000000;
+}
+ion-card-header {
+  --padding-bottom: 0; /* Adjust as needed */
+  font-size: 16px;
+  font-weight: bold;
+}
+
+ion-card-subtitle {
+  --ion-color-base: #000 !important; /* Text color */
+  font-size: 12px;
+  font-weight:inherit;
+}
+
+ion-card-title {
+    text-align: center;
+    border-bottom: 1px solid #000; /* Adjust as needed */
+  }
+
+  .first-title {
+  border-bottom: none;
+  }
+  .error-message {
+    color: red;
+    font-size: 20px;
+    margin-top: 10px;
+    
+  }
+  ion-card {
+    justify-content: center;
+    .error-message-text{
+      text-align: center;
+      color:#87130a
+      }
+    }
+  ion-select {
+    margin: 0;
+    padding: 10px;
+
+  }
+form {
+  margin: 0;
+  padding: 10px;
+}
+
+.ripple-effect-blue {
+  color: #010384;
+}
+
+.ripple-effect-lightblue {
+  color: #00c8ff;
+  width: 100px;
+}
+
+.ripple-effect-orange {
+  color: #6c5105;
+  font-size: x-small;
+}
+.weekly-meeting-message ion-card-subtitle {
+  text-align: center;
+  font-size: 12px;
+  color:#010384;
+  font-weight: bold;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+
+  align-items: center;
+  justify-content: space-between;
+  // text-align: center;
+
+  height: 50px;
+  width: 300px;
+
+  margin: 0 auto;
+}
+
+b {
+  width: 100%;
+}
+.center-div {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100%; /* or any other value that suits your needs */
+width: 100%;
+}
+.ripple-parent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+  overflow: hidden;
+
+  border: 1px solid #4194ab;
+
+//      user-select: none;
+
+  width: 100%;
+  height: 50px;
+  border-radius: 8px;
+}
+
+/* App button preview styles (local to this component) */
+.app-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:var(--btn-min-height);
+  padding:var(--btn-pad-y) var(--btn-pad-x);
+  font-size:var(--btn-font-size);
+  border-radius:var(--btn-radius);
+  cursor:pointer;
+  -webkit-user-select: none;
+  user-select:none;
+  transition: transform var(--btn-transition), box-shadow var(--btn-transition), background-color var(--btn-transition);
+  background:transparent;
+  color:var(--btn-primary-bg);
+  border:1px solid var(--btn-primary-bg);
+}
+.app-btn.app-primary{ background:var(--btn-primary-bg); color:var(--btn-primary-text); box-shadow:var(--btn-elev); border:none }
+.app-btn.app-secondary{ background:var(--btn-secondary-bg); color:var(--btn-secondary-text); border:1px solid rgba(0,0,0,0.06) }
+/* ensure we override global ion-button dark color rules when necessary */
+:host .app-btn.app-secondary{ color:var(--btn-secondary-text) }
+.app-btn:active{ transform:scale(var(--btn-press-scale)) }
+.app-btn[aria-disabled="true"], .app-btn.disabled{ opacity:0.5; pointer-events:none }
+
+.status-overdue {
+  color: #c92419;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.reviews-due {
+  color: #c92419;
+  font-size: 16px;
+  font-weight: bold;
+}
+.rounded-rectangle {
+  width: 300px;
+  height: 50px;
+  margin-bottom: 5px;
+  border-radius: 8px;
+}
+.bordered-input {
+  border: 1px solid #4194ab; /* Change the color and width as needed */
+  white-space: pre-wrap; /* This will make the text wrap */
+
+}
+.stacked-label label {
+  display: block;
+  margin-bottom: 5px;
+  color:#4194ab
+}
+
+ion-button {
+  --padding-start: 10px; // padding on the left
+  --padding-end: 10px; // padding on the right
+  --padding-top: 0px; // padding on the top
+  --padding-bottom: 0px; // padding on the bottom
+  --background: #87130a; // background color
+  --color: #fff; // text color
+  --border-radius: 8px; // border radius
+  font-size: 12px;
+  font-weight: bold;
+}
+.body-text {
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 0px;
+}

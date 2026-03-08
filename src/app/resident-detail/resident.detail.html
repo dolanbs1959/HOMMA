@@ -1,0 +1,145 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Participant Details
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleTheme()" fill="clear">
+        <ion-icon [name]="(themeService.isDarkMode$ | async) ? 'sunny' : 'moon'" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <br>
+    <ion-card-header>
+      <div *ngIf="residentData">
+        <h1>{{ residentData.residentFullName.value }}</h1>
+        <br>
+        <img *ngIf="residentData.residentPhoto" [src]="residentData.residentPhoto" alt="Resident Photo" class="thumbnail" />
+        <!-- Hide contact info for staff users -->
+        <ng-container *ngIf="!isStaff">
+          <ion-card-subtitle *ngIf="isResident" class="phone-link">House Leader: {{ residentData.houseLeaderName.value }} <a (click)="promptAction(residentData.houseLeaderPhone.value, residentData.houseLeaderName.value)">{{ residentData.houseLeaderPhone.value }}</a></ion-card-subtitle>
+          <ion-card-subtitle class="phone-link">Care Navigator: {{ residentData.CareMgrName.value }} <a (click)="promptAction(residentData.CareMgrPhone.value, residentData.CareMgrName.value)">{{ residentData.CareMgrPhone.value }}</a></ion-card-subtitle>
+          <ion-card-subtitle class="phone-link">Program Manager: {{ residentData.ProgMgrName.value }} <a (click)="promptAction(residentData.ProgMgrPhone.value, residentData.ProgMgrName.value)">{{ residentData.ProgMgrPhone.value }}</a></ion-card-subtitle>
+          <ion-card-subtitle class="phone-link">Program Director: {{ residentData.ProgDirName.value }} <a (click)="promptAction(residentData.ProgDirPhone.value, residentData.ProgDirName.value)">{{ residentData.ProgDirPhone.value }}</a></ion-card-subtitle>          <br><!-- Display other properties of residentData here -->
+        </ng-container>
+    </div>
+    </ion-card-header>
+  </ion-card>
+
+  <!-- Hide participant details card for staff users -->
+  <ion-card *ngIf="!isStaff && residentData">
+    <ion-card-header class="ion-text-center">
+      Participant Status: {{residentData.ParticipantStatus.value }}
+</ion-card-header>
+
+
+  <ion-card-content>
+    <ion-grid [fixed]="true" class="main">
+      <ion-row>
+        <ion-col size="6" class="main">Participant Phone#: <a (click)="promptAction(residentData.residentPhone.value, residentData.residentFullName.value)">{{ residentData.residentPhone.value }}</a></ion-col>
+        <ion-col size="6" class="main">Participant DOB: {{ residentData.residentDOB.value | date: 'MMM-dd-yyyy' }}<br>Age: {{ residentData.residentAge.value }}</ion-col>
+      </ion-row>
+
+      <ion-row>
+      <ion-col size="6" class="main">Bed Start Date:<br> {{ residentData.residentBedStart?.value | date: 'MMM-dd-yyyy' }}</ion-col>
+      <ion-col size="6" class="main">S/O Level: {{residentData.SOLevel.value }}</ion-col>
+      </ion-row>
+
+    <ion-row>
+      <ion-col class="main">Room #: {{residentData.Room.value }}<br>{{residentData.Bed.value }}</ion-col>
+      <ion-col class="main cco-info">CCO Contact Info<br>Name: {{ residentData.residentCCOfirst.value }} {{ residentData.residentCCOlast.value }}<br>Phone: <a (click)="promptAction(residentData.residentCCOphone.value, residentData.residentCCOphone.value)">{{ residentData.residentCCOphone.value }}</a><br>Mobile: <a (click)="promptAction(residentData.residentCCOmobile.value, residentData.residentCCOmobile.value )">{{ residentData.residentCCOmobile.value }}</a></ion-col>
+    </ion-row>
+  
+    <ion-row>
+      <ion-col class="main">Fees Due First of Month:<br> <div [innerHTML]="getSafeHtml(residentData?.FeesDueFirstofMonth?.value)"></div></ion-col>
+      <!-- <ion-col class="main">Fees Due First of Month: {{residentData.FeesDueFirstofMonth?.value | extractText }}</ion-col> -->
+      <ion-col class="main">Past Due Fees: {{residentData?.PastDueFees?.value | currency:'USD':'symbol' }}</ion-col>
+    </ion-row>
+    
+    <ion-row>
+      <ion-col class="main">Financial Status:<br> <div [innerHTML]="getSafeHtml(residentData?.FinancialStatus?.value)"></div></ion-col>
+      <ion-col class="main">Active Payplans: {{residentData.ActivePayplans.value }}</ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-card-content>
+</ion-card>
+
+<!-- Display Announcements if isResident is true -->
+<div *ngIf="isResident && !isStaff && announcements.length > 0">
+  <ion-card *ngFor="let announcement of announcements.slice().reverse()" class="announcement-card">
+    <!-- HOM Bulletin Board Title -->
+    <ion-card-header>
+      <h1 class="bulletin-title">HOM Bulletin Board</h1>
+    </ion-card-header>
+
+    <!-- Announcement Content -->
+    <ion-card-content [innerHTML]="getSafeHtml(announcement[6]?.value || '')">
+    </ion-card-content>
+  </ion-card>
+</div>
+
+<!-- Staff-only buttons card -->
+<ion-card *ngIf="isStaff">
+  <ion-card-content class="scrollable-content">
+    <div class="wrapper">
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="navigateToExpenseReceipt()">
+        Submit Expense Receipt
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
+        Return to Login Page
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+    </div>
+  </ion-card-content>
+</ion-card>
+
+<!-- Regular participant/resident buttons card -->
+<ion-card *ngIf="!isStaff && residentData">
+  <ion-card-content class="scrollable-content">
+    <div class="wrapper">
+      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="addObservationReport()">
+        Add Observation Report
+          <ion-ripple-effect></ion-ripple-effect>
+          </div>
+      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="addResidentUpdate()">
+        Add Resident Update
+          <ion-ripple-effect></ion-ripple-effect>
+          </div>
+      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="addParticipantReviews()">
+        Add Participant 1-on-1
+          <ion-ripple-effect></ion-ripple-effect>
+          </div>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="navigateToTransportation()">
+        Add Transport Request
+          <ion-ripple-effect></ion-ripple-effect>
+          </div>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="navigateToTraining()">
+        Register for a Meeting/Class
+          <ion-ripple-effect></ion-ripple-effect>
+          </div>
+      <div *ngIf="isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="payNow()">
+        Pay Program Fees or Give/Tithe
+       <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <div *ngIf="isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="goToMessageCenter()">
+        Go to Message Center
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>          
+      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
+        Return to Participant List
+          <ion-ripple-effect></ion-ripple-effect>
+          </div>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
+        Return to Login Page
+          <ion-ripple-effect></ion-ripple-effect>
+          </div>
+  </div>
+  </ion-card-content>
+</ion-card>
+

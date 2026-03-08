@@ -1,0 +1,227 @@
+#container { text-align: center; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
+.body-text { font-size: 12px; line-height: 16px; margin-top: 0; }
+
+.thumbnail { width: 100px; height: 130px; object-fit: cover; }
+.center-content { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.radio-group-horizontal { display: flex; justify-content: center; align-items: center; margin-top: -2px; ion-item { margin: 0 10px; display: flex; align-items: center; } ion-label { margin-right: 1px; } }
+.small-text { font-size: 11px; }
+
+.contact-info-section {
+  margin-bottom: 20px;
+  p { margin: 8px 0; font-size: 14px; }
+  .toggle-item { --padding-start: 0; --inner-padding-end: 0; cursor: pointer; border-radius: 8px; ion-label { font-weight: 500; color: var(--ion-color-primary); } &.expanded { --background: rgba(var(--ion-color-primary-rgb), 0.08); ion-label { color: var(--ion-color-primary-shade); font-weight: 600; } } }
+  .toggle-icon { margin-right: 12px; font-size: 1.3em; &.phone-icon { color: var(--ion-color-success); } &.email-icon { color: var(--ion-color-tertiary); } &.cco-name-icon { color: var(--ion-color-warning); } &.cco-phone-icon { color: var(--ion-color-secondary); } &.cco-mobile-icon { color: var(--ion-color-success); } &.cco-email-icon { color: var(--ion-color-danger); } }
+  .chevron-icon { color: var(--ion-color-medium); font-size: 1em; &.expanded { transform: rotate(180deg); color: var(--ion-color-primary); } }
+  .input-container { max-height: 0; overflow: hidden; opacity: 0; padding: 0; &.show { max-height: 200px; opacity: 1; padding: 8px 0; } ion-item { --padding-start: 0; --inner-padding-end: 0; margin-top: 8px; border-radius: 8px; --background: rgba(var(--ion-color-light-rgb), 0.3); &.error-input { --background: rgba(var(--ion-color-danger-rgb), 0.1); border: 1px solid var(--ion-color-danger); } ion-input { --padding-start: 16px; &.duplicate-error { --color: var(--ion-color-danger); } } } .duplicate-error-message { display: flex; align-items: center; color: var(--ion-color-danger); font-size: 12px; margin-top: 4px; .warning-icon { margin-right: 6px; font-size: 14px; } } }
+}
+
+.error-message-text { margin-top: 4px; .duplicate-error-message { padding: 8px 12px; background-color: rgba(var(--ion-color-danger-rgb), 0.1); border-radius: 6px; border-left: 3px solid var(--ion-color-danger); } }
+
+#container { strong { font-size: 14px; line-height: 18px; } p { font-size: 12px; line-height: 16px; color: #2b9c4d; margin: 0; } a { text-decoration: none; } }
+.fields-container { display: flex; justify-content: space-evenly; }
+.info-container { display: flex; justify-content: space-between; }
+.info-item { margin: 0; }
+ion-list { width: 100%; padding: 0; font-size: 10px; margin-top: 0; }
+ion-header { --ion-background-color: #4194ab !important; --ion-color-base: #fff !important; }
+ion-title { font-size: 1.1em; font-weight: normal; text-shadow: none; }
+ion-content { --ion-font-size: 12px; }
+ion-buttons { font-size: 1.1em; }
+  
+.ripple-effect-blue { color: #010384; }
+.ripple-effect-lightblue { color: #00c8ff; }
+.ripple-effect-red { color: #980707; }
+.wrapper { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; text-align: center; height: 100px; width: 300px; margin: 0 auto; }
+b { width: 100%; }
+.ripple-parent { display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid #4194ab; width: 100%; height: 50px; border-radius: 8px; }
+.rounded-rectangle { width: 300px; height: 50px; border-radius: 8px; }
+
+.field-label { color: black; }
+ion-select { color: var(#010384); }
+ion-select-option { color: var(#1231e1); }
+.small-input { font-size: 1.0em; color:#4009f5; }
+.notes-input ion-textarea { border: 1px solid #1231e1; padding: 10px; border-radius: 5px; }
+
+.submission-message { margin-bottom: 1em; color: green; font-weight: bold; text-align: center; }
+.error-message-text { color: red; font-size: small; font-weight: normal; text-align: center; }
+.submission-error-message { color: red; font-size: 14px; margin-top: 10px; text-align: center; }
+
+.current-cco-name {
+  font-size: 1.4em !important;
+  font-weight: 700;
+  margin: 1em 0;
+  background-color: var(--ion-color-light);
+  padding: 0.8em 1em;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid var(--ion-color-secondary);
+  
+  strong {
+    font-weight: 600;
+    color: var(--ion-color-dark);
+  }
+}
+
+.current-cco-contact {
+  font-size: 1.1em !important;
+  font-weight: 600;
+  margin: 0.8em 0;
+  background-color: var(--ion-color-light);
+  padding: 0.6em 0.8em;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid var(--ion-color-tertiary);
+  
+  strong {
+    font-weight: 500;
+    color: var(--ion-color-dark);
+  }
+}
+
+// Simple validation warning text above submit button
+.validation-warning-text {
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+}
+
+// Submit error message styling
+.submit-error-message {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  
+  ion-item {
+    --background: #f8d7da;
+    --color: #721c24;
+    --border-color: #f5c6cb;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+  
+  ion-icon {
+    color: #721c24;
+    font-size: 1.2em;
+  }
+  
+  strong {
+    color: #721c24;
+    font-size: 1em;
+    margin-bottom: 4px;
+    display: block;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #856404;
+    line-height: 1.3;
+  }
+}
+
+// Validation warning container
+.validation-warning-container {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  
+  ion-item {
+    --background: #fff3cd;
+    --color: #856404;
+    --border-color: #ffeaa7;
+    border: 1px solid var(--border-color);
+  }
+  
+  ion-icon {
+    color: #dc3545;
+  }
+  
+  h3 {
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    color: #721c24;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #6c757d;
+  }
+}
+
+// Disabled submit button styles - Higher specificity to override existing styles
+.ripple-parent.ripple-effect-disabled {
+  background: linear-gradient(135deg, #dc3545, #c82333) !important;
+  color: #ffffff !important;
+  cursor: not-allowed !important;
+  border: 2px solid #dc3545 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  
+  &:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+  }
+  
+  span {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    line-height: 1.2;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap;
+    width: 100%;
+  }
+}
+
+// Icon spacing for submit button
+.submit-icon {
+  margin-right: 8px;
+  font-size: 16px;
+  color: #ffffff !important;
+}
+
+// Enhanced button states - More specific selectors
+.ripple-parent.rounded-rectangle {
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+  
+  &.ripple-effect-disabled {
+    opacity: 1 !important;
+    pointer-events: none !important;
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+    color: #ffffff !important;
+    border: 2px solid #dc3545 !important;
+    
+    span {
+      color: #ffffff !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+  }
+}

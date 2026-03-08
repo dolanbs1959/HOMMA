@@ -1,0 +1,284 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Expense Receipt
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="logo-container">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+  </div>
+
+  <ion-card-header class="ion-text-center"><b>Submit Expense Receipt</b></ion-card-header>
+  <ion-card-subtitle class="expense-intro">
+    Complete the form below to submit an expense. Required fields are marked.
+  </ion-card-subtitle>
+
+  <ion-card>
+    <ion-list [formGroup]="expenseForm">
+      <!-- Vendor Selection - Autocomplete Search -->
+      <div class="field-hint">Begin typing to search for and select the vendor</div>
+      <div class="vendor-autocomplete">
+        <ion-item>
+          <ion-input
+            [(ngModel)]="vendorSearchText"
+            [ngModelOptions]="{standalone: true}"
+            label="Vendor"
+            labelPlacement="floating"
+            placeholder="Start typing to search vendors..."
+            (ionInput)="onVendorSearch($event)"
+            (ionFocus)="onVendorInputFocus()"
+            (ionBlur)="onVendorInputBlur()"
+            (ionClear)="clearVendor()"
+            [clearInput]="true"
+          ></ion-input>
+          <ion-icon
+            *ngIf="selectedVendor"
+            name="checkmark-circle"
+            slot="end"
+            color="success"
+          ></ion-icon>
+        </ion-item>
+        
+        <!-- Vendor search results list -->
+        <ion-list *ngIf="showVendorList" class="vendor-search-results">
+          <ion-item
+            *ngFor="let vendor of filteredVendors"
+            button
+            (click)="selectVendor(vendor)"
+            class="vendor-item"
+          >
+            <ion-label>{{ vendor.name }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+      <div class="error-message-text">
+        <div
+          *ngIf="expenseForm.controls['vendor']?.invalid && expenseForm.controls['vendor'].touched"
+        >
+          Invalid input: Please select a vendor from the list
+        </div>
+      </div>
+      <br />
+
+      <!-- Expense Date -->
+      <div class="field-hint">Date the expense was incurred</div>
+      <ion-item>
+        <div class="stacked-label">
+          <label>Expense Date</label>
+          <ion-input type="date" formControlName="expenseDate"></ion-input>
+        </div>
+      </ion-item>
+      <div class="error-message-text">
+        <div
+          *ngIf="expenseForm.controls['expenseDate']?.invalid && expenseForm.controls['expenseDate'].touched"
+        >
+          Invalid input: Please enter the expense date
+        </div>
+      </div>
+      <br />
+
+      <!-- Qty and Amount side by side -->
+      <div class="field-hint">Enter quantity and unit price</div>
+      <div class="qty-amount-row">
+        <div class="qty-field">
+          <ion-item>
+            <ion-input
+              formControlName="qty"
+              label="Qty"
+              labelPlacement="floating"
+              type="number"
+              placeholder="1"
+              min="1"
+            ></ion-input>
+          </ion-item>
+          <div class="error-message-text">
+            <div
+              *ngIf="expenseForm.controls['qty']?.invalid && expenseForm.controls['qty'].touched"
+            >
+              Required
+            </div>
+          </div>
+        </div>
+        <div class="amount-field">
+          <ion-item>
+            <ion-input
+              formControlName="amount"
+              label="Amount ($)"
+              labelPlacement="floating"
+              type="number"
+              placeholder="Enter amount"
+              step="0.01"
+              min="0.01"
+            ></ion-input>
+          </ion-item>
+          <div class="error-message-text">
+            <div
+              *ngIf="expenseForm.controls['amount']?.invalid && expenseForm.controls['amount'].touched"
+            >
+              Invalid amount
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+
+      <!-- Grant Selection -->
+<ion-card class="grant-section-card">
+  <div class="grant-header">
+    <div class="grant-title">Grant Expense?</div>
+    <ion-radio-group #grantRadioGroup class="grant-yesno" formControlName="grantYesNo" legacy>
+      <ion-item lines="none" class="grant-option-item">
+        <ion-radio slot="end" value="yes" aria-label="Yes">Yes</ion-radio>
+      </ion-item>
+      <ion-item lines="none" class="grant-option-item">
+        <ion-radio slot="end" value="no" color="Primary" aria-label="No">No</ion-radio>
+      </ion-item>
+    </ion-radio-group>
+  </div>
+
+  <!-- Secondary options shown only when user selects Yes -->
+  <div *ngIf="isGrantExpense">
+    <div class="field-hint">Select grant type</div>
+    <ion-radio-group [(ngModel)]="selectedGrantType" [ngModelOptions]="{standalone: true}" legacy>
+      <ng-container *ngFor="let grant of grantOptions">
+          <ion-item *ngIf="grant.value !== 'none'" lines="none" class="grant-option-item">
+          <ion-label class="grant-label">{{ grant.label }}</ion-label>
+          <div class="leader-line"></div>
+          <ion-radio slot="end" [value]="grant.value" [attr.aria-label]="grant.label"></ion-radio>
+        </ion-item>
+      </ng-container>
+    </ion-radio-group>
+  </div>
+</ion-card>
+      <!-- Description -->
+      <div class="field-hint">Enter the item(s) being purchased and/or the reason for the purchase</div>
+      <ion-list>
+        <ion-item>
+          <ion-textarea
+            class="bordered-input"
+            formControlName="description"
+            label="Description"
+            labelPlacement="floating"
+            placeholder="Please enter the item(s) being purchased and/or a description of the expense"
+            autoGrow="true"
+          ></ion-textarea>
+        </ion-item>
+        <div class="error-message-text">
+          <div
+            *ngIf="expenseForm.controls['description']?.invalid && expenseForm.controls['description'].touched"
+          >
+            Invalid input: Please enter a description
+          </div>
+        </div>
+      </ion-list>
+      <br />
+
+      <!-- Photo Section -->
+      <ion-card-header class="photo-section-header">
+        <b>Receipt Photo</b>
+      </ion-card-header>
+
+      <!-- Camera View (shown when taking photo) -->
+      <div *ngIf="showCamera" class="camera-container">
+        <video #videoElement autoplay class="camera-view"></video>
+        <canvas #canvasElement class="hidden-canvas"></canvas>
+        <div class="camera-actions">
+          <ion-button color="primary" (click)="capturePhoto()">
+            <ion-icon name="camera" slot="start"></ion-icon>
+            Take Photo
+          </ion-button>
+          <ion-button color="medium" (click)="cancelCamera()">
+            Cancel
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Photo Preview (shown when photo is captured) -->
+      <div *ngIf="capturedPhoto && !showCamera" class="photo-preview-container">
+
+        <img 
+          *ngIf="uploadedFileExtension !== 'pdf'" 
+          [src]="capturedPhoto" 
+          alt="Receipt preview" 
+          class="photo-preview" 
+        />
+
+        <div *ngIf="uploadedFileExtension === 'pdf'" class="pdf-preview">
+          <ion-icon name="document-text" color="danger" class="pdf-icon"></ion-icon>
+          <p class="pdf-filename">{{ uploadedFileName }}</p>
+          <p class="pdf-caption">PDF Document Attached</p>
+        </div>
+
+        <ion-button color="danger" size="small" (click)="removePhoto()">
+          <ion-icon name="trash" slot="start"></ion-icon>
+          Remove File
+        </ion-button>
+      </div>
+
+      <!-- Photo Action Buttons (shown when no photo and no camera) -->
+      <div *ngIf="!capturedPhoto && !showCamera" class="photo-actions">
+        <ion-button color="primary" (click)="openCamera()">
+          <ion-icon name="camera" slot="start"></ion-icon>
+          Take Photo
+        </ion-button>
+        <ion-button color="secondary" (click)="triggerFileInput()">
+          <ion-icon name="image" slot="start"></ion-icon>
+          Upload File
+        </ion-button>
+        <input
+          #fileInput
+          type="file"
+          accept="image/*,application/pdf"
+          (change)="onFileSelected($event)"
+          class="hidden-input"
+          title="Upload receipt photo"
+          aria-label="Upload receipt photo"
+        />
+      </div>
+      <br />
+
+      <!-- Loading Indicator -->
+      <div *ngIf="isLoading" class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Processing...</p>
+      </div>
+
+      <!-- Submit/Reset Buttons -->
+    <div class="wrapper">
+        
+        <div *ngIf="newExpenseRecordId" class="success-message">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Expense submitted: {{ newExpenseRecordId }}
+        </div>
+
+        <div *ngIf="submissionError" class="error-message">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ submissionError }}
+        </div>
+
+        <div
+          class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue"
+          [class.disabled-button]="!expenseForm.valid || isLoading"
+          (click)="expenseForm.valid && submitExpense()"
+        >
+          Submit Expense Receipt
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+      </div>
+
+      <div class="wrapper">
+        <br />
+        <div
+          class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue"
+          (click)="exitApp()"
+        >
+          Return to Login Page
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+      </div>
+    </ion-list>
+  </ion-card>
+</ion-content>

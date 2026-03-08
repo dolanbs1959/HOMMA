@@ -1,0 +1,59 @@
+{
+  "name": "HOMMA",
+  "short_name": "HOMMA",
+  "theme_color": "#1976d2",
+  "background_color": "#fafafa",
+  "display": "standalone",
+  "scope": "./",
+  "start_url": "./",
+  "icons": [
+    {
+      "src": "assets/icons/HOM-72.png",
+      "sizes": "72x49",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/HOM-96.png",
+      "sizes": "96x66",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/HOM-128.png",
+      "sizes": "128x88",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/HOM-144.png",
+      "sizes": "144x100",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/HOM-152.png",
+      "sizes": "152x106",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/HOM-192.png",
+      "sizes": "192x134",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/HOM-384.png",
+      "sizes": "384x269",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/HOM-512.png",
+      "sizes": "512x359",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}

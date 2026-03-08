@@ -1,0 +1,160 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Add Resident Update
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <br>
+    <ion-card-header>
+        <h1>Adding a Resident Update for:</h1>
+        <ion-card-subtitle>
+          <img *ngIf="residentPhoto" [src]="residentPhoto" alt="Resident Photo" class="thumbnail" />
+          <div *ngIf="residentData">{{ residentData.residentFullName.value }}</div>
+          <div *ngIf="pendingArrival">{{ residentName }}</div>
+      </ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+  
+<ion-card>
+  <ion-list [formGroup]="reportForm">
+
+    <!-- <ion-select formControlName="RUStatus" 
+                label="Status" 
+                interface="action-sheet"
+                placeholder="Select the status of the resident update" 
+                label-placement="floating" 
+                fill="outline">
+        <ion-select-option value="To-Review">To-Review</ion-select-option>
+        <ion-select-option value="Closed">Closed</ion-select-option>
+    </ion-select> -->
+
+    <ion-select formControlName="OccupancyStatus" 
+                label="Occupancy Status" 
+                interface="action-sheet"
+                placeholder="Select the occupancy status of the resident" 
+                label-placement="floating" 
+                fill="outline">
+      <ion-select-option value="Information Updates">Information Updates (emergency contacts, new phone #'s, new employment, CCO contact info, etc.)</ion-select-option>
+      <ion-select-option value="Moved Beds">Moved Beds</ion-select-option>
+      <ion-select-option value="Moved House">Moved House</ion-select-option>
+      <ion-select-option value="Moved In">Moved In</ion-select-option>
+      <ion-select-option value="Moved Out">Moved Out</ion-select-option>
+      <ion-select-option value="Planned Move (Lateral)">Planned Move (Lateral)</ion-select-option>
+      <ion-select-option value="Planned Move Out">Planned Move Out</ion-select-option>
+      <ion-select-option value="Not Arrived on PRD">Not Arrived on PRD</ion-select-option>
+  </ion-select>  
+  
+  <ion-item *ngIf="reportForm.value.OccupancyStatus && reportForm.value.OccupancyStatus.toLowerCase().includes('move')">
+    <div class="stacked-label">
+      <label>Move Date</label>
+        <ion-datetime presentation="date" formControlName="MoveDate" [value]="currentDate"></ion-datetime> <!--set value to null if not used-->
+    </div>
+  </ion-item>  
+  <br>
+
+  <ion-item *ngIf="reportForm.value.OccupancyStatus && reportForm.value.OccupancyStatus.toLowerCase().includes('move')">
+  <ion-select formControlName="NewRoom" 
+          label="New Room #" 
+          interface="action-sheet"
+          placeholder="Select the new room # of the resident" 
+          label-placement="floating" 
+          fill="outline">
+      <ion-select-option value="1">1</ion-select-option>
+      <ion-select-option value="2">2</ion-select-option>
+      <ion-select-option value="3">3</ion-select-option>
+      <ion-select-option value="4">4</ion-select-option>
+      <ion-select-option value="5">5</ion-select-option>
+      <ion-select-option value="6">6</ion-select-option>
+      <ion-select-option value="7">7</ion-select-option>
+      <ion-select-option value="8">8</ion-select-option>
+      <ion-select-option value="9">9</ion-select-option>
+      <ion-select-option value="10">10</ion-select-option>
+</ion-select>  
+</ion-item>
+
+<br>
+<ion-item *ngIf="reportForm.value.OccupancyStatus && reportForm.value.OccupancyStatus.toLowerCase().includes('move')">
+<ion-select formControlName="NewBed" 
+            label="New Bed #" 
+            interface="action-sheet"
+            placeholder="Select the new bed # of the resident" 
+            label-placement="floating" 
+            fill="outline">
+        <ion-select-option value="1">1</ion-select-option>
+        <ion-select-option value="1T">1T</ion-select-option>
+        <ion-select-option value="2">2</ion-select-option>
+        <ion-select-option value="2T">2T</ion-select-option>
+        <ion-select-option value="3">3</ion-select-option>
+        <ion-select-option value="3T">3T</ion-select-option>
+        <ion-select-option value="4">4</ion-select-option>
+        <ion-select-option value="4T">4T</ion-select-option>
+        <ion-select-option value="5">5</ion-select-option>
+        <ion-select-option value="5T">5T</ion-select-option>
+        <ion-select-option value="6">6</ion-select-option>
+        <ion-select-option value="6T">6T</ion-select-option>
+        <ion-select-option value="7">7</ion-select-option>
+        <ion-select-option value="7T">7T</ion-select-option>
+        <ion-select-option value="8">8</ion-select-option>
+        <ion-select-option value="8T">8T</ion-select-option>
+        <ion-select-option value="9">9</ion-select-option>
+        <ion-select-option value="9T">9T</ion-select-option>
+        <ion-select-option value="10">10</ion-select-option>
+        <ion-select-option value="10T">10T</ion-select-option>
+        <ion-select-option value="11">11</ion-select-option>
+        <ion-select-option value="11T">11T</ion-select-option>
+        <ion-select-option value="12">12</ion-select-option>
+        <ion-select-option value="12T">12T</ion-select-option>
+        <ion-select-option value="13">13</ion-select-option>
+        <ion-select-option value="14">14</ion-select-option>
+        <ion-select-option value="15">15</ion-select-option>
+        <ion-select-option value="16">16</ion-select-option>
+        <ion-select-option value="17">17</ion-select-option>
+        <ion-select-option value="18">18</ion-select-option>
+        <ion-select-option value="19">19</ion-select-option>
+        <ion-select-option value="20">20</ion-select-option>
+</ion-select>  
+</ion-item>
+<br>
+
+  <ion-list>
+    <ion-item>
+      <ion-textarea class="bordered-input"
+        formControlName="Notes"
+        label="Note"
+        labelPlacement="floating"
+        placeholder="Please enter any notes pertaining to this resident update here" 
+        value=""
+        autoGrow="true">
+      </ion-textarea>
+    </ion-item>  
+  
+    </ion-list>
+
+<ion-card> 
+  <ion-card-content class="scrollable-content">
+<div class="wrapper">
+  <p *ngIf="NewResidentUpdateId">Record Number: {{ NewResidentUpdateId }}</p>
+  <div *ngIf="!NewResidentUpdateId" 
+        class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" 
+        [class.disabled-button]="!reportForm.valid"
+        (click)="reportForm.valid && insertNewResidentUpdate()">
+    Add Resident Update
+    <ion-ripple-effect></ion-ripple-effect>
+  </div>
+  <div *ngIf="NewResidentUpdateId" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="resetForm()">
+    Reset Form
+    <ion-ripple-effect></ion-ripple-effect>
+  </div>
+  <br>
+  <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="goBack()">
+    Back/Start Over
+    <ion-ripple-effect></ion-ripple-effect>
+  </div>
+  </div>
+</ion-card-content>
+</ion-card>

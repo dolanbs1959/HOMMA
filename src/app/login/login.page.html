@@ -1,0 +1,105 @@
+
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="logo-container">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+  </div>
+      <!-- Near your logo section -->
+      <div class="static-verse-container">
+        <p class="static-verse-text">{{ staticVerse }}</p>
+      </div>
+
+
+  <ion-card-header>
+    <ion-card-title>Tap on your role below to get started.</ion-card-title>
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+  </ion-card-header>
+
+  <div class="login-cards">
+    <ion-card class="ion-text-center" (click)="selectUserType('PP')" [class.selected]="userType === 'PP'">
+      <img src="assets/logo/Participants.png" alt="Logo" />
+      <ion-card-title>Program Participant Login</ion-card-title>
+    </ion-card>
+    <ion-card class="ion-text-center" (click)="selectUserType('HL')" [class.selected]="userType === 'HL'">
+      <img src="assets/logo/House Leader.png" alt="Logo" />
+      <ion-card-title>House Leader Login</ion-card-title>
+    </ion-card>
+  </div>
+
+  <ion-card class="ion-text-center" *ngIf="userType === 'HL'">
+    <ion-card-subtitle class="ion-text-center"><i>Select your house and enter your Staff ID to login.</i></ion-card-subtitle>
+    <ion-card-content>
+      <ion-item class="ion-text-center house-select-item">
+        <ion-label position="stacked" class="house-select-label">Tap to select your House</ion-label>
+        <ion-select 
+          [(ngModel)]="housename" 
+          (ionChange)="onHouseSelected()"
+          interface="popover"
+          class="centered-select">
+          <ion-select-option *ngFor="let houseName of houseNames$ | async" [value]="houseName">
+            {{ houseName }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <br>
+      <ion-item>
+        <ion-input 
+          #staffInput 
+          class="ion-text-center" 
+          [(ngModel)]="staffID" 
+          type="text" 
+          placeholder="Staff ID"></ion-input>
+      </ion-item>
+      <br>
+      <ion-button (click)="login()" [disabled]="!housename || !staffID">
+        Enter
+      </ion-button>
+    </ion-card-content>    
+  </ion-card>
+
+  <ion-card class="ion-text-center" *ngIf="userType === 'PP'">
+    <ion-card-subtitle class="ion-text-center"><i>Enter a valid email address and then your password you recevied from HOM staff.<br>
+        If you do not have an HOM provided password you can request it from your Care Navigator.</i></ion-card-subtitle>
+    <ion-card-content>
+      <ion-item>
+        <ion-input [(ngModel)]="email" type="email" placeholder="Participant's Email Address"></ion-input>
+      </ion-item>
+      <br>
+      <ion-item>
+        <ion-input [(ngModel)]="password" type="password" placeholder="HOM Provided Password" [type]="showPassword ? 'text' : 'password'"></ion-input>
+        <ion-icon slot="end" name="eye" (click)="showPassword = !showPassword"></ion-icon>
+      </ion-item>
+      <br>  
+      <ion-button (click)="onResidentLogin()">Enter</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+<ion-card class="verse-card">
+  <ion-card-content>
+   <p><b>Random Gospel Verse (KJV):</b></p>
+  <div *ngIf="dailyVerse" class="daily-verse">
+    <p class="verse-text" [innerHTML]="dailyVerse"></p>
+  </div>
+</ion-card-content>
+  
+
+</ion-card>
+    <div class="wrapper">
+      <br>
+      <!-- <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" 
+      [ngClass]="{'disabled': isDisabled}" 
+      (click)="!isDisabled && navigateToHelpDesk()">
+        Submit Help Desk Ticket
+        <ion-ripple-effect></ion-ripple-effect>
+      </div> -->
+      </div>
+

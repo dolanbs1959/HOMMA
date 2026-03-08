@@ -1,0 +1,52 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Classes for Registration
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <br>
+    <ion-card-header>
+      <div *ngIf="residentData">        
+        <img *ngIf="residentData.residentPhoto" [src]="residentData.residentPhoto" alt="Resident Photo" class="thumbnail" />
+        <p>{{ residentData.residentFullName.value }}<br>
+          Select the class below, <br>then tap the "Register" button.</p>
+      </div>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-list>
+    <ion-item *ngFor="let record of classesRecords" (click)="selectRecord(record)" [class.selected]="record === selectedRecord">
+      <ion-label>
+        <h2>Class Name: {{ record[45].value }}</h2>
+        <p>Class Description: {{ record[47].value }}</p>
+        <p>Class Date: {{ formatDate(record[7].value) }}</p>
+        <p># of Registered: {{ record[62].value }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-card>
+  <ion-card-content class="scrollable-content">
+    <div class="wrapper">
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="toRegister()">
+        Register for Class
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
+        Change Training Module Selection
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
+        Return to Login Page
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+    </div>
+  </ion-card-content>
+</ion-card>
+</ion-content>
+<!-- Duplicate block removed; kept the first header and content above -->

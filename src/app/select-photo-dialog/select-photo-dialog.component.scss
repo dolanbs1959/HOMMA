@@ -1,0 +1,125 @@
+ion-header {
+  --ion-background-color: #4194ab !important; /* Header background color */
+  --ion-color-base: #fff !important; /* Text color */
+}
+ion-title {
+  --ion-color-base: #fff !important; /* Text color */
+  font-size: 16px;
+}
+ion-card-header {
+  --padding-bottom: 0; /* Adjust as needed */
+  font-size: 16px;
+  font-weight: bold;
+}
+
+ion-card-subtitle {
+  --ion-color-base: #000 !important; /* Text color */
+  font-size: 12px;
+  font-weight:inherit;
+}
+
+ion-card-title {
+    text-align: left;
+  }
+  .error-message {
+    color: red;
+    font-size: 20px;
+    margin-top: 10px;
+    
+  }
+  ion-card {
+    justify-content: center;
+    .error-message-text{
+      text-align: center;
+      color:#87130a
+      }
+    }
+  ion-select {
+    margin: 0;
+    padding: 10px;
+
+  }
+
+.ripple-effect-green {
+    color: #09bc0c98;
+  }
+  
+  .ripple-effect-yellow {
+    color: #ccff00;
+  }
+  
+  .ripple-effect-orange {
+    color: #ffbb00;
+  }
+  
+  video {
+    width: 75%;
+    height: 75%;
+    object-fit: cover; /* This will ensure the aspect ratio of the video is maintained */
+    
+  }
+  .wrapper {
+    display: flex;
+    flex-wrap: wrap;
+  
+
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+
+    height: 100px;
+    width: 200px;
+  
+    margin: 0 auto;
+  }
+  
+  b {
+    width: 100%;
+  }
+  
+  .ripple-parent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    position: relative;
+    overflow: hidden;
+  
+    border: 1px solid #4194ab;
+  
+//      user-select: none;
+  
+    width: 100%;
+    height: 50px;
+    border-radius: 8px;
+  }
+  
+  .rounded-rectangle {
+    width: 200px;
+    height: 40px;
+    border-radius: 8px;
+  }
+
+  .camera-container {
+    text-align: center;
+  }
+
+  .logo {
+    max-width: 200px;
+  }
+
+  .camera-view {
+    width: 100%;
+    max-width: 640px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+  }
+
+  .hidden-canvas,
+  .hidden-image {
+    display: none;
+  }
+
+  .dialog-actions {
+    justify-content: center;
+  }

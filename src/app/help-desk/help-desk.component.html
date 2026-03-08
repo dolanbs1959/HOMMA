@@ -1,0 +1,149 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Help Desk
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="logo-container">
+    <img src="assets/logo/HOM.png" alt="Logo" />
+  </div>
+
+  <!-- <ion-card-header>
+    <ion-card-title class="ion-text-center">
+      <img src="assets/logo/website-under-construction-1.png" alt="Under Construction" />
+    </ion-card-title>
+
+  </ion-card-header> -->
+  <ion-card-header class="ion-text-center"><b>How to submit a Help Desk Ticket</b></ion-card-header>
+  <ion-card-subtitle class="HelpTicketSteps">
+    <ul>
+      <li>Choose a priority for your ticket. This is a request, not a guarantee. The helpdesk staff may change the priority level based on the current demand and the nature of your issue.</li>
+      <li>Write a brief name of the issue or suggestion that summarizes it.</li>
+      <li>Write a detailed description of what you are trying to do, what is happening, what you have tried so far, or what you would like it to do. The more information you provide, the easier it will be for the helpdesk staff to assist you.</li>
+      <li>Tap the button to Submit. The helpdesk staff will prioritize your request according to current demands. You may also be contacted if further communication is necessary.</li>
+    </ul>
+  </ion-card-subtitle>  
+
+  <ion-card>
+    <ion-list [formGroup]="reportForm">
+    <ion-select formControlName="requestedBy" 
+                label="Requested By" 
+                interface="action-sheet"
+                placeholder="Select the your name" 
+                cancelText="Cancel Choice"
+                label-placement="floating" 
+                fill="outline">
+      <ion-select-option *ngFor="let choices of dropdownChoices" [value]="choices">{{ choices.name }}</ion-select-option>
+    </ion-select>
+    <div class="error-message-text">
+    <div *ngIf="reportForm.controls['requestedBy']?.invalid && reportForm.controls['requestedBy'].touched">
+      Invalid input: Please select a name from the list
+    </div>
+    </div>
+    <br>
+
+    <ion-select formControlName="preferredContactMethod" 
+                label="Preferred Contact Method" 
+                interface="action-sheet"
+                placeholder="How do you prefer to be contacted" 
+                label-placement="floating" 
+                fill="outline">
+        <ion-select-option value="Phone">Phone</ion-select-option>
+        <ion-select-option value="Email">Email</ion-select-option>
+        <ion-select-option value="Text">Text</ion-select-option>
+    </ion-select>
+    <div class="error-message-text">
+    <div *ngIf="reportForm.controls['preferredContactMethod']?.invalid && reportForm.controls['preferredContactMethod'].touched">
+      Invalid input: Please select a Contact Method
+    </div>
+    </div>
+    <br>
+
+    <ion-select formControlName="requestedPriority" 
+                label="Requested Priority" 
+                interface="action-sheet"
+                placeholder="What priority are you requesting?" 
+                label-placement="floating" 
+                fill="outline">
+      <ion-select-option value="A">Urgent</ion-select-option> 
+      <ion-select-option value="B">Important</ion-select-option>
+      <ion-select-option value="C">ASAP</ion-select-option>
+      <ion-select-option value="D">Low Priority</ion-select-option>
+      <ion-select-option value="E">As Needed</ion-select-option>
+  </ion-select>
+  <div class="error-message-text">
+  <div *ngIf="reportForm.controls['requestedPriority']?.invalid && reportForm.controls['requestedPriority'].touched">
+    Invalid input: Please select a Priority
+  </div>
+  </div>
+  
+  <ion-list>
+    <ion-item>
+      <ion-textarea class="bordered-input"
+        formControlName="ticketName"
+        label="Ticket Name"
+        labelPlacement="floating"
+        placeholder="Please enter a title for the ticket here" 
+        value=""
+        autoGrow="true">
+      </ion-textarea>
+      </ion-item>  
+    <div class="error-message-text">
+    <div *ngIf="reportForm.controls['ticketName']?.invalid && reportForm.controls['ticketName'].touched">
+      Invalid input: Please enter a detailed description
+    </div>
+    </div>
+    <br>
+
+    <ion-list>
+    <ion-item>
+      <ion-textarea class="bordered-input"
+        formControlName="ticketDefinition"
+        label="Ticket Description"
+        labelPlacement="floating"
+        placeholder="Please describe the issue in full detail" 
+        value=""
+        autoGrow="true">
+      </ion-textarea>
+      </ion-item>  
+    <div class="error-message-text">
+    <div *ngIf="reportForm.controls['ticketDefinition']?.invalid && reportForm.controls['ticketDefinition'].touched">
+      Invalid input: Please enter a detailed description
+    </div>
+    </div>
+      
+    </ion-list>
+    <br>
+    <ion-item>
+      <div class="stacked-label">
+        <label>Requested Due Date (Optional)</label>
+        <ion-input type="date" formControlName="requestedDueDate"></ion-input>
+      </div>
+    </ion-item>
+    <br>
+
+  <div class="wrapper">
+        <p *ngIf="NewHelpDeskTicketId">Record Number: {{ NewHelpDeskTicketId }}</p>
+        <div *ngIf="!NewHelpDeskTicketId" 
+              class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" 
+              [class.disabled-button]="!reportForm.valid"
+              (click)="reportForm.valid && submitTicket()">
+          Submit Help Desk Ticket
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+
+        <div *ngIf="NewHelpDeskTicketId" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="resetForm()">
+          Reset Form
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+    
+  <div class="wrapper">
+    <br>
+    <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="exitApp()">
+      Return to Login Page
+      <ion-ripple-effect></ion-ripple-effect>
+    </div>
+    </div>

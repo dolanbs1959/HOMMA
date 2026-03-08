@@ -1,0 +1,96 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Weekly House Meetings
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo"/>
+    <br>
+    <ion-card-header>
+      <ion-card-title class="ion-text-center">{{ theHouseName }}<br>Weekly House Meeting</ion-card-title>
+      <ion-card-subtitle class="ion-text-left">House Leader: {{ HouseLeaderName }}<br>
+        Phone: {{ HLphone }}<br>
+        <p></p>
+        </ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-grid>
+  <ion-row>
+    <ion-col size="1" size-md="2" size-lg="3"></ion-col>
+    <ion-col size="10" size-md="8" size-lg="6">  
+  <form [formGroup]="formGroup" *ngIf="!isActivityAdded && !quickbaseService.isActivityAddedOnce">
+    <ion-textarea class="bordered-input"
+      formControlName="ActivityDesc"
+      label="Enter Activity Description"
+      labelPlacement="floating"
+      placeholder="Please enter the description of the weekly meeting activity here." 
+      value=""
+      autoGrow="true">
+    </ion-textarea>
+  </form>
+    </ion-col>
+    <ion-col size="1" size-md="2" size-lg="3"></ion-col>
+  </ion-row>
+  </ion-grid>
+
+  <div *ngIf="isActivityAdded">
+    <ion-card *ngFor="let residentData of (quickbaseService.residentData | async); let i = index">
+      <ion-card-content>
+        <p>{{ residentData.residentFullName.value }}</p>
+          <ion-radio-group [(ngModel)]="residentData.AttendanceStatus" value="">
+            <ion-radio labelPlacement="end" value="Present">Present</ion-radio><br />
+            <ion-radio labelPlacement="end" value="Excused Absence">Excused Absence</ion-radio><br />
+            <ion-radio labelPlacement="end" value="Unexcused Absence">Unexcused Absence</ion-radio><br />
+            <ion-radio labelPlacement="end" value="Excused Tardy">Excused Tardy</ion-radio><br />
+            <ion-radio labelPlacement="end" value="Unexcused Tardy">Unexcused Tardy</ion-radio><br />
+          </ion-radio-group>
+          <form [formGroup]="residentForm">
+            <div formArrayName="residents">
+              <div [formGroupName]="i">
+                <ion-textarea class="bordered-input"
+                  formControlName="Comments"
+                  label="Comments"
+                  labelPlacement="floating"
+                  placeholder="Please provide reason for unexcused tardiness or absence here" 
+                  autoGrow="true">
+                  <!-- *ngIf="residentData.AttendanceStatus && residentData.AttendanceStatus.includes('Unexcused')"> -->
+                </ion-textarea>
+              </div>
+            </div>
+          </form>
+      </ion-card-content>
+    </ion-card>
+    <router-outlet></router-outlet>
+  </div>
+
+  <ion-card>
+    <ion-card-content scrollable-content>    
+      <div class="wrapper">
+        <div *ngIf="!isActivityAdded && !quickbaseService.isActivityAddedOnce" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue" (click)="addWeeklyHouseMeeting()">
+        Add Weekly House Meeting
+        <ion-ripple-effect></ion-ripple-effect>
+        </div>
+      <div *ngIf="isActivityAdded && !attendanceUpdated" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue" (click)="updateAttendanceRecords()">
+        Update Attendance Records
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <div *ngIf="!allResidentsSelected" class="message">{{ message }}</div>
+      <div *ngIf="attendanceUpdated" class="message">Your attendance records have been successfully updated.<br>If you'd like to make any changes,<br>please contact your Care Navigator.</div>
+
+  <!-- <div *ngIf="NewObservationRecordId" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="resetForm()">
+    Reset Form
+    <ion-ripple-effect></ion-ripple-effect>
+  </div>
+  <br> -->
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="goBack()">
+        Go Back
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+    </div>  
+    </ion-card-content>
+  </ion-card>

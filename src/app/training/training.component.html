@@ -1,0 +1,68 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Available Training Modules
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <br>
+    <ion-card-header>
+      <div *ngIf="residentData">        
+        <ng-container *ngIf="residentData?.residentPhoto">
+          <div class="photo-wrapper">
+            <!-- Always render the img so the browser can fetch it; overlay a spinner until it finishes -->
+            <img [src]="residentData?.residentPhoto"
+                 alt="Resident Photo"
+                 class="thumbnail"
+                 (load)="residentImageLoaded = true; residentImageLoading = false"
+                 (error)="residentImageLoaded = false; residentImageLoading = false" />
+            <div *ngIf="!residentImageLoaded" class="photo-loader">
+              <ion-spinner name="crescent"></ion-spinner>
+            </div>
+          </div>
+        </ng-container>
+        <p>You are about to register<br>
+          <u>{{ residentData?.residentFullName?.value || residentData?.residentName || residentData?.residentFullName || '' }}</u> for a class.<br>
+          Select the Training Module below, <br>then tap the "Select a Meeting/Class" button to begin.</p>
+      </div>
+    </ion-card-header>
+  </ion-card>
+
+  <div *ngIf="!isLoading && trainingRecords.length === 0" class="ion-text-center no-classes-message">
+    <p>Our apologies, but at this time there aren't any classes available for registration. The class schedule will be updated soon. Please check back again.</p>
+  </div>
+
+  <ion-list *ngIf="!isLoading && trainingRecords.length > 0">
+    <ion-item *ngFor="let record of trainingRecords" (click)="selectRecord(record)" [class.selected]="record === selectedRecord">
+      <ion-label>
+  <h2>{{ formatField(record?.[7]) || 'Unnamed Module' }}</h2>
+  <p>{{ formatField(record?.[8]) }}</p>
+  <p><b>{{ formatField(record?.[12]) }}</b></p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-card>
+    <ion-card-content class="scrollable-content">
+      <div class="wrapper">
+        <div *ngIf="!isLoading && trainingRecords.length > 0" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="viewMeetingClass()">
+          Select a Meeting/Class
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
+          Return to Participant Details
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
+          Return to Login Page
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+<!-- Duplicate block removed; kept the first header and content above -->

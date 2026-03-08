@@ -1,0 +1,53 @@
+ion-header, ion-toolbar { --ion-background-color: #4194ab; --ion-color-base: #fff; }
+ion-title { font-size: 16px; }
+ion-card-header { padding-bottom: 0; font-weight: bold; }
+
+ion-item.selected { --ion-background-color: #4194ab; color: yellow; border: 2px solid #000; font-weight: bolder; font-style: italic; }
+
+.thumbnail { width:100px; height:130px; object-fit:cover; }
+
+ion-card-subtitle { --ion-color-base:#fff; font-size:10px; padding-top:10px; margin-top:5px; }
+ion-card-title { text-align:left; }
+
+.error-message, .error-message-text, .confirmation-error-message { color: red; text-align: center; }
+.error-message { font-size:20px; margin-top:10px; }
+.error-message-text { font-size:small; font-weight:normal; }
+.confirmation-error-message { font-size:14px; margin-top:10px; }
+
+ion-grid.main { --ion-grid-padding:20px; --ion-grid-column-padding:30px; }
+ion-col.main { background:transparent; border:1px solid #4194ab; color:#0a056f; text-align:center; }
+
+.ion-activatable, .phone-link { margin-bottom:10px; }
+
+.ripple-effect-blue { color:#010384 } .ripple-effect-green { color:#08782a } .ripple-effect-lightblue { color:#00c8ff } .ripple-effect-red { color:#980707 }
+
+.wrapper { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; padding:20px; box-sizing:border-box }
+b { width:100% }
+
+.ripple-parent { display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; border:1px solid #4194ab; width:100%; border-radius:8px }
+.rounded-rectangle { width:80%; max-width:300px; min-height:50px; border-radius:8px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; padding:10px; box-sizing:border-box }
+
+.scrollable-content { max-height:80vh; overflow-y:auto }
+.confirmation-message { margin-bottom:1em; color:green; font-weight:bold; text-align:center }
+
+:host { display:block }
+ion-header { position:relative; z-index:20 }
+ion-toolbar { z-index:21 }
+
+/* keep cloned/transition headers below this header */
+::ng-deep .ion-cloned-element ion-header, ::ng-deep .ion-cloned-element ion-toolbar, ::ng-deep .ion-page-invisible ion-header { z-index:5 !important; position:relative !important }
+
+.transportation-group { display:flex; gap:8px; width:100%; align-items:center }
+.transportation-item { flex:1; --ion-item-background:transparent; --ion-item-border-width:0 }
+
+.loading-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:24px }
+.spinner-wrap { margin:20px 0 }
+.skeleton-card { width:100%; max-width:520px; display:flex; gap:12px; align-items:center }
+.skeleton-thumbnail { width:96px; height:120px; background:linear-gradient(90deg,#e0e0e0 25%,#f5f5f5 50%,#e0e0e0 75%); background-size:200% 100%; animation:shimmer 1.2s linear infinite; border-radius:4px }
+.skeleton-lines { flex:1 }
+.skeleton-line { height:14px; margin:8px 0; background:#eee; border-radius:3px }
+.skeleton-line.short { width:40% }
+.skeleton-line.long { width:90% }
+.thumbnail.placeholder { width:100px; height:130px; background:#ddd; display:inline-block }
+
+@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
