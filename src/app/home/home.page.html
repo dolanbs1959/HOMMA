@@ -1,0 +1,303 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Participants
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleTheme()" fill="clear">
+        <ion-icon [name]="(themeService.isDarkMode$ | async) ? 'sunny' : 'moon'" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <br>
+    <ion-card-header>
+      <ion-card-title class="ion-text-center">{{ theHouseName }}</ion-card-title>
+      <ion-card-subtitle class="ion-text-left">House Leader: {{ HouseLeaderName }}<br>
+        Phone: {{ HLphone }}<br>
+        </ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+
+  <!-- House KPIs Section -->
+  <ion-card *ngIf="houseKPIs || isLoadingKPIs" class="kpi-card">
+    <ion-card-header (click)="toggleKPIDetails()" class="kpi-header-clickable">
+      <ion-card-title class="ion-text-center kpi-title">
+        House KPIs
+        <ion-icon [name]="showKPIDetails ? 'chevron-up' : 'chevron-down'" class="expand-icon"></ion-icon>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div *ngIf="isLoadingKPIs" class="ion-text-center">
+        <ion-spinner name="circular"></ion-spinner>
+        <p>Loading...</p>
+      </div>
+
+      <div *ngIf="houseKPIs && !isLoadingKPIs" class="kpi-three-column-grid">
+        <!-- Row 1: Always Visible -->
+        <div class="kpi-grid-row">
+          <div class="kpi-grid-item">
+            <span class="kpi-label">Beds</span>
+            <span class="kpi-value">{{ houseKPIs.occupiedBeds }}/{{ houseKPIs.activeBeds }}</span>
+          </div>
+          <div class="kpi-grid-item">
+            <span class="kpi-label">Arrivals (30d)</span>
+            <span class="kpi-value">{{ houseKPIs.arrivalsLast30Days }}</span>
+          </div>
+          <div class="kpi-grid-item">
+            <span class="kpi-label">Departures (30d)</span>
+            <span class="kpi-value">{{ houseKPIs.departuresLast30Days }}</span>
+          </div>
+        </div>
+
+        <!-- Expandable Rows -->
+        <div *ngIf="showKPIDetails" class="kpi-expandable-content">
+          <!-- Row 2: Client Status -->
+          <div class="kpi-grid-row">
+            <div class="kpi-grid-item">
+              <span class="kpi-label">Clients &lt;210d</span>
+              <span class="kpi-value">{{ houseKPIs.activeClientsUnder210Days }}</span>
+            </div>
+            <div class="kpi-grid-item">
+              <span class="kpi-label">Clients &gt;210d</span>
+              <span class="kpi-value">{{ houseKPIs.activeClientsOver210Days }}</span>
+            </div>
+            <div class="kpi-grid-item">
+              <span class="kpi-label">1-on-1s (CM)</span>
+              <span class="kpi-value">{{ houseKPIs.currentMonthOneOnOnes | stripHtml }}</span>
+            </div>
+          </div>
+
+          <!-- Row 3: Observations -->
+          <div class="kpi-grid-row">
+            <div class="kpi-grid-item">
+              <span class="kpi-label">Observations (CM)</span>
+              <span class="kpi-value">{{ houseKPIs.allObservationsThisMonth | stripHtml }}</span>
+            </div>
+            <div class="kpi-grid-item">
+              <span class="kpi-label">Negative Obs</span>
+              <span class="kpi-value negative">{{ houseKPIs.negativeObservationsThisMonth | stripHtml }}</span>
+            </div>
+            <div class="kpi-grid-item">
+              <span class="kpi-label">All-Time Obs</span>
+              <span class="kpi-value">{{ houseKPIs.allTimeObservations | stripHtml }}</span>
+            </div>
+          </div>
+
+          <!-- Row 4: Meetings -->
+          <div class="kpi-grid-row">
+            <div class="kpi-grid-item">
+              <span class="kpi-label">Meetings (7d)</span>
+              <span class="kpi-value">{{ houseKPIs.houseMeetingsLast7Days }}</span>
+            </div>
+            <div class="kpi-grid-item">
+              <span class="kpi-label">Present (30d)</span>
+              <span class="kpi-value">{{ houseKPIs.presentAtMeetingLast30Days }}</span>
+            </div>
+            <div class="kpi-grid-item">
+              <span class="kpi-label">Absent (30d)</span>
+              <span class="kpi-value">{{ houseKPIs.absentAtMeetingLast30Days }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="alert-format" [ngStyle]="{'background-color': STAalert === 'No Alerts' ? 'green' : 'red', 'color': 'white'}">
+  <p class="ion-text-center">{{ STAalert | extractText }}</p>
+  </div>
+  <div class="alert-format" [ngStyle]="{'background-color': Alert.includes('No Alerts') ? 'green' : 'red', 'color': 'white'}">
+  <p class="ion-text-center">{{ Alert | extractText }}</p>
+  </div>
+
+<div class="wrapper">
+<div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue app-btn" (click)="openStaffTasks()" role="button">
+    Manage House Leader Tasks
+    <ion-ripple-effect></ion-ripple-effect>
+  </div>
+
+
+  <div class="body-text">Click on a resident's photo to view their details or submit forms.</div>
+  </div>
+
+  <ion-card-title class="ion-text-center">Active Participants</ion-card-title>
+  <ion-card *ngFor="let resident of (quickbaseService.residentData | async)">
+    <ion-card-content>
+      <a (click)="navigateToDetail(resident.recordNumber2.value, false, resident.residentFullName.value)">
+        <img [src]="resident.residentPhoto" *ngIf="resident.residentPhoto" alt="Resident Photo" class="thumbnail">
+        <!-- <div [innerHTML]="resident.residentPhoto.value"></div> -->
+      <p>{{ resident.residentFullName.value }}</p>
+      </a>
+    </ion-card-content>
+  </ion-card>
+  <router-outlet></router-outlet>
+
+  <!-- <ion-card-title class="ion-text-center">Pending New Arrivals</ion-card-title> -->
+  <ion-card-title class="ion-text-center" *ngIf="(quickbaseService.pendingArrivals | async)?.length > 0">Pending New Arrivals</ion-card-title>
+  <ion-card *ngFor="let resident of (quickbaseService.pendingArrivals | async)">
+    <ion-card-content>
+        <a (click)="navigateToDetail(resident.recordNumber2.value, true, resident.residentFullName.value)">
+        <div [innerHTML]="resident.residentFullName.value + ' - Age: ' + resident.residentAge.value + ' - Level: ' + resident.SOLevel.value + ' - PRD: ' + (resident.PRD.value ? (resident.PRD.value | date:'MM-dd-yyyy') : 'TBD')"></div>
+        </a>
+    </ion-card-content>
+  </ion-card>
+
+      <!-- Transport Requests Report (collapsed by default) -->
+      <ion-card class="transport-report-card">
+        <ion-card-header (click)="toggleTransportReport()" class="kpi-header-clickable">
+          <ion-card-title class="ion-text-center kpi-title">
+            Transportation Requests
+            <ion-icon [name]="showTransportReport ? 'chevron-up' : 'chevron-down'" class="expand-icon"></ion-icon>
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content *ngIf="showTransportReport">
+          <div *ngIf="isLoadingTransportRequests" class="ion-text-center">
+            <ion-spinner name="circular"></ion-spinner>
+            <p>Loading...</p>
+          </div>
+          <div *ngIf="!isLoadingTransportRequests && (!transportRequests || transportRequests.length === 0)">
+            <p>No open or scheduled transportation requests.</p>
+          </div>
+          <div *ngIf="!isLoadingTransportRequests && (scheduledRequests.length > 0 || openRequests.length > 0)">
+            <div *ngIf="scheduledRequests.length > 0" class="transport-group">
+              <div class="transport-group-title">Scheduled ({{ scheduledRequests.length }})</div>
+              <hr class="transport-separator" />
+              <ion-list>
+                <ion-item *ngFor="let t of scheduledRequests">
+                  <ion-label>
+                    <h3>Request #{{ t.id }}</h3>
+                    <p><strong>Purpose:</strong> {{ t.purpose }} — {{ t.dateRequested | date:'M/d/yy' }} &#64; {{ t.dateRequested | date:'h:mm a' }}</p>
+                    <p><strong>Pickup:</strong> {{ t.pickupName || (t.pickupId || 'N/A') }} → <strong>Destination:</strong> {{ t.destinationName || (t.destinationId || 'N/A') }}</p>
+                    <p *ngIf="t.notes"><strong>Notes:</strong> {{ t.notes }}</p>
+                  </ion-label>
+                </ion-item>
+              </ion-list>
+            </div>
+
+            <div *ngIf="openRequests.length > 0" class="transport-group">
+              <div class="transport-group-title">Open ({{ openRequests.length }})</div>
+              <hr class="transport-separator" />
+              <ion-list>
+                <ion-item *ngFor="let t of openRequests">
+                  <ion-label>
+                    <h3>Request #{{ t.id }}</h3>
+                    <p><strong>Purpose:</strong> {{ t.purpose }} — {{ t.dateRequested | date:'M/d/yy' }} &#64; {{ t.dateRequested | date:'h:mm a' }}</p>
+                    <p><strong>Pickup:</strong> {{ t.pickupName || (t.pickupId || 'N/A') }} → <strong>Destination:</strong> {{ t.destinationName || (t.destinationId || 'N/A') }}</p>
+                    <p *ngIf="t.notes"><strong>Notes:</strong> {{ t.notes }}</p>
+                  </ion-label>
+                </ion-item>
+              </ion-list>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- House Leader Feedback Section -->
+      <ion-card class="feedback-card">
+        <ion-card-header>
+          <h1 class="feedback-title-centered">Submit Feedback or Request</h1>
+          <ion-card-subtitle>
+            Send feedback, requests, or communicate with HOM staff. Select the staff member you'd like to contact,
+            choose your request type, enter your message and hit Submit!
+          </ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <!-- Success/Error message display -->
+          <div *ngIf="feedbackMessage" class="feedback-message"
+               [ngClass]="{'success-message': feedbackMessage.includes('successfully'), 'error-message': feedbackMessage.includes('Error')}">
+            {{ feedbackMessage }}
+          </div>
+
+          <form [formGroup]="feedbackForm" (ngSubmit)="submitFeedback()">
+
+            <!-- Dropdown for active staff members (moved to first position) -->
+            <ion-item>
+              <ion-select formControlName="staff" label="Staff Member" placeholder="Select staff member" interface="action-sheet">
+                <ion-select-option *ngFor="let staff of activeStaff" [value]="staff.sendValue || staff.email || staff.userId">
+                  {{ staff.name }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Request Type Selection (moved to second position) -->
+            <ion-item>
+              <ion-select formControlName="requestType" label="Request Type" placeholder="Select request type" interface="action-sheet">
+                <ion-select-option value="feedback">Feedback</ion-select-option>
+                <ion-select-option value="request">General Request</ion-select-option>
+                <ion-select-option value="maintenance">Maintenance Request</ion-select-option>
+                <ion-select-option value="support">Support Needed</ion-select-option>
+                <ion-select-option value="suggestion">Suggestion</ion-select-option>
+                <ion-select-option value="concern">Concern/Issue</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Text area for the feedback/request -->
+            <ion-item>
+              <ion-textarea
+                formControlName="message"
+                label="Enter Your Feedback or Request"
+                labelPlacement="floating"
+                placeholder="Please describe your feedback, request, or concern in detail..."
+                autoGrow="true"
+                rows="4">
+              </ion-textarea>
+            </ion-item>
+
+            <!-- Submit button -->
+            <div class="feedback-buttons">
+              <ion-button
+                class="app-btn"
+                expand="block"
+                type="submit"
+                [disabled]="!feedbackForm.valid || isSubmittingFeedback"
+                color="primary">
+                <ion-icon name="send" slot="start"></ion-icon>
+                {{ isSubmittingFeedback ? 'Sending...' : 'Submit Request' }}
+              </ion-button>
+            </div>
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- HOM Bulletin Board Card -->
+      <ion-card class="announcement-card">
+        <!-- Title -->
+        <ion-card-header>
+          <h1 class="bulletin-title">HOM Bulletin Board</h1>
+        </ion-card-header>
+
+        <!-- Announcements -->
+        <ion-card-content>
+          <div *ngIf="announcements.length > 0">
+            <div *ngFor="let announcement of announcements.slice().reverse()">
+              <div [innerHTML]="announcement[6]?.value || ''"></div>
+            </div>
+          </div>
+          <div *ngIf="announcements.length === 0">
+            <p>No announcements available.</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+  <ion-card>
+    <ion-card-content>
+      <div class="wrapper">
+        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red app-btn" (click)="payNow()" role="button">
+          Pay Program Fees or Give/Tithe
+         <ion-ripple-effect></ion-ripple-effect>
+        </div>
+        <br>
+        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red app-btn" (click)="exitApp()" role="button">
+          Return to Login Page
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

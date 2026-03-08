@@ -1,0 +1,62 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Staff Tasks Assignments
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <br>
+    <ion-card-header>
+      <ion-card-title class="ion-text-center first-title">Staff Tasks Assignments</ion-card-title>
+
+      <ion-card-subtitle class="ion-text-left">{{ theHouseName }}<br>
+      House Leader: {{ HouseLeaderName }}<br>
+      Phone: {{ HLphone }}<br>
+      </ion-card-subtitle>
+    </ion-card-header>
+      </ion-card>
+
+        <div class="weekly-meeting-message">
+          <br>
+        <ion-card-subtitle class="ion-text-center">Your last weekly house meeting was on: {{ maxMeetingDate | date: 'MMM-dd-yyyy' }}</ion-card-subtitle>
+      </div>
+
+        <div class="wrapper">
+        <div class="ion-activatable ripple-parent rounded-rectangle app-btn app-primary ripple-effect-lightblue" (click)="addWeeklyHouseMeeting()" role="button">
+      Add Weekly House Meeting
+    <ion-ripple-effect></ion-ripple-effect>
+  </div>
+  <div class="body-text"></div>
+  </div>
+
+  <ion-card *ngFor="let task of tasks">
+    <ion-card-content>
+      <ion-card-header>
+        <ion-card-title>{{ task.taskName }}</ion-card-title>
+      </ion-card-header>
+
+        <p>Role: {{ task.role }}</p>
+        <p>House Name: {{ task.houseName }}</p>
+        <p [ngClass]="{'status-overdue': task.status.includes('Due')}">Status: {{ task.status | extractText }} </p>
+        <p>Frequency: {{ task.frequency | extractText }}</p>
+        <p>Priority: {{ task.priority }}</p>
+        <p [ngClass]="{'reviews-due': task.status.includes('Reviews')}" *ngIf="task.taskName.includes('Reviews')">1 on 1's Due: {{ task.p1on1sDue }}</p>
+      </ion-card-content>
+    </ion-card>
+    <router-outlet></router-outlet>
+
+    <ion-card>
+      <ion-card-content scrollable-content>
+        <div class="wrapper">
+          <div class="ion-activatable ripple-parent rounded-rectangle app-btn app-secondary ripple-effect-blue" (click)="goBack()" role="button">
+            Back/Start Over
+            <ion-ripple-effect></ion-ripple-effect>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+</ion-content>

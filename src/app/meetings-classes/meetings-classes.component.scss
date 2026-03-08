@@ -1,0 +1,143 @@
+/* Styles for meetings-classes */
+.thumbnail{max-width:120px;border-radius:8px}
+.wrapper{display:flex;gap:16px;flex-direction:column;align-items:center}
+.rounded-rectangle{width:80%;max-width:360px;height:auto;min-height:50px;border-radius:8px;margin-bottom:15px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;box-sizing:border-box}
+.scrollable-content{max-height:60vh;overflow-y:auto}
+.selected{background:#eef}
+/* filepath: src/app/training/training.component.scss */
+ion-header {
+    --ion-background-color: #4194ab !important; /* Header background color */
+    --ion-color-base: #fff !important; /* Text color */
+  }
+  ion-title {
+    --ion-color-base: #fff !important; /* Text color */
+    font-size: 16px;
+  }
+  ion-card-header {
+    padding-bottom: 0; /* Adjust as needed */
+    font-weight: bold;
+  }
+
+  ion-item.selected {
+      --ion-background-color: #4194ab !important; /* Corrected variable name */
+      color: yellow !important; /* Text color when selected */
+    border: 2px solid #000000; /* Optional: Add a border to make it more visible */
+    font-weight: bolder; /* Optional: Make the text bold */
+    font-style: italic;
+  }
+
+  .thumbnail {
+    width: 100px; /* Set the desired width for the thumbnail */
+    height: 130px; /* Set the desired height for the thumbnail */
+    object-fit: cover; /* Ensure the image covers the area without distortion */
+    // border-radius: 5px; /* Optional: Add rounded corners */
+    // border: 1px solid #ccc; /* Optional: Add a border */
+  }
+
+  ion-card-subtitle {
+    --ion-color-base: #fff !important; /* Text color */
+    font-size: 10px;
+    padding-top: 10;
+    margin-top: 5px;
+  }
+  ion-card-title {
+    text-align: left;
+  }
+  .error-message {
+    color: red;
+    font-size: 20px;
+    margin-top: 10px;
+  }
+
+  ion-grid.main {
+    --ion-grid-padding: 20px;
+
+    --ion-grid-padding-xs: 20px;
+    --ion-grid-padding-sm: 20px;
+    --ion-grid-padding-md: 20px;
+    --ion-grid-padding-lg: 20px;
+    --ion-grid-padding-xl: 20px;
+
+    --ion-grid-column-padding: 30px;
+
+    --ion-grid-column-padding-xs: 30px;
+    --ion-grid-column-padding-sm: 30px;
+    --ion-grid-column-padding-md: 30px;
+    --ion-grid-column-padding-lg: 30px;
+    --ion-grid-column-padding-xl: 30px;
+  }
+
+  ion-col.main {
+    background-color: transparent;
+    border: solid 1px #4194ab;
+    color: #0a056f;
+    text-align: center;
+  }
+
+  .ion-activatable {
+    margin-bottom: 10px;
+  }
+  .phone-link {
+    margin-bottom: 10px;
+  }
+
+  // Ripple effect styles
+  .ripple-effect-blue {
+    color: #010384;
+  }
+  .ripple-effect-green {
+    color: #08782a;
+  }
+
+  .ripple-effect-lightblue {
+    color: #00c8ff;
+  }
+
+  .ripple-effect-red {
+    color: #980707;
+  }
+
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  b {
+    width: 100%;
+  }
+
+  .ripple-parent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #4194ab;
+    width: 100%;
+    border-radius: 8px;
+  }
+
+  .rounded-rectangle {
+    width: 80%;
+    max-width: 300px;
+    height: auto;
+    min-height: 50px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .scrollable-content {
+    max-height: 80vh; /* Adjust as needed */
+    overflow-y: auto;
+  }

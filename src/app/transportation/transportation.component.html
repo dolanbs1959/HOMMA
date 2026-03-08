@@ -1,0 +1,127 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Transportation Request
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <ion-card-header class="center-content">
+        Submit a Transportation Request for:
+        <p></p>
+        <img *ngIf="participantPhoto" [src]="participantPhoto" alt="Resident Photo" class="thumbnail"/>
+        <ion-card-subtitle>
+          {{ participantName }}
+        </ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card>
+    <ion-list [formGroup]="transportationForm" *ngIf="transportationForm">
+
+      <ion-item>
+        <ion-select label="Purpose:" formControlName="purpose" interface="action-sheet" placeholder="Select a purpose">
+          <ion-select-option value="Prison Pick-up">Prison Pick-up</ion-select-option>
+          <ion-select-option value="Dept Of Corrections CCO">Dept Of Corrections CCO</ion-select-option>
+          <ion-select-option value="DSHS Dept">DSHS Dept</ion-select-option>
+          <ion-select-option value="Medical">Medical</ion-select-option>
+          <ion-select-option value="Work">Work</ion-select-option>
+          <ion-select-option value="Class">Class</ion-select-option>
+          <ion-select-option value="Other (describe below)">Other (describe below)</ion-select-option>
+        </ion-select>
+        <div class="error-message-text" *ngIf="transportationForm.controls['purpose'].invalid && transportationForm.controls['purpose'].touched">
+          Invalid input: Please select a purpose
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Date Requested" type="date" formControlName="dateRequested" name="date-picker"></ion-input>
+        <div class="error-message-text" *ngIf="transportationForm.controls['dateRequested'].invalid && transportationForm.controls['dateRequested'].touched">
+          Invalid input: Please select a date
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Time Requested" type="time" formControlName="timeRequested" name="timePicker"></ion-input>
+        <div class="error-message-text" *ngIf="transportationForm.controls['timeRequested'].invalid && transportationForm.controls['timeRequested'].touched">
+          Invalid input: Please select a time
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-select label="Pick-up Location:" formControlName="pickupLocation" interface="action-sheet" placeholder="Select a pick-up location" (ionChange)="onPickupLocationChange($event)">
+          <ion-select-option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</ion-select-option>
+        </ion-select>
+        <div class="error-message-text" *ngIf="transportationForm.controls['pickupLocation'].invalid && transportationForm.controls['pickupLocation'].touched">
+          Invalid input: Please select a pick-up location
+        </div>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Pick-up Address:" [value]="selectedPickupLocation?.address" readonly></ion-input>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Location Type:" [value]="selectedPickupLocation?.type" readonly></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-select label="Destination Location:" formControlName="destinationLocation" interface="action-sheet" placeholder="Select a destination location" (ionChange)="onDestinationLocationChange($event)">
+          <ion-select-option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</ion-select-option>
+        </ion-select>
+        <div class="error-message-text" *ngIf="transportationForm.controls['destinationLocation'].invalid && transportationForm.controls['destinationLocation'].touched">
+          Invalid input: Please select a destination location
+        </div>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Destination Address:" [value]="selectedDestinationLocation?.address" readonly></ion-input>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Location Type:" [value]="selectedDestinationLocation?.type" readonly></ion-input>
+      </ion-item>
+
+      <ion-item class="notes-input">
+        <ion-textarea label="Transportation Notes:" formControlName="transportationNotes"></ion-textarea>
+        <div class="error-message-text" *ngIf="transportationForm.controls['transportationNotes'].invalid && transportationForm.controls['transportationNotes'].touched">
+          Invalid input: Please enter transportation notes
+        </div>
+      </ion-item>
+
+    </ion-list>
+  </ion-card>
+
+  <div *ngIf="submissionMessage" class="submission-message">
+    {{ submissionMessage }}
+  </div>
+
+  <div *ngIf="submissionErrorMessage" class="submission-error-message">
+    {{ submissionErrorMessage }}
+  </div>
+
+  <ion-card>
+    <ion-card-content scrollable-content>
+      <div class="wrapper">
+        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue submit-button" (click)="onSubmit()">
+          Submit Request
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+        <br>
+        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
+          Return to Participant Details
+          <ion-ripple-effect></ion-ripple-effect>
+        </div>
+        <p></p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="center-content">
+    <a href="https://youtu.be/8MWMvi0G-CA" target="_blank" rel="noopener">Watch instructional video</a>
+  </div>
+
+</ion-content>

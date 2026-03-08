@@ -1,0 +1,615 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      HOM Mobile Assistant - Participants 1-on-1
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM3.png" alt="Logo" />
+    <ion-card-header class="center-content">
+        Add a Participant 1-on-1 for:
+        <p></p>
+          <img *ngIf="residentPhoto" [src]="residentPhoto" alt="Participant Photo" class="thumbnail" />
+        <ion-card-subtitle>
+          {{ participantName }}<br>
+          Last 1 on 1 submitted: <b>{{ last1on1Date | date: 'MM/dd/yyyy' }}</b>
+        </ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+
+  <!-- Form Group -->
+  <form [formGroup]="reportForm" (ngSubmit)="onSubmit()">
+
+    <!-- Participant Updates Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title><strong>Participant Updates</strong></ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="contact-info-section">
+          <p class="current-cco-contact"><strong>Current Phone:</strong> {{ participantPhone }}</p>
+          <ion-item button (click)="togglePhoneUpdate()" class="toggle-item" [class.expanded]="reportForm.get('updatePhoneNumber')?.value">
+            <ion-icon
+              name="phone-portrait"
+              slot="start"
+              class="toggle-icon phone-icon"
+              [class.expanded]="reportForm.get('updatePhoneNumber')?.value">
+            </ion-icon>
+            <ion-label>Tap here to update phone number</ion-label>
+            <ion-icon
+              [name]="reportForm.get('updatePhoneNumber')?.value ? 'chevron-down' : 'chevron-forward'"
+              slot="end"
+              class="chevron-icon"
+              [class.expanded]="reportForm.get('updatePhoneNumber')?.value">
+            </ion-icon>
+          </ion-item>
+          <div class="input-container" [class.show]="reportForm.get('updatePhoneNumber')?.value">
+            <ion-item [class.error-input]="isPhoneDuplicate()">
+              <ion-input
+                type="tel"
+                formControlName="newPhoneNumber"
+                placeholder="Enter new phone number"
+                [class.duplicate-error]="isPhoneDuplicate()">
+              </ion-input>
+            </ion-item>
+            <div class="error-message-text" *ngIf="isPhoneDuplicate()">
+              <div class="duplicate-error-message">
+                <ion-icon name="warning" class="warning-icon"></ion-icon>
+                New phone number must be different from current phone number
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-info-section">
+          <p class="current-cco-contact"><strong>Current Email:</strong> {{ participantEmail }}</p>
+          <ion-item button (click)="toggleEmailUpdate()" class="toggle-item" [class.expanded]="reportForm.get('updateEmailAddress')?.value">
+            <ion-icon
+              name="mail"
+              slot="start"
+              class="toggle-icon email-icon"
+              [class.expanded]="reportForm.get('updateEmailAddress')?.value">
+            </ion-icon>
+            <ion-label>Tap here to update email address</ion-label>
+            <ion-icon
+              [name]="reportForm.get('updateEmail')?.value ? 'chevron-down' : 'chevron-forward'"
+              slot="end"
+              class="chevron-icon"
+              [class.expanded]="reportForm.get('updateEmail')?.value">
+            </ion-icon>
+          </ion-item>
+          <div class="input-container" [class.show]="reportForm.get('updateEmail')?.value">
+            <ion-item [class.error-input]="isEmailDuplicate() || isEmailStructureInvalid()">
+              <ion-input
+                type="email"
+                formControlName="newEmail"
+                placeholder="Enter new email address"
+                [class.duplicate-error]="isEmailDuplicate() || isEmailStructureInvalid()">
+              </ion-input>
+            </ion-item>
+            <div class="error-message-text" *ngIf="isEmailDuplicate()">
+              <div class="duplicate-error-message">
+                <ion-icon name="warning" class="warning-icon"></ion-icon>
+                New email address must be different from current email address
+              </div>
+            </div>
+            <div class="error-message-text" *ngIf="isEmailStructureInvalid()">
+              <div class="duplicate-error-message">
+                <ion-icon name="alert-circle" class="warning-icon"></ion-icon>
+                {{ getEmailStructureError() }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Supervision Requirements or Stipulations Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title><strong>Supervision Requirements or Stipulations</strong></ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">On Supervision?</ion-label><br>
+            <ion-radio-group formControlName="onSupervision" class="radio-group-horizontal" (ionChange)="onSupervisionStatusChange($event)">
+              <ion-item>
+                <ion-radio slot="start" value="Yes">Yes</ion-radio>
+              </ion-item>
+              <ion-item>
+                <ion-radio slot="start" value="No">No</ion-radio>
+              </ion-item>
+            </ion-radio-group>
+          </ion-item>
+          <div class="error-message-text">
+            <div *ngIf="reportForm.controls['onSupervision']?.invalid && reportForm.controls['onSupervision'].touched">
+              Invalid input: Please make a selection
+            </div>
+          </div>
+        </ion-list>
+
+        <!-- In SOTP -->
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">In SOTP?</ion-label><br>
+            <ion-radio-group formControlName="inSOTP" class="radio-group-horizontal">
+              <ion-item>
+                <ion-radio slot="start" value="Yes">Yes</ion-radio>
+              </ion-item>
+              <ion-item>
+                <ion-radio slot="start" value="No">No</ion-radio>
+              </ion-item>
+            </ion-radio-group>
+          </ion-item>
+          <div class="error-message-text">
+            <div *ngIf="reportForm.controls['inSOTP']?.invalid && reportForm.controls['inSOTP'].touched">
+              Invalid input: Please make a selection
+            </div>
+          </div>
+        </ion-list>
+
+        <!-- In Drug/Alcohol Treatment -->
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">In Drug/Alcohol Treatment?</ion-label><br>
+            <ion-radio-group formControlName="inDATP" class="radio-group-horizontal">
+              <ion-item>
+                <ion-radio slot="start" value="Yes">Yes</ion-radio>
+              </ion-item>
+              <ion-item>
+                <ion-radio slot="start" value="No">No</ion-radio>
+              </ion-item>
+            </ion-radio-group>
+          </ion-item>
+          <div class="error-message-text">
+            <div *ngIf="reportForm.controls['inDATP']?.invalid && reportForm.controls['inDATP'].touched">
+              Invalid input: Please make a selection
+            </div>
+          </div>
+        </ion-list>
+
+        <!-- In Mental Health Counseling -->
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">In Mental Health Counseling?</ion-label><br>
+            <ion-radio-group formControlName="inMentalHealthCounseling" class="radio-group-horizontal">
+              <ion-item>
+                <ion-radio slot="start" value="Yes">Yes</ion-radio>
+              </ion-item>
+              <ion-item>
+                <ion-radio slot="start" value="No">No</ion-radio>
+              </ion-item>
+            </ion-radio-group>
+          </ion-item>
+          <div class="error-message-text">
+            <div *ngIf="reportForm.controls['inMentalHealthCounseling']?.invalid && reportForm.controls['inMentalHealthCounseling'].touched">
+              Invalid input: Please make a selection
+            </div>
+          </div>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- CCO Info Section -->
+    <ion-card *ngIf="showCCOSection">
+      <ion-card-header>
+        <ion-card-title><strong>CCO Info</strong></ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="contact-info-section">
+          <p class="current-cco-name"><strong>Current CCO:</strong> {{ ccoFullName }}</p>
+          <ion-item button (click)="toggleCCONameUpdate()" class="toggle-item" [class.expanded]="reportForm.get('updateCCOName')?.value">
+            <ion-icon
+              name="person"
+              slot="start"
+              class="toggle-icon cco-name-icon"
+              [class.expanded]="reportForm.get('updateCCOName')?.value">
+            </ion-icon>
+            <ion-label>Tap here to update CCO name</ion-label>
+            <ion-icon
+              [name]="reportForm.get('updateCCOName')?.value ? 'chevron-down' : 'chevron-forward'"
+              slot="end"
+              class="chevron-icon"
+              [class.expanded]="reportForm.get('updateCCOName')?.value">
+            </ion-icon>
+          </ion-item>
+          <div class="input-container" [class.show]="reportForm.get('updateCCOName')?.value">
+            <ion-item [class.error-input]="isCCONameDuplicate() || (reportForm.get('newCCOname')?.invalid && reportForm.get('newCCOname')?.touched)">
+              <ion-input
+                type="text"
+                formControlName="newCCOname"
+                placeholder="Enter new CCO name"
+                [class.duplicate-error]="isCCONameDuplicate() || (reportForm.get('newCCOname')?.invalid && reportForm.get('newCCOname')?.touched)">
+              </ion-input>
+            </ion-item>
+            <div class="error-message-text" *ngIf="isCCONameDuplicate()">
+              <div class="duplicate-error-message">
+                <ion-icon name="warning" class="warning-icon"></ion-icon>
+                New CCO name must be different from current CCO name
+              </div>
+            </div>
+            <div class="error-message-text" *ngIf="reportForm.get('newCCOname')?.invalid && reportForm.get('newCCOname')?.touched && reportForm.get('newCCOname')?.errors?.['required']">
+              <div class="duplicate-error-message">
+                <ion-icon name="alert-circle" class="warning-icon"></ion-icon>
+                CCO name is required
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-info-section">
+          <p class="current-cco-contact"><strong>Current CCO Phone:</strong> {{ ccoPhoneNumber }}</p>
+          <ion-item button (click)="toggleCCOPhoneUpdate()" class="toggle-item" [class.expanded]="reportForm.get('updateCCOPhone')?.value">
+            <ion-icon
+              name="call"
+              slot="start"
+              class="toggle-icon cco-phone-icon"
+              [class.expanded]="reportForm.get('updateCCOPhone')?.value">
+            </ion-icon>
+            <ion-label>Tap here to update CCO phone</ion-label>
+            <ion-icon
+              [name]="reportForm.get('updateCCOPhone')?.value ? 'chevron-down' : 'chevron-forward'"
+              slot="end"
+              class="chevron-icon"
+              [class.expanded]="reportForm.get('updateCCOPhone')?.value">
+            </ion-icon>
+          </ion-item>
+          <div class="input-container" [class.show]="reportForm.get('updateCCOPhone')?.value">
+            <ion-item [class.error-input]="isCCOPhoneDuplicate()">
+              <ion-input
+                type="tel"
+                formControlName="newCCOphone"
+                placeholder="Enter new CCO phone number"
+                [class.duplicate-error]="isCCOPhoneDuplicate()">
+              </ion-input>
+            </ion-item>
+            <div class="error-message-text" *ngIf="isCCOPhoneDuplicate()">
+              <div class="duplicate-error-message">
+                <ion-icon name="warning" class="warning-icon"></ion-icon>
+                New CCO phone must be different from current CCO phone
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-info-section">
+          <p class="current-cco-contact"><strong>Current CCO Mobile:</strong> {{ ccoMobile }}</p>
+          <ion-item button (click)="toggleCCOMobileUpdate()" class="toggle-item" [class.expanded]="reportForm.get('updateCCOMobile')?.value">
+            <ion-icon
+              name="phone-portrait"
+              slot="start"
+              class="toggle-icon cco-mobile-icon"
+              [class.expanded]="reportForm.get('updateCCOMobile')?.value">
+            </ion-icon>
+            <ion-label>Tap here to update CCO mobile</ion-label>
+            <ion-icon
+              [name]="reportForm.get('updateCCOMobile')?.value ? 'chevron-down' : 'chevron-forward'"
+              slot="end"
+              class="chevron-icon"
+              [class.expanded]="reportForm.get('updateCCOMobile')?.value">
+            </ion-icon>
+          </ion-item>
+          <div class="input-container" [class.show]="reportForm.get('updateCCOMobile')?.value">
+            <ion-item [class.error-input]="isCCOMobileDuplicate()">
+              <ion-input
+                type="tel"
+                formControlName="newCCOmobile"
+                placeholder="Enter new CCO mobile number"
+                [class.duplicate-error]="isCCOMobileDuplicate()">
+              </ion-input>
+            </ion-item>
+            <div class="error-message-text" *ngIf="isCCOMobileDuplicate()">
+              <div class="duplicate-error-message">
+                <ion-icon name="warning" class="warning-icon"></ion-icon>
+                New CCO mobile must be different from current CCO mobile
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-info-section">
+          <p class="current-cco-contact"><strong>Current CCO Email:</strong> {{ ccoEmail }}</p>
+          <ion-item button (click)="toggleCCOEmailUpdate()" class="toggle-item" [class.expanded]="reportForm.get('updateCCOEmail')?.value">
+            <ion-icon
+              name="mail"
+              slot="start"
+              class="toggle-icon cco-email-icon"
+              [class.expanded]="reportForm.get('updateCCOEmail')?.value">
+            </ion-icon>
+            <ion-label>Tap here to update CCO email</ion-label>
+            <ion-icon
+              [name]="reportForm.get('updateCCOEmail')?.value ? 'chevron-down' : 'chevron-forward'"
+              slot="end"
+              class="chevron-icon"
+              [class.expanded]="reportForm.get('updateCCOEmail')?.value">
+            </ion-icon>
+          </ion-item>
+          <div class="input-container" [class.show]="reportForm.get('updateCCOEmail')?.value">
+            <ion-item [class.error-input]="isCCOEmailDuplicate() || isCCOEmailStructureInvalid()">
+              <ion-input
+                type="email"
+                formControlName="newCCOemail"
+                placeholder="Enter new CCO email address"
+                [class.duplicate-error]="isCCOEmailDuplicate() || isCCOEmailStructureInvalid()">
+              </ion-input>
+            </ion-item>
+            <div class="error-message-text" *ngIf="isCCOEmailDuplicate()">
+              <div class="duplicate-error-message">
+                <ion-icon name="warning" class="warning-icon"></ion-icon>
+                New CCO email must be different from current CCO email
+              </div>
+            </div>
+            <div class="error-message-text" *ngIf="isCCOEmailStructureInvalid()">
+              <div class="duplicate-error-message">
+                <ion-icon name="alert-circle" class="warning-icon"></ion-icon>
+                {{ getCCOEmailStructureError() }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Program Participation Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title><strong>Program Participation</strong></ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+    <!-- HOM Meeting / Programming Compliance -->
+    <ion-item>
+      <ion-label position="stacked"><strong>HOM Meeting / Programming Compliance</strong></ion-label><br>
+      <ion-list>
+        <ion-item *ngFor="let option of getFieldChoices(162)">
+          <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'meeting_ProgrammingCompliance')"></ion-checkbox>
+          <span class="small-text">{{ option }}</span>
+        </ion-item>
+      </ion-list>
+    </ion-item>
+    <!-- Financial (Program Fee) Compliance -->
+    <ion-item>
+      <ion-label position="stacked"><strong>Financial (Program Fee) Compliance</strong></ion-label><br>
+      <ion-list>
+        <ion-item *ngFor="let option of getFieldChoices(214)">
+          <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'financialCompliance')"></ion-checkbox>
+          <span class="small-text">{{ option }}</span>
+        </ion-item>
+      </ion-list>
+    </ion-item>
+
+    <!-- Disclosed Electronic Devices -->
+    <ion-item>
+      <ion-label position="stacked"><strong>Disclosed Electronic Devices</strong></ion-label><br>
+      <ion-list>
+        <ion-item *ngFor="let option of getFieldChoices(169)">
+          <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'disclosedElectronicDevices')"></ion-checkbox>
+          <span class="small-text">{{ option }}</span>
+        </ion-item>
+      </ion-list>
+    </ion-item>
+
+    <!-- Chore Assignment -->
+    <ion-item>
+      <ion-label position="stacked"><strong>Chore Assignment</strong></ion-label><br>
+      <ion-list>
+        <ion-item *ngFor="let option of getFieldChoices(282)">
+          <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'choreAssignment')"></ion-checkbox>
+          <span class="small-text">{{ option }}</span>
+        </ion-item>
+      </ion-list>
+    </ion-item>
+
+    <!-- Chore Compliance Status -->
+    <ion-item>
+      <ion-label position="stacked"><strong>Chore Compliance Status</strong></ion-label><br>
+      <ion-list>
+        <ion-item *ngFor="let option of getFieldChoices(281)">
+          <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'choreCompliance')"></ion-checkbox>
+          <span class="small-text">{{ option }}</span>
+        </ion-item>
+      </ion-list>
+    </ion-item>
+
+    <!-- House Curfew Compliance -->
+    <ion-item>
+      <ion-label position="stacked"><strong>House Curfew Compliance</strong></ion-label><br>
+      <ion-list>
+        <ion-item *ngFor="let option of getFieldChoices(283)">
+          <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'houseCurfew')"></ion-checkbox>
+          <span class="small-text">{{ option }}</span>
+        </ion-item>
+      </ion-list>
+    </ion-item>
+    </ion-card-content>
+    </ion-card>
+
+    <!-- Employment Status Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title><strong>Employment Status</strong></ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label>Work Status</ion-label>
+          <div [innerHTML]="workStatus"></div>
+        </ion-item>
+
+        <!-- Current Employment Status -->
+        <ion-item>
+          <ion-label position="stacked"><strong>Current Employment Status</strong></ion-label><br>
+          <ion-list>
+            <ion-item *ngFor="let option of getFieldChoices(280)">
+              <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'currentEmploymentStatus')"></ion-checkbox>
+              <span class="small-text">{{ option }}</span>
+            </ion-item>
+          </ion-list>
+        </ion-item>
+
+        <!-- Goals -->
+        <ion-item>
+          <ion-label position="stacked"><strong>Goals</strong></ion-label><br>
+          <ion-list>
+            <ion-item *ngFor="let option of getFieldChoices(216)">
+              <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'Goals')"></ion-checkbox>
+              <span class="small-text">{{ option }}</span>
+            </ion-item>
+          </ion-list>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Personal/Behavioral Observations Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title><strong>Personal/Behavioral Observations</strong></ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+
+        <!-- Hygiene Issues -->
+        <ion-item>
+          <ion-label position="stacked"><strong>Hygiene Issues (self & personal space)</strong></ion-label><br>
+          <ion-list>
+            <ion-item *ngFor="let option of getFieldChoices(161)">
+              <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'hygieneIssues')"></ion-checkbox>
+              <span class="small-text">{{ option }}</span>
+            </ion-item>
+          </ion-list>
+        </ion-item>
+
+        <!-- Social Skills -->
+        <ion-item>
+          <ion-label position="stacked"><strong>Social Skills</strong></ion-label><br>
+          <ion-list>
+            <ion-item *ngFor="let option of getFieldChoices(163)">
+              <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'socialSkills')"></ion-checkbox>
+              <span class="small-text">{{ option }}</span>
+            </ion-item>
+          </ion-list>
+        </ion-item>
+
+        <!-- Behavioral Observations -->
+        <ion-item>
+          <ion-label position="stacked"><strong>Behavioral Observations</strong></ion-label><br>
+          <ion-list>
+            <ion-item *ngFor="let option of getFieldChoices(167)">
+              <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'behavioralObservations')"></ion-checkbox>
+              <span class="small-text">{{ option }}</span>
+            </ion-item>
+          </ion-list>
+        </ion-item>
+
+        <!-- Temperament -->
+        <ion-item>
+          <ion-label position="stacked"><strong>Temperament</strong></ion-label><br>
+          <ion-list>
+            <ion-item *ngFor="let option of getFieldChoices(165)">
+              <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'temperament')"></ion-checkbox>
+              <span class="small-text">{{ option }}</span>
+            </ion-item>
+          </ion-list>
+        </ion-item>
+
+        <!-- Leadership Potential -->
+        <ion-item>
+          <ion-label position="stacked"><strong>Leadership Potential</strong></ion-label><br>
+          <ion-list>
+            <ion-item *ngFor="let option of getFieldChoices(213)">
+              <ion-checkbox slot="start" [value]="option" (ionChange)="onCheckboxChange($event, 'leadershipPotential')"></ion-checkbox>
+              <span class="small-text">{{ option }}</span>
+            </ion-item>
+          </ion-list>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Meeting Notes Section -->
+    <ion-card-header>
+      <ion-label position="stacked"><strong>Meeting Notes</strong></ion-label>
+    </ion-card-header>
+      <ion-item>
+        <ion-textarea class="bordered-input"
+                      formControlName="meetingNotes"
+                      label-placement="floating"
+                      placeholder="Add detailed notes about the meeting, include comments on any negative observations listed above."
+                      autoGrow="true">
+        </ion-textarea>
+      </ion-item>
+
+
+    <!-- Meeting Administrator -->
+    <ion-card-header>
+      <ion-label position="stacked"><strong>Meeting Administrator</strong></ion-label>
+    </ion-card-header>
+    <ion-list>
+      <ion-item>
+        <ion-textarea class="bordered-input"
+                      formControlName="meetingAdministrator"
+                      label-placement="floating"
+                      placeholder="Who administered this meeting?"
+                      autoGrow="true">
+        </ion-textarea>
+      </ion-item>
+      <div class="error-message-text">
+        <div *ngIf="reportForm.controls['meetingAdministrator']?.invalid && reportForm.controls['meetingAdministrator'].touched">
+          Invalid input: Please enter a meeting administrator
+        </div>
+      </div>
+    </ion-list>
+
+    <!-- Administered how: live/phone -->
+    <ion-list>
+      <ion-item>
+        <ion-select formControlName="howAdministered" label="How Administered" label-placement="floating" placeholder="Please select how the meeting was administered" interface="action-sheet">
+          <ion-select-option value="Live">Live</ion-select-option>
+          <ion-select-option value="Phone">Phone</ion-select-option>
+          <ion-select-option value="Through House Leader">Through House Leader</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <div class="error-message-text">
+        <div *ngIf="reportForm.controls['howAdministered']?.invalid && reportForm.controls['howAdministered'].touched">
+          Invalid input: Please make a selection
+        </div>
+      </div>
+    </ion-list>
+  </form><br>
+
+  <!-- Submission Message -->
+  <div *ngIf="submissionMessage" class="submission-message">
+    {{ submissionMessage }}
+  </div>
+
+  <div *ngIf="submissionErrorMessage" class="submission-error-message">
+    {{ submissionErrorMessage }}
+  </div>
+
+  <ion-card>
+    <ion-card-content scrollable-content>
+      <div class="wrapper">
+
+      <!-- Simple warning text above submit button -->
+      <div *ngIf="hasValidationBlockers()" class="validation-warning-text">
+        Cannot submit form: {{ getValidationIssuesSummary() }}
+      </div>
+
+      <!-- Submit Button - No visual changes, just disabled functionality -->
+      <div
+        class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue"
+        [style.pointer-events]="hasValidationBlockers() ? 'none' : 'auto'"
+        (click)="onSubmit()">
+        <span>Submit Review</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <br>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
+        Return to Participant Details
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <p></p>
+    </div>
+    </ion-card-content>
+  </ion-card>
+    </ion-content>

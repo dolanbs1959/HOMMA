@@ -1,0 +1,10 @@
+<ion-app>
+  <div class="global-loading" *ngIf="(loadingService.visible$ | async)">
+    <div class="global-loading-inner">
+      <ion-spinner name="crescent"></ion-spinner>
+      <div class="loading-text">Loading…</div>
+    </div>
+  </div>
+
+  <ion-router-outlet></ion-router-outlet>
+</ion-app>

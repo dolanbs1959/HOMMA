@@ -1,0 +1,49 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      Snap Photo of UA Specimen
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<!-- <ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center">
+    <img src="assets/logo/HOM.png" alt="Logo"/>
+    <br>
+    <ion-card-header>
+        Add an Observation Report for:
+        <ion-card-subtitle>
+      </ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+</ion-content> -->
+
+<mat-dialog-content>
+  <div class="camera-container">
+    <img src="assets/logo/HOM3.png" alt="Logo" class="logo" />
+    <p>Position the UA specimen in the camera view and tap "Take Photo" to capture.</p>
+    <video #videoElement autoplay class="camera-view"></video>
+    <canvas #canvasElement class="hidden-canvas"></canvas>
+    <img #imageElement alt="UA photo" title="Photo of UA specimen" class="hidden-image">
+    <input #fileInput type="file" accept="image/*" style="display:none" (change)="onFileSelected($event)" />
+  </div>
+</mat-dialog-content>
+  <mat-dialog-actions class="dialog-actions">
+    <ion-button color="primary" size="large" (click)="capturePhoto()" [disabled]="showFilePicker">
+      <ion-icon name="camera" slot="start"></ion-icon>
+      Take Photo
+    </ion-button>
+    <ion-button color="secondary" size="large" *ngIf="showFilePicker" (click)="openFilePicker()">
+      <ion-icon name="image" slot="start"></ion-icon>
+      Choose File
+    </ion-button>
+    <div *ngIf="showFilePicker" class="fallback-hint" style="width:100%;text-align:center;margin-top:8px;color:#666;font-size:0.9rem;">
+      Camera not available — choose an image file instead.
+      <div style="margin-top:6px;font-size:0.85rem;color:#888;">
+        If you expected the camera to be available: ensure the page is served over HTTPS or localhost, allow camera permission in the browser (click the lock icon → Site settings → Camera), then click "Retry Camera".
+      </div>
+    </div>
+    <div *ngIf="showFilePicker" style="width:100%;text-align:center;margin-top:6px;">
+      <ion-button color="tertiary" size="small" (click)="retryCamera()">Retry Camera</ion-button>
+    </div>
+  </mat-dialog-actions>
