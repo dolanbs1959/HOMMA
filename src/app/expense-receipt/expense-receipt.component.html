@@ -183,12 +183,19 @@
 
       <!-- Camera View (shown when taking photo) -->
       <div *ngIf="showCamera" class="camera-container">
-        <video #videoElement autoplay class="camera-view"></video>
+        <div class="video-wrapper">
+          <video #videoElement autoplay class="camera-view"></video>
+          <div class="framing-guide"></div>
+        </div>
         <canvas #canvasElement class="hidden-canvas"></canvas>
         <div class="camera-actions">
           <ion-button color="primary" (click)="capturePhoto()">
             <ion-icon name="camera" slot="start"></ion-icon>
             Take Photo
+          </ion-button>
+          <ion-button *ngIf="hasTorch" color="warning" (click)="toggleTorch()">
+            <ion-icon [name]="torchEnabled ? 'flash' : 'flash-off'" slot="start"></ion-icon>
+            {{ torchEnabled ? 'Torch Off' : 'Torch On' }}
           </ion-button>
           <ion-button color="medium" (click)="cancelCamera()">
             Cancel

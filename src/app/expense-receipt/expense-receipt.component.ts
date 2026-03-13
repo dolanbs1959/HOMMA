@@ -30,6 +30,8 @@ export class ExpenseReceiptComponent implements OnInit {
   uploadedFileExtension: string = 'png';
   uploadedFileName: string = '';
   showCamera = false;
+  hasTorch = false;
+  torchEnabled = false;
   userEmail: string = '';
   submissionError: string | null = null;
   selectedGrantType: string = 'none';
@@ -206,14 +208,22 @@ export class ExpenseReceiptComponent implements OnInit {
   // Camera functionality
   openCamera() {
     this.showCamera = true;
+    this.hasTorch = false;
+    this.torchEnabled = false;
+
+    // Advanced constraints for better focus/white balance
+    const videoConstraints: any = {
+      facingMode: { ideal: 'environment' },
+      focusMode: 'continuous',
+      whiteBalanceMode: 'continuous'
+    };
+
     navigator.mediaDevices
       .getUserMedia({
-        video: {
-          facingMode: { exact: 'environment' }, // Try to use the rear camera
-        },
+        video: videoConstraints,
       })
       .catch(() => {
-        // If the rear camera is not available, fall back to the default camera
+        // Fallback
         return navigator.mediaDevices.getUserMedia({ video: true });
       })
       .then((stream) => {
@@ -223,12 +233,64 @@ export class ExpenseReceiptComponent implements OnInit {
         } else {
           console.error('Video element not found!');
         }
+
+        // Apply advanced track capabilities if supported
+        const track = stream.getVideoTracks()[0];
+        if (track) {
+          const capabilities: any = track.getCapabilities ? track.getCapabilities() : {};
+          this.hasTorch = !!capabilities.torch;
+
+          const constraints: any = { advanced: [] };
+          let applyConstraints = false;
+
+          // Attempt to set focus and white balance via track constraints
+          if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+            constraints.advanced.push({ focusMode: 'continuous' });
+            applyConstraints = true;
+          }
+
+          if (capabilities.whiteBalanceMode && capabilities.whiteBalanceMode.includes('continuous')) {
+            constraints.advanced.push({ whiteBalanceMode: 'continuous' });
+            applyConstraints = true;
+          }
+
+          // Enable torch by default if possible
+          if (this.hasTorch) {
+            this.torchEnabled = true;
+            constraints.advanced.push({ torch: true });
+            applyConstraints = true;
+          }
+
+          if (applyConstraints && track.applyConstraints) {
+            track.applyConstraints(constraints).catch(e => {
+              console.warn('Advanced constraints not fully supported: ', e);
+              // If the combined constraints failed, it might be due to a specific one.
+              // We just fallback and rely on defaults.
+            });
+          }
+        }
       })
       .catch((err) => {
         console.error('Error accessing camera: ', err);
         alert('Unable to access camera: ' + err.message);
         this.showCamera = false;
       });
+  }
+
+  toggleTorch() {
+    if (!this.stream || !this.hasTorch) return;
+
+    const track = this.stream.getVideoTracks()[0];
+    if (track && track.applyConstraints) {
+      this.torchEnabled = !this.torchEnabled;
+      const constraints: any = {
+        advanced: [{ torch: this.torchEnabled }]
+      };
+      track.applyConstraints(constraints).catch(e => {
+        console.error('Error toggling torch: ', e);
+        this.torchEnabled = !this.torchEnabled; // revert on failure
+      });
+    }
   }
 
   capturePhoto() {

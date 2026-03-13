@@ -41,9 +41,11 @@ You must attach evidence of the receipt. You can either take a new photo or uplo
 
 ### Option A: Take a Photo
 1. Tap the **Take Photo** button.
-2. Ensure your camera lens is clean and the receipt is well-lit and fully visible within the frame.
-3. Tap **Take Photo** again to capture the image.
-4. Review the captured image. If it is unclear, tap **Remove File** and try again.
+2. Ensure your camera lens is clean.
+3. **Use the Framing Guide**: Align the receipt within the on-screen translucent rectangular framing guide. Hold the device far enough away so the camera can achieve proper focus (the app now automatically tries to keep continuous focus and white balance).
+4. **Use the Torch Toggle**: If lighting is poor, tap the **Torch On** / **Torch Off** button to toggle the device's flashlight to better illuminate the receipt. (The app will attempt to enable it automatically if supported).
+5. Tap **Take Photo** again to capture the image.
+6. Review the captured image. If it is unclear, tap **Remove File** and try again.
 
 ### Option B: Upload a File
 1. Tap the **Upload File** button.
