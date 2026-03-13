@@ -242,12 +242,35 @@ ion-title {
   padding: 16px;
 }
 
-.camera-view {
+.video-wrapper {
+  position: relative;
   width: 100%;
   max-width: 400px;
-  height: auto;
   border-radius: 8px;
+  overflow: hidden;
   background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.camera-view {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.framing-guide {
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  left: 10%;
+  right: 10%;
+  border: 2px dashed rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* Transluecent dark overlay outside the box */
+  pointer-events: none; /* Let clicks pass through if needed */
+  border-radius: 8px;
+  z-index: 10;
 }
 
 .hidden-canvas {
@@ -258,6 +281,8 @@ ion-title {
   display: flex;
   gap: 12px;
   margin-top: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .photo-preview-container {
