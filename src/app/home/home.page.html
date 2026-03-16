@@ -200,7 +200,7 @@
       <!-- House Leader Feedback Section -->
       <ion-card class="feedback-card">
         <ion-card-header>
-          <h1 class="feedback-title-centered">Submit Feedback or Request</h1>
+          <h1 class="feedback-title-centered">Submit Prayer Request or Feedback</h1>
           <ion-card-subtitle>
             Send feedback, requests, or communicate with HOM staff. Select the staff member you'd like to contact, 
             choose your request type, enter your message and hit Submit!
@@ -228,8 +228,8 @@
             <!-- Request Type Selection (moved to second position) -->
             <ion-item>
               <ion-select formControlName="requestType" label="Request Type" placeholder="Select request type" interface="action-sheet">
+                <ion-select-option value="request">Prayer Request</ion-select-option>
                 <ion-select-option value="feedback">Feedback</ion-select-option>
-                <ion-select-option value="request">General Request</ion-select-option>
                 <ion-select-option value="maintenance">Maintenance Request</ion-select-option>
                 <ion-select-option value="support">Support Needed</ion-select-option>
                 <ion-select-option value="suggestion">Suggestion</ion-select-option>
