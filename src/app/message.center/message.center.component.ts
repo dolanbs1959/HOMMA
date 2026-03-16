@@ -91,10 +91,20 @@ export class MessageCenterComponent implements OnInit, OnDestroy {
         this.activeStaff = (staff || []).map((s: any) => {
           const displayName = s.displayName || '';
           const isDbAdmin = displayName.toString().toLowerCase() === 'database administrator';
-          const name = isDbAdmin ? 'Barry Dolan' : displayName;
+          let name = isDbAdmin ? 'Barry Dolan' : displayName;
+          if (name.toString().toLowerCase() === 'michael lovrick') {
+            name = `(Prayer Requests) ${name}`;
+          }
           const value = s.email || s.staffRecordId || s.userId || '';
           const sendValue = isDbAdmin ? 'Database Administrator' : (s.email || s.userId || value);
           return { userId: value, name, email: s.email, sendValue };
+        });
+
+        // Ensure Michael Lovrick (Prayer Requests) is at the top
+        this.activeStaff.sort((a, b) => {
+          if (a.name.toString().startsWith('(Prayer Requests)')) return -1;
+          if (b.name.toString().startsWith('(Prayer Requests)')) return 1;
+          return 0;
         });
       },
       (error) => {
