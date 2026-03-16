@@ -12,8 +12,6 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class ExpenseReceiptComponent implements OnInit {
 
-  @ViewChild('videoElement', { static: false }) videoElement!: ElementRef;
-  @ViewChild('canvasElement') canvasElement!: ElementRef;
   @ViewChild('imageElement') imageElement!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef;
   @ViewChild('grantRadioGroup', { static: false }) grantRadioGroup!: ElementRef;
@@ -29,9 +27,6 @@ export class ExpenseReceiptComponent implements OnInit {
   capturedPhoto: string | null = null;
   uploadedFileExtension: string = 'png';
   uploadedFileName: string = '';
-  showCamera = false;
-  hasTorch = false;
-  torchEnabled = false;
   userEmail: string = '';
   submissionError: string | null = null;
   selectedGrantType: string = 'none';
@@ -45,7 +40,6 @@ export class ExpenseReceiptComponent implements OnInit {
   // Whether this is a grant expense (controls visibility of grant type options)
   isGrantExpense: boolean = false;
   // grantYesNo is stored in the reactive form control 'grantYesNo'
-  private stream: MediaStream | undefined;
 
   constructor(
     private router: Router,
@@ -194,7 +188,6 @@ export class ExpenseReceiptComponent implements OnInit {
       
       this.capturedPhoto = null;
       this.uploadedFileExtension = 'png'; // Reset default
-      this.stopCamera();
       
       this.selectedVendor = null;
       this.vendorSearchText = '';
@@ -205,133 +198,6 @@ export class ExpenseReceiptComponent implements OnInit {
       this.submissionError = null; // Clear any old errors
     }
     
-  // Camera functionality
-  openCamera() {
-    this.showCamera = true;
-    this.hasTorch = false;
-    this.torchEnabled = false;
-
-    // Advanced constraints for better focus/white balance
-    const videoConstraints: any = {
-      facingMode: { ideal: 'environment' },
-      focusMode: 'continuous',
-      whiteBalanceMode: 'continuous'
-    };
-
-    navigator.mediaDevices
-      .getUserMedia({
-        video: videoConstraints,
-      })
-      .catch(() => {
-        // Fallback
-        return navigator.mediaDevices.getUserMedia({ video: true });
-      })
-      .then((stream) => {
-        this.stream = stream;
-        if (this.videoElement && this.videoElement.nativeElement) {
-          this.videoElement.nativeElement.srcObject = stream;
-        } else {
-          console.error('Video element not found!');
-        }
-
-        // Apply advanced track capabilities if supported
-        const track = stream.getVideoTracks()[0];
-        if (track) {
-          const capabilities: any = track.getCapabilities ? track.getCapabilities() : {};
-          this.hasTorch = !!capabilities.torch;
-
-          const constraints: any = { advanced: [] };
-          let applyConstraints = false;
-
-          // Attempt to set focus and white balance via track constraints
-          if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-            constraints.advanced.push({ focusMode: 'continuous' });
-            applyConstraints = true;
-          }
-
-          if (capabilities.whiteBalanceMode && capabilities.whiteBalanceMode.includes('continuous')) {
-            constraints.advanced.push({ whiteBalanceMode: 'continuous' });
-            applyConstraints = true;
-          }
-
-          // Enable torch by default if possible
-          if (this.hasTorch) {
-            this.torchEnabled = true;
-            constraints.advanced.push({ torch: true });
-            applyConstraints = true;
-          }
-
-          if (applyConstraints && track.applyConstraints) {
-            track.applyConstraints(constraints).catch(e => {
-              console.warn('Advanced constraints not fully supported: ', e);
-              // If the combined constraints failed, it might be due to a specific one.
-              // We just fallback and rely on defaults.
-            });
-          }
-        }
-      })
-      .catch((err) => {
-        console.error('Error accessing camera: ', err);
-        alert('Unable to access camera: ' + err.message);
-        this.showCamera = false;
-      });
-  }
-
-  toggleTorch() {
-    if (!this.stream || !this.hasTorch) return;
-
-    const track = this.stream.getVideoTracks()[0];
-    if (track && track.applyConstraints) {
-      this.torchEnabled = !this.torchEnabled;
-      const constraints: any = {
-        advanced: [{ torch: this.torchEnabled }]
-      };
-      track.applyConstraints(constraints).catch(e => {
-        console.error('Error toggling torch: ', e);
-        this.torchEnabled = !this.torchEnabled; // revert on failure
-      });
-    }
-  }
-
-  capturePhoto() {
-    const canvas = this.canvasElement.nativeElement;
-    const context = canvas.getContext('2d');
-
-    // Set the desired dimensions
-    const desiredWidth = 640;
-    const desiredHeight = 480;
-
-    canvas.width = desiredWidth;
-    canvas.height = desiredHeight;
-
-    // Draw the current frame of the video onto the canvas
-    context.drawImage(
-      this.videoElement.nativeElement,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    // Get a data URL representing the image
-    this.capturedPhoto = canvas.toDataURL('image/png');
-    // Camera always takes PNGs, so force the extension back to png
-    this.uploadedFileExtension = 'png';
-    // Stop the video stream
-    this.stopCamera();
-  }
-
-  stopCamera() {
-    if (this.stream) {
-      this.stream.getTracks().forEach((track) => track.stop());
-    }
-    this.showCamera = false;
-  }
-
-  cancelCamera() {
-    this.stopCamera();
-  }
-
   removePhoto() {
     this.capturedPhoto = null;
   }

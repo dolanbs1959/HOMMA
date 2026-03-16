@@ -181,30 +181,8 @@
         <b>Receipt Photo</b>
       </ion-card-header>
 
-      <!-- Camera View (shown when taking photo) -->
-      <div *ngIf="showCamera" class="camera-container">
-        <div class="video-wrapper">
-          <video #videoElement autoplay class="camera-view"></video>
-          <div class="framing-guide"></div>
-        </div>
-        <canvas #canvasElement class="hidden-canvas"></canvas>
-        <div class="camera-actions">
-          <ion-button color="primary" (click)="capturePhoto()">
-            <ion-icon name="camera" slot="start"></ion-icon>
-            Take Photo
-          </ion-button>
-          <ion-button *ngIf="hasTorch" color="warning" (click)="toggleTorch()">
-            <ion-icon [name]="torchEnabled ? 'flash' : 'flash-off'" slot="start"></ion-icon>
-            {{ torchEnabled ? 'Torch Off' : 'Torch On' }}
-          </ion-button>
-          <ion-button color="medium" (click)="cancelCamera()">
-            Cancel
-          </ion-button>
-        </div>
-      </div>
-
       <!-- Photo Preview (shown when photo is captured) -->
-      <div *ngIf="capturedPhoto && !showCamera" class="photo-preview-container">
+      <div *ngIf="capturedPhoto" class="photo-preview-container">
 
         <img 
           *ngIf="uploadedFileExtension !== 'pdf'" 
@@ -226,19 +204,16 @@
       </div>
 
       <!-- Photo Action Buttons (shown when no photo and no camera) -->
-      <div *ngIf="!capturedPhoto && !showCamera" class="photo-actions">
-        <ion-button color="primary" (click)="openCamera()">
-          <ion-icon name="camera" slot="start"></ion-icon>
-          Take Photo
-        </ion-button>
+      <div *ngIf="!capturedPhoto" class="photo-actions">
         <ion-button color="secondary" (click)="triggerFileInput()">
           <ion-icon name="image" slot="start"></ion-icon>
-          Upload File
+          Capture Receipt
         </ion-button>
         <input
           #fileInput
           type="file"
           accept="image/*,application/pdf"
+          capture="environment"
           (change)="onFileSelected($event)"
           class="hidden-input"
           title="Upload receipt photo"
