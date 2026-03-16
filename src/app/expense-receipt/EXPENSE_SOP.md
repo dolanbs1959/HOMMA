@@ -37,20 +37,12 @@ If the expense is related to a specific grant, you must indicate this:
 Enter a detailed description of the item(s) purchased and/or the reason for the purchase. If a grant is selected, the system will automatically append the grant type to your description upon submission.
 
 ## 4. Attaching the Receipt
-You must attach evidence of the receipt. You can either take a new photo or upload an existing file (Image or PDF).
+You must attach evidence of the receipt. You can either take a new photo using your device's native camera or upload an existing file (Image or PDF).
 
-### Option A: Take a Photo
-1. Tap the **Take Photo** button.
-2. Ensure your camera lens is clean.
-3. **Use the Framing Guide**: Align the receipt within the on-screen translucent rectangular framing guide. Hold the device far enough away so the camera can achieve proper focus (the app now automatically tries to keep continuous focus and white balance).
-4. **Use the Torch Toggle**: If lighting is poor, tap the **Torch On** / **Torch Off** button to toggle the device's flashlight to better illuminate the receipt. (The app will attempt to enable it automatically if supported).
-5. Tap **Take Photo** again to capture the image.
-6. Review the captured image. If it is unclear, tap **Remove File** and try again.
-
-### Option B: Upload a File
-1. Tap the **Upload File** button.
-2. Select an image (PNG, JPG, etc.) or a PDF file from your device.
-3. If you upload a PDF, a document icon will appear to confirm the attachment.
+1. Tap the **Capture Receipt** button.
+2. You will be prompted to either take a photo using your device's camera app or select an existing file/PDF from your device.
+3. If you take a photo, review the captured image. If it is unclear, tap **Remove File** and try again.
+4. If you upload a PDF, a document icon will appear to confirm the attachment.
 
 *Note: The system automatically renames the file upon submission to include the date, amount, and your name (e.g., `MM-YY $##.00 StaffName.png` or `.pdf`) to meet auditing standards.*
 
