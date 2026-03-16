@@ -250,10 +250,14 @@ openStaffTasks() {
             // If the service earlier remapped the current user to "Database Administrator",
             // show the real name "Barry Dolan" in the UI but send the mapped value when selected.
             const isDbAdminLabel = staffMember.displayName === 'Database Administrator';
+            let displayName = isDbAdminLabel ? 'Barry Dolan' : staffMember.displayName;
+            if (staffMember.displayName === 'Michael Lovrick') {
+              displayName = 'Michael Lovrick (Prayer Requests)';
+            }
             return {
               userId: staffMember.userId,
               // Display the friendly name to users; keep 'Database Administrator' sent value if applicable
-              name: isDbAdminLabel ? 'Barry Dolan' : staffMember.displayName,
+              name: displayName,
               email: staffMember.email,
               sendValue: isDbAdminLabel ? 'Database Administrator' : (staffMember.email || staffMember.userId)
             };
@@ -300,8 +304,8 @@ openStaffTasks() {
       // Map short requestType codes to full display labels so the inserted record
       // shows the complete request type (e.g. "Maintenance Request") instead of just "Maintenance".
       const requestTypeMap: any = {
+        request: 'Prayer Request',
         feedback: 'Feedback',
-        request: 'General Request',
         maintenance: 'Maintenance Request',
         support: 'Support Needed',
         suggestion: 'Suggestion',
