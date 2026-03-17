@@ -29,8 +29,6 @@ export class WeeklyMeetingsPage implements OnInit {
   isActivityAddedOnce = false;
   activityId: number = 0;
   public message: string = '';
-  // Temporarily add a new property to control whether to insert activity or not
-shouldInsertActivity = false;
 
   private residentDataSubscription!: Subscription;
 
@@ -91,21 +89,18 @@ addWeeklyHouseMeeting() {
   };
   // console.log('Activity Body', activityBody);
 
-  if (this.shouldInsertActivity = true) {     // If shouldInsertActivity is false, bypass the insertActivity function
-    this.quickbaseService.insertActivity(activityBody).subscribe(response => {
-        // console.log('Activity inserted successfully', response);
-      this.activityId = response; // Store the new record ID in the activityId variable
-        // console.log('New activity ID:', this.activityId);
-      this.isActivityAdded = true;
-        // console.log('Added?', this.isActivityAdded);
-      this.quickbaseService.isActivityAddedOnce = true;
-        // console.log('Added Once?', this.quickbaseService.isActivityAddedOnce);
-      }, error => {
-        // console.error('Error inserting activity:', error);
-    });
-  } else {
-    // console.log('shouldInsertActivity is false, skipping insertActivity');
-  }
+  this.quickbaseService.insertActivity(activityBody).subscribe(response => {
+      // console.log('Activity inserted successfully', response);
+    this.activityId = response; // Store the new record ID in the activityId variable
+      // console.log('New activity ID:', this.activityId);
+    this.isActivityAdded = true;
+      // console.log('Added?', this.isActivityAdded);
+    this.quickbaseService.isActivityAddedOnce = true;
+      // console.log('Added Once?', this.quickbaseService.isActivityAddedOnce);
+    }, error => {
+      // console.error('Error inserting activity:', error);
+  });
+
   this.isLoading = false;
 }
 
@@ -173,6 +168,7 @@ updateAttendanceRecords(newActivityId?: any) {
   }
 
   ngOnInit() {
+    this.quickbaseService.isActivityAddedOnce = false;
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras.state as {theHouseName: string, HouseLeaderName: string, HLphone: string};
   
