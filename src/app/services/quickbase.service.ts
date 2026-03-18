@@ -399,9 +399,50 @@ insertActivity(activityData: any): Observable<any> {
   );
 }
 
+  /**
+   * Return the numeric value of field 94 (number of Attendance Records) for an Activity record
+   */
+  getActivityAttendanceCount(activityId: any): Observable<number> {
+    this.trackApiCall('getActivityAttendanceCount');
+    this.logger.debug('Querying Activity for attendance count', { activityId });
+    const body = {
+      from: this.ActivityTableID,
+      select: [3, 94],
+      where: `{3.EX.'${activityId}'}`,
+      options: { skip: 0, top: 0, compareWithAppLocalTime: false }
+    };
+
+    return of(0);
+  }
+
+  /**
+   * Create multiple attendance records in a single batch call.
+   * `records` should be an array of objects where keys are field IDs and values are { value: ... } shapes.
+   */
+  createAttendanceRecordsBulk(records: any[]): Observable<any> {
+    if (!Array.isArray(records) || records.length === 0) {
+      this.logger.warn('createAttendanceRecordsBulk called with empty records array');
+      return of([]);
+    }
+    this.trackApiCall('createAttendanceRecordsBulk');
+    const body = {
+      to: this.AttendanceTableID,
+      data: records,
+      fieldsToReturn: [3, 9, 38, 11]
+    };
+    this.logger.debug('Creating attendance records in bulk', { count: records.length });
+    return this.callQuickbaseProxy('POST', 'records', body).pipe(
+      tap(resp => this.logger.debug('Bulk create attendance response', resp)),
+      catchError(err => {
+        this.logger.error('Error creating attendance records in bulk', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
           //Query to get attendance record based on participantID and activityID
           getAttendance(participantId: string, activityId: number): Observable<any> {
-            this.logger.debug('Querying attendance record');
+                    this.logger.debug('Querying attendance record');
             // Implement the logic to fetch a record from the AttendanceTableID
             const body = {
               from: this.AttendanceTableID, // replace with your actual table ID
@@ -414,7 +455,14 @@ insertActivity(activityData: any): Observable<any> {
               }
             };
 
-            return this.callQuickbaseProxy('POST', 'query', body);
+                    // Log the outgoing query body for debugging
+                    try { this.logger.debug('getAttendance - query body', body); } catch (e) {}
+
+                    return this.callQuickbaseProxy('POST', 'query', body).pipe(
+                      tap((resp: any) => {
+                        try { this.logger.debug('getAttendance - proxy response', resp); } catch (e) {}
+                      })
+                    );
             
           }
           //Update attendance record retrieved from getAttendance
@@ -792,12 +840,16 @@ insertActivity(activityData: any): Observable<any> {
 
 
 getResidents(savedRecordNumber: number | { value: number }): Observable<any> {
-    const actualRecordNumber = typeof savedRecordNumber === 'number' ? savedRecordNumber : savedRecordNumber.value; // Use the value property if savedRecordNumber is an object
-    this.logger.debug('Fetching residents');
+  const actualRecordNumber = typeof savedRecordNumber === 'number' ? savedRecordNumber : savedRecordNumber.value; // Use the value property if savedRecordNumber is an object
+  this.logger.debug('Fetching residents');
 
-    const body = {
+  const body = {
     from: this.queryResidentTableId,
-    select: [3, 692, 14, 31, 24, 40, 72, 116, 177, 131, 132, ,133, 135, 141, 564, 576, 150, 442, 296, 275, 7, 340, 53, 439, 90, 441, 448, 477, 655, 693, 694, 699, 700, 705, 706, 789, 790, 797, 798],
+    select: [
+      3, 692, 14, 31, 24, 40, 72, 116, 177, 131, 132, 133, 135, 141,
+      564, 576, 150, 442, 296, 275, 7, 340, 53, 439, 90, 441, 448, 477,
+      655, 693, 694, 699, 700, 705, 706, 789, 790, 797, 798, 897
+    ],
     where: `{692.EX.${actualRecordNumber}}AND{349.EX.'Active'}`,
     options: {
       skip: 0,
@@ -805,8 +857,9 @@ getResidents(savedRecordNumber: number | { value: number }): Observable<any> {
       compareWithAppLocalTime: false
     }
   };
+
   return this.postData2(body);
- }
+}
  
 postData2(body: any): Observable<any[]> {
   this.logger.debug('Executing query via proxy');
@@ -814,6 +867,15 @@ postData2(body: any): Observable<any[]> {
     switchMap((response2: any): Observable<any[]> => {
       this.logger.debug('Query response received');
       const dataArray = response2.data;
+      try {
+        const len = Array.isArray(dataArray) ? dataArray.length : 0;
+        this.logger.debug(`postData2 - received data array length: ${len}`);
+        if (len > 0 && dataArray[0]) {
+          this.logger.debug('postData2 - sample record keys:', Object.keys(dataArray[0]));
+        }
+      } catch (e) {
+        this.logger.warn('postData2 - failed to inspect response data', e);
+      }
       if (!dataArray || dataArray.length === 0) {
         this.logger.debug('No data found in the response');
         return of([]);
@@ -1037,7 +1099,14 @@ getMaxMeetingDate(houseName: string): Observable<any> {
     }
   };
 
-  return this.callQuickbaseProxy('POST', 'query', body);
+    // Log the outgoing body for debugging the last-meeting query
+    try { this.logger.debug('getMaxMeetingDate - query body', body); } catch (e) {}
+
+    return this.callQuickbaseProxy('POST', 'query', body).pipe(
+      tap((resp: any) => {
+        try { this.logger.debug('getMaxMeetingDate - proxy response', resp); } catch (e) {}
+      })
+    );
 }
 
 

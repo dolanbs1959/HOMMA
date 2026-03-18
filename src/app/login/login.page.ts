@@ -145,8 +145,19 @@ ngOnInit() {
 
           this.quickbaseService.getResidents(this.savedRecordNumber).subscribe(
             residentResponse => {
+              try {
+                const len = Array.isArray(residentResponse) ? residentResponse.length : (residentResponse ? 1 : 0);
+                this.logger.log('Resident data loaded - length:', len);
+                // Log a small preview for debugging
+                if (Array.isArray(residentResponse) && residentResponse.length > 0) {
+                  this.logger.debug('Resident sample:', residentResponse[0]);
+                } else {
+                  this.logger.debug('Resident response (non-array):', residentResponse);
+                }
+              } catch (e) {
+                this.logger.warn('Error logging residentResponse', e);
+              }
               this.quickbaseService.residentData.next(residentResponse);
-              this.logger.log('Resident data loaded');
             },
           );
           this.quickbaseService.getPendingArrivals(this.savedRecordNumber).subscribe(

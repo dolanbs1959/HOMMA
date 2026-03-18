@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { QuickbaseService } from '../services/quickbase.service';
+import { LoggerService } from '../services/logger.service';
 import { ActivatedRoute, Router } from '@angular/router'; // Import ActivatedRoute
 import { Location } from '@angular/common';
 
@@ -23,7 +24,8 @@ export class StaffTasksComponent  implements OnInit {
     public quickbaseService: QuickbaseService, 
     private route: ActivatedRoute,
     private location: Location, 
-    private router: Router) {
+    private router: Router,
+    private logger: LoggerService) {
       this.quickbaseService.residentData.subscribe(data => {
         this.residentData = data;
       });
@@ -73,7 +75,25 @@ export class StaffTasksComponent  implements OnInit {
       this.HouseLeaderName = state.HouseLeaderName;
       this.HLphone = state.HLphone;
       this.maxMeetingDate = state.maxMeetingDate;
-      }
-
     }
-  } 
+
+    // Always try to fetch the latest max meeting date for the house currently being viewed
+    if (this.theHouseName) {
+      this.quickbaseService.getMaxMeetingDate(this.theHouseName).subscribe(response => {
+        try {
+          const entry = response?.data?.[0];
+          const raw = entry?.['40'];
+          const value = raw?.value ?? raw;
+          this.maxMeetingDate = value || this.maxMeetingDate;
+          this.quickbaseService.maxMeetingDate = this.maxMeetingDate;
+          this.logger?.log?.('StaffTasks - refreshed maxMeetingDate for house', this.theHouseName, this.maxMeetingDate);
+        } catch (e) {
+          // ignore and keep existing value
+        }
+      }, error => {
+        // ignore
+      });
+    }
+  }
+
+}

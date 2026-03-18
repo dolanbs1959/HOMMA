@@ -38,8 +38,8 @@
   </ion-row>
   </ion-grid>
 
-  <div *ngIf="isActivityAdded">
-    <ion-card *ngFor="let residentData of (quickbaseService.residentData | async); let i = index">
+  <div *ngIf="(quickbaseService.residentData | async) as residents">
+    <ion-card *ngFor="let residentData of residents; let i = index">
       <ion-card-content>
         <p>{{ residentData.residentFullName.value }}</p>
           <ion-radio-group [(ngModel)]="residentData.AttendanceStatus" value="">
@@ -94,3 +94,5 @@
     </div>  
     </ion-card-content>
   </ion-card>
+
+  <!-- Polling removed — batch create used instead -->
