@@ -31,6 +31,9 @@ export class WeeklyMeetingsPage implements OnInit {
   isActivityAddedOnce = false;
   activityId: number = 0;
   public message: string = '';
+  showConfirmation: boolean = false;
+  confirmationCount: number = 0;
+  confirmationIds: any[] = [];
 
   private residentDataSubscription!: Subscription;
 
@@ -129,7 +132,13 @@ export class WeeklyMeetingsPage implements OnInit {
             this.logger.log('Batch attendance records created', resp);
             this.attendanceUpdated = true;
             this.isLoading = false;
-            this.router.navigate(['/home', { theHouseName: this.theHouseName, HouseLeaderName: this.HouseLeaderName, HLphone: this.HLphone, maxMeetingDate: this.quickbaseService.maxMeetingDate }]);
+            // Show confirmation popup with number of records created
+            const count = resp?.metadata?.totalNumberOfRecordsProcessed ?? (resp?.data?.length ?? 0);
+            const ids = resp?.metadata?.createdRecordIds ?? (resp?.data?.map((d: any) => d['3']?.value ?? d['3']) || []);
+            this.confirmationCount = Number(count) || ids.length || 0;
+            this.confirmationIds = ids;
+            this.showConfirmation = true;
+            // do not navigate until user clicks OK
           }, err => {
             this.logger.error('Batch create failed', err);
             this.isLoading = false;
@@ -146,6 +155,11 @@ export class WeeklyMeetingsPage implements OnInit {
       this.logger.error('Error inserting activity', error);
       this.isLoading = false;
     });
+  }
+
+  confirmAndNavigate() {
+    this.showConfirmation = false;
+    this.router.navigate(['/home', { theHouseName: this.theHouseName, HouseLeaderName: this.HouseLeaderName, HLphone: this.HLphone, maxMeetingDate: this.quickbaseService.maxMeetingDate }]);
   }
 
 updateAttendanceRecords(newActivityId?: any): Observable<any> {

@@ -96,3 +96,40 @@
   </ion-card>
 
   <!-- Polling removed — batch create used instead -->
+
+  <!-- Confirmation popup shown after successful bulk attendance create -->
+  <div class="confirmation-overlay" *ngIf="showConfirmation">
+    <div class="confirmation-card">
+      <h2>Attendance Recorded</h2>
+      <p>Your {{ confirmationCount }} attendance update{{ confirmationCount === 1 ? '' : 's' }} have been recorded.</p>
+      <div class="confirmation-actions">
+        <ion-button color="primary" (click)="confirmAndNavigate()">OK</ion-button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .confirmation-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.45);
+      z-index: 10000;
+    }
+    .confirmation-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    .confirmation-card h2 { margin-top: 0; }
+    .confirmation-actions { margin-top: 16px; }
+  </style>
