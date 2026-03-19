@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { LoggerService } from '../services/logger.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { PhotoStorageService } from 'src/app/services/photoProcessing.service';
+import { SecureStorageService } from 'src/app/services/secure-storage.service';
 
 interface BibleVerseResponse {
   // translation: {
@@ -43,6 +44,7 @@ export class LoginPage implements OnInit, OnDestroy {
   email: string = '';
   password: string = '';
   showPassword = false;
+  showStaffId = false;
   isDisabled: boolean = true; // Set this to true or false based on your logic
   dailyVerse: string = '';
   staticVerse: string = 'For I was an hungred, and ye gave me meat: I was thirsty, and ye gave me drink: I was a stranger, and ye took me in. Matthew 25:35, KJV';
@@ -69,6 +71,7 @@ constructor(
   private http: HttpClient,
   private logger: LoggerService,
   private photoStorageService: PhotoStorageService,
+  private secureStorage: SecureStorageService,
   private loadingService: LoadingService
 ) {
   this.houseNames$ = this.quickbaseService.getHouseNames().pipe(
@@ -114,6 +117,13 @@ ngOnInit() {
     });
 
     this.fetchRandomVerse();
+
+    // Initialize secure storage and prefill stored staffID if available
+    this.secureStorage.init().then(() => {
+      this.secureStorage.get('staffID').then(val => {
+        if (val) this.staffID = val;
+      });
+    });
     
     // Pre-fetch and cache Senior Staff data for participant login checks
     this.quickbaseService.getActiveStaff().subscribe(
@@ -139,6 +149,8 @@ ngOnInit() {
           this.savedRecordNumber = this.recordNumber;
           this.maxMeetingDate = response.maxMeetingDate?.value;
           this.logger.log('Login successful');
+          // Persist staffID to secure storage (or fallback) for convenience on this device
+          try { this.secureStorage.set('staffID', this.staffID); } catch (e) {}
           
           // Store the response from the first query
           this.quickbaseService.queryData = response;
@@ -160,6 +172,7 @@ ngOnInit() {
               this.quickbaseService.residentData.next(residentResponse);
             },
           );
+          // Note: temporary session persistence removed (debugging-only changes previously)
           this.quickbaseService.getPendingArrivals(this.savedRecordNumber).subscribe(
             pendingArrivalsResponse => {
               this.quickbaseService.pendingArrivals.next(pendingArrivalsResponse);

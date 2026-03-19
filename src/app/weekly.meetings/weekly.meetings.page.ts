@@ -34,6 +34,7 @@ export class WeeklyMeetingsPage implements OnInit {
   showConfirmation: boolean = false;
   confirmationCount: number = 0;
   confirmationIds: any[] = [];
+  
 
   private residentDataSubscription!: Subscription;
 
@@ -241,6 +242,46 @@ updateAttendanceRecords(newActivityId?: any): Observable<any> {
       this.HouseLeaderName = state.HouseLeaderName;
       this.HLphone = state.HLphone;
     }
+    // If router state is not present (page refresh or direct deep link), try to recover from service or localStorage
+    if (!this.theHouseName || !this.HouseLeaderName) {
+      // Prefer QuickbaseService cached queryData
+      try {
+        const q = (this.quickbaseService as any).queryData;
+        if (q) {
+          this.theHouseName = q.theHouseName?.value ?? this.theHouseName;
+          this.HouseLeaderName = q.HouseLeaderName?.value ?? this.HouseLeaderName;
+          this.HLphone = q.HLphone?.value ?? this.HLphone;
+        }
+      } catch (e) {}
+    }
+
+    if (!this.theHouseName || !this.HouseLeaderName) {
+      // Fallback to localStorage (persisted at login)
+      try {
+        const storedHouse = localStorage.getItem('theHouseName');
+        const storedHL = localStorage.getItem('HouseLeaderName');
+        const storedPhone = localStorage.getItem('HLphone');
+        if (storedHouse) this.theHouseName = storedHouse;
+        if (storedHL) this.HouseLeaderName = storedHL;
+        if (storedPhone) this.HLphone = storedPhone;
+      } catch (e) {}
+    }
+
+    // If we don't yet have residentData but we have a savedRecordNumber persisted, try to re-fetch residents
+    try {
+      const savedRecordNumber = (this.quickbaseService.queryData?.recordNumber ?? this.quickbaseService.TaskRecordId) as number | undefined;
+      const currentResidents = this.quickbaseService.residentData.value;
+      if (!currentResidents || (Array.isArray(currentResidents) && currentResidents.length === 0)) {
+        if (savedRecordNumber) {
+          this.logger.log('Recovered recordNumber from service, re-fetching residents', savedRecordNumber);
+          this.quickbaseService.getResidents(savedRecordNumber).subscribe((res: any) => {
+            try { this.quickbaseService.residentData.next(res); } catch (e) {}
+          }, err => {
+            this.logger.error('Failed to re-fetch residents during recovery', err);
+          });
+        }
+      }
+    } catch (e) {}
     this.residentDataSubscription = this.quickbaseService.residentData.subscribe(data => {
       this.residentData = data;
       try {
@@ -262,19 +303,19 @@ updateAttendanceRecords(newActivityId?: any): Observable<any> {
               ParticipantStatus: [resident.ParticipantStatus],
               AttendanceStatus: [''],
               Comments: ['']
-            }))
-          )
-        });
+              }))
+            )
+          });
       } else {
         // Ensure we have an empty form array when no data
         this.residentForm = this.formBuilder.group({ residents: this.formBuilder.array([]) });
       }
     });
   }
- 
-ngOnDestroy() {
+
+  ngOnDestroy() {
     if (this.residentDataSubscription) {
       this.residentDataSubscription.unsubscribe();
     }
-}
+  }
 }

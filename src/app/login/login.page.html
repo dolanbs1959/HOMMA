@@ -52,12 +52,17 @@
       </ion-item>
       <br>
       <ion-item>
-        <ion-input 
-          #staffInput 
-          class="ion-text-center" 
-          [(ngModel)]="staffID" 
-          type="text" 
-          placeholder="Staff ID"></ion-input>
+        <ion-input
+          #staffInput
+          class="ion-text-center"
+          [(ngModel)]="staffID"
+          [type]="showStaffId ? 'text' : 'password'"
+          placeholder="Staff ID"
+          autocomplete="username"
+          autocapitalize="off"
+          autocorrect="off">
+        </ion-input>
+        <ion-icon slot="end" name="eye" (click)="showStaffId = !showStaffId"></ion-icon>
       </ion-item>
       <br>
       <ion-button (click)="login()" [disabled]="!housename || !staffID">
