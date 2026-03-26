@@ -48,7 +48,7 @@ constructor(
   
 ) {
   this.reportForm = this.formBuilder.group({
-    observationType: ['', Validators.required],
+  observationType: [[], Validators.minLength(1)],
     observationTone: ['', Validators.required],
     observationClass: ['', Validators.required],
     observationDescription: ['', Validators.required],
@@ -102,7 +102,11 @@ async savePhoto(): Promise<{ filepath: string; webviewPath: string } | null> {
 }
 
 onObservationTypeChange(type: any): void {
-  this.showRipple = type.name === 'Dirty UA';
+  if (Array.isArray(type)) {
+    this.showRipple = type.includes('Dirty UA');
+  } else {
+    this.showRipple = type === 'Dirty UA' || (type && type.name === 'Dirty UA');
+  }
 }
 
 openSelectPhotoDialog(): void {
@@ -140,8 +144,8 @@ function addField(fields: { [key: number]: { value: any } }, fieldId: number, va
   this.isLoading = true;
   this.submissionMessage = '';
 const body: { [key: number]: { value: any } } = {
-    194: { value: this.residentData.recordNumber2.value },
-    7: { value: this.reportForm.value.observationType },//this.reportForm.value.observationType,
+  194: { value: this.residentData.recordNumber2.value },
+  7: { value: this.reportForm.value.observationType },
     51: { value: this.reportForm.value.observationTone },//this.reportForm.value.observationTone
     94: { value: this.reportForm.value.observationClass },//this.reportForm.value.observationClass
     8: { value: this.reportForm.value.observationDescription },
@@ -167,19 +171,33 @@ if (this.capturedPhoto) {
           }
         };
       }
-// console.log('Observation Report Body:', body);
 
 this.quickbaseService.observationreport(body).subscribe(async (response: any) => {
   // console.log('Observation Report inserted successfully', response);
-  this.NewObservationRecordId = response.data[0][3].value;
-  // console.log('New Observation Record ID:', this.NewObservationRecordId);
+  try {
+    if (response && response.data && response.data[0] && response.data[0][3]) {
+      this.NewObservationRecordId = response.data[0][3].value;
+      this.submissionMessage = `Observation Report saved (Record #${this.NewObservationRecordId}).`;
+    } else if (typeof response === 'number') {
+      this.NewObservationRecordId = response as number;
+      this.submissionMessage = `Observation Report saved (Record #${this.NewObservationRecordId}).`;
+    } else {
+      console.warn('Unexpected observationreport response structure:', response);
+      this.submissionMessage = 'Observation saved, but response format unexpected.';
+    }
+  } catch (e) {
+    this.submissionMessage = 'Observation saved, but error parsing response.';
+  }
   this.isLoading = false;
-  this.submissionMessage = `Observation Report saved (Record #${this.NewObservationRecordId}).`;
 
 }, (error: any) => {
-  // console.error('Error inserting record', error);
-    this.isLoading = false;
+  try {
+    const errMsg = error?.message || error?.error || JSON.stringify(error);
+    this.submissionMessage = `Error saving observation: ${errMsg}`;
+  } catch (e) {
     this.submissionMessage = 'Error saving observation; please try again.';
+  }
+  this.isLoading = false;
 });}
 
 

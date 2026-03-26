@@ -48,6 +48,8 @@ export class LoginPage implements OnInit, OnDestroy {
   isDisabled: boolean = true; // Set this to true or false based on your logic
   dailyVerse: string = '';
   staticVerse: string = 'For I was an hungred, and ye gave me meat: I was thirsty, and ye gave me drink: I was a stranger, and ye took me in. Matthew 25:35, KJV';
+  rememberDevice: boolean = false;
+  storageBackend: string = 'unknown';
   
   selectUserType(type: string) {
     this.userType = type;
@@ -123,6 +125,8 @@ ngOnInit() {
       this.secureStorage.get('staffID').then(val => {
         if (val) this.staffID = val;
       });
+      // Detect likely storage backend for on-screen debugging
+      this.detectStorageBackend();
     });
     
     // Pre-fetch and cache Senior Staff data for participant login checks
@@ -149,8 +153,15 @@ ngOnInit() {
           this.savedRecordNumber = this.recordNumber;
           this.maxMeetingDate = response.maxMeetingDate?.value;
           this.logger.log('Login successful');
-          // Persist staffID to secure storage (or fallback) for convenience on this device
-          try { this.secureStorage.set('staffID', this.staffID); } catch (e) {}
+          // Persist staffID only if the user explicitly opts in via "Remember this device"
+          try {
+            if (this.rememberDevice) {
+              this.secureStorage.set('staffID', this.staffID);
+            } else {
+              // Ensure we don't leave a saved value behind from previous runs
+              try { this.secureStorage.remove('staffID'); } catch (e) {}
+            }
+          } catch (e) {}
           
           // Store the response from the first query
           this.quickbaseService.queryData = response;
@@ -363,6 +374,23 @@ ngOnInit() {
 
   ngOnDestroy() {
     // Cleanup if needed
+  }
+  
+  // Simple heuristic to show which storage backend will likely be used at runtime
+  detectStorageBackend() {
+    const win = window as any;
+    try {
+      if (win.Capacitor && (win.Capacitor.Plugins?.SecureStorage || win.Capacitor.Plugins?.SecureStoragePlugin || win.Capacitor.Plugins?.SecureStorageEcho)) {
+        this.storageBackend = 'CapacitorSecureStorage';
+        return;
+      }
+      if (win.cordova && (win.cordova.plugins?.SecureStorage || win.plugins?.SecureStorage || win.SecureStorage || win.cordova?.SecureStorage)) {
+        this.storageBackend = 'CordovaSecureStorage';
+        return;
+      }
+    } catch (e) {}
+    // otherwise assume web fallback
+    this.storageBackend = 'localStorage';
   }
   
 }

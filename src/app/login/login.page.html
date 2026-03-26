@@ -64,6 +64,11 @@
         </ion-input>
         <ion-icon slot="end" name="eye" (click)="showStaffId = !showStaffId"></ion-icon>
       </ion-item>
+      <ion-item>
+        <ion-label>Remember this device</ion-label>
+        <ion-checkbox slot="end" [(ngModel)]="rememberDevice"></ion-checkbox>
+      </ion-item>
+      <div class="storage-indicator" style="font-size:0.9em;color:var(--ion-text-color-secondary);margin-top:6px">Storage: {{ storageBackend }}</div>
       <br>
       <ion-button (click)="login()" [disabled]="!housename || !staffID">
         Enter

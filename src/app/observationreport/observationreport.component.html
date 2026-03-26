@@ -25,9 +25,10 @@
   <ion-list [formGroup]="reportForm">
 
   <ion-select formControlName="observationType" 
+              multiple="true"
               label="Observation Type" 
               interface="action-sheet"
-              placeholder="Select the observation type" 
+              placeholder="Select one or more observation types" 
               cancelText="Cancel Choice"
               label-placement="floating" 
               fill="outline">
@@ -72,7 +73,7 @@
 </div>
 
 <br>
-<div class="center-div" *ngIf="reportForm.get('observationType')?.value === 'Dirty UA'">
+<div class="center-div" *ngIf="reportForm.get('observationType')?.value?.includes('Dirty UA')">
   <ion-button (click)="openSelectPhotoDialog()">
     Tap here to take photo of the UA specimen
 </ion-button>
@@ -106,7 +107,7 @@
   </div>
   </div>
 
-<ion-card *ngIf="reportForm.get('observationType')?.value === 'Overnight Request'">
+<ion-card *ngIf="reportForm.get('observationType')?.value?.includes('Overnight Request')">
   <ion-card-header>
     <ion-card-title>Overnight Request</ion-card-title>
   </ion-card-header>
