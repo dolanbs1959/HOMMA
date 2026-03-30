@@ -1,0 +1,24 @@
+<div class="resident-actions-popover">
+  <div class="vitals" role="group" aria-label="Resident vitals">
+    <h3 class="name">{{ normalizedName }}</h3>
+    <div class="small">ID: {{ normalizedId }}</div>
+    <div class="small">House: {{ theHouseName }}</div>
+  </div>
+
+  <div class="actions">
+    <ion-button *ngIf="!isPending" expand="block" fill="solid" (click)="gotoDetail()">Resident Vitals</ion-button>
+
+    <ng-container *ngIf="!isPending">
+      <ion-button expand="block" fill="solid" class="outline-action" (click)="addObservation()">Add Observation Report</ion-button>
+      <ion-button expand="block" fill="solid" class="outline-action" (click)="addResidentUpdate()">Add Resident Update</ion-button>
+      <ion-button expand="block" fill="solid" class="outline-action" (click)="addParticipantOneOnOne()">Add Participant 1-on-1</ion-button>
+      <ion-button expand="block" fill="solid" class="outline-action" (click)="registerForMeeting()">Class Registration</ion-button>
+    </ng-container>
+
+    <ion-button expand="block" fill="solid" (click)="addTransportRequest()">Add Transport Request</ion-button>
+  </div>
+
+  <div class="cancel">
+    <ion-button expand="block" fill="solid" class="cancel-btn" (click)="cancel()">Cancel</ion-button>
+  </div>
+</div>

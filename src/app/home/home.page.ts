@@ -6,6 +6,8 @@ import { UserService } from '../services/user.service';
 import { ThemeService } from '../services/theme.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router'; // Import ActivatedRoute
+import { PopoverController } from '@ionic/angular';
+import { ResidentActionsComponent } from '../resident-actions/resident-actions.component';
 import { environment } from 'src/environments/environment';
 import { Observable } from 'rxjs';
 import { LoggerService } from '../services/logger.service';
@@ -54,6 +56,7 @@ export class HomePage implements OnInit {
     public quickbaseService: QuickbaseService, 
     private route: ActivatedRoute, 
     private router: Router,
+    private popoverCtrl: PopoverController,
     private formBuilder: FormBuilder,
     private userService: UserService,
     public themeService: ThemeService,
@@ -80,6 +83,27 @@ export class HomePage implements OnInit {
     
     this.STAalert = this.quickbaseService.STAalert;
     this.Alert = this.quickbaseService.Alert;
+  }
+
+  async presentResidentActions(resident: any, isPending: boolean = false) {
+    try {
+      const pop = await this.popoverCtrl.create({
+        component: ResidentActionsComponent,
+        componentProps: {
+          resident,
+          isPending,
+          theHouseName: this.theHouseName,
+          houseLeaderRecordId: this.houseLeaderRecordId,
+          houseLeaderName: this.HouseLeaderName,
+          HLphone: this.HLphone,
+          maxMeetingDate: this.maxMeetingDate
+        },
+        translucent: true
+      });
+      await pop.present();
+    } catch (e) {
+      this.logger.error('Error presenting resident actions popover', e);
+    }
   }
 
   payNow() {

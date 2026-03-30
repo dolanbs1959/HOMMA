@@ -128,7 +128,7 @@
   <ion-card-title class="ion-text-center">Active Participants</ion-card-title>
   <ion-card *ngFor="let resident of (quickbaseService.residentData | async)">
     <ion-card-content>
-      <a (click)="navigateToDetail(resident.recordNumber2.value, false, resident.residentFullName.value)">
+      <a (click)="presentResidentActions(resident, false)">
         <img [src]="resident.residentPhoto" *ngIf="resident.residentPhoto" alt="Resident Photo" class="thumbnail">
         <!-- <div [innerHTML]="resident.residentPhoto.value"></div> -->
       <p>{{ resident.residentFullName.value }}</p>
@@ -141,7 +141,7 @@
   <ion-card-title class="ion-text-center" *ngIf="(quickbaseService.pendingArrivals | async)?.length > 0">Pending New Arrivals</ion-card-title>
   <ion-card *ngFor="let resident of (quickbaseService.pendingArrivals | async)">
     <ion-card-content>
-        <a (click)="navigateToDetail(resident.recordNumber2.value, true, resident.residentFullName.value)">
+        <a (click)="presentResidentActions(resident, true)">
         <div [innerHTML]="resident.residentFullName.value + ' - Age: ' + resident.residentAge.value + ' - Level: ' + resident.SOLevel.value + ' - PRD: ' + (resident.PRD.value ? (resident.PRD.value | date:'MM-dd-yyyy') : 'TBD')"></div>
         </a>
     </ion-card-content>

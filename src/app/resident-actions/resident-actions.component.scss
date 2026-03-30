@@ -1,0 +1,231 @@
+/* Styling cleared — starting from scratch. */
+
+/*
+	Reset buttons inside this popover to neutral values.
+	The app defines global button tokens in `src/theme/variables.scss` which
+	apply app-wide. That is why removing this component's styles didn't remove
+	the blue, rounded, elevated buttons — the global rules still apply.
+
+	These rules below explicitly override the most impactful tokens for
+	`ion-button` used inside the popover so the popover starts visually neutral.
+*/
+.resident-actions-popover {
+	/* keep basic layout scoped here */
+	padding: 12px;
+	max-width: 320px;
+}
+
+.resident-actions-popover ion-button,
+.resident-actions-popover button,
+.resident-actions-popover .button-native {
+	/* neutral appearance */
+	--background: transparent !important;
+	background: transparent !important;
+	--color: inherit !important;
+	color: inherit !important;
+	--border-color: rgba(0,0,0,0.06) !important;
+	border: 1px solid rgba(0,0,0,0.06) !important;
+	box-shadow: none !important;
+	--border-radius: 6px !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	min-height: initial !important;
+	padding: 8px 10px !important;
+}
+
+/* Filled/solid variants should not force global primary bg here */
+.resident-actions-popover ion-button.button-fill,
+.resident-actions-popover ion-button.button-solid,
+.resident-actions-popover .button.fill,
+.resident-actions-popover .button-solid {
+	--background: transparent !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+/* Outline variant: keep subtle border but no elevated look */
+.resident-actions-popover ion-button.button-outline,
+.resident-actions-popover .button-outline {
+	--background: transparent !important;
+	background: transparent !important;
+	--border-color: rgba(0,0,0,0.08) !important;
+	border: 1px solid rgba(0,0,0,0.06) !important;
+	box-shadow: none !important;
+}
+
+/* Clear variant: just text */
+.resident-actions-popover ion-button.button-clear,
+.resident-actions-popover .button-clear {
+	--background: transparent !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+/* User-requested visual styles for this popover */
+.resident-actions-popover {
+	font-size: 13px; /* reduce base font size */
+	padding: 12px;
+	max-width: 340px;
+}
+
+.resident-actions-popover .vitals h3 {
+	margin: 0 0 6px 0;
+	font-size: 15px;
+	color: #0a5ef0; /* resident name blue */
+	font-weight: 600;
+}
+
+.resident-actions-popover .small {
+	font-size: 12px;
+	color: rgba(0,0,0,0.65);
+	margin-bottom: 6px;
+}
+
+/* Solid / filled buttons: use the requested pale blue background */
+.resident-actions-popover ion-button.button-fill,
+.resident-actions-popover ion-button.button-solid,
+.resident-actions-popover .button.fill,
+.resident-actions-popover .button-solid {
+	--background: #C5E2FF !important;
+	background: #C5E2FF !important;
+	--color: #023047 !important; /* dark text for contrast */
+	color: #023047 !important;
+	box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+	border-radius: 10px !important;
+}
+
+/* Outline buttons: pale blue border, white background, dark text */
+.resident-actions-popover ion-button.button-outline,
+.resident-actions-popover .button-outline {
+	--background: #ffffff !important;
+	background: #ffffff !important;
+	--border-color: #C5E2FF !important;
+	border: 1px solid #C5E2FF !important;
+	--color: #023047 !important;
+	color: #023047 !important;
+	box-shadow: none !important;
+	border-radius: 10px !important;
+}
+
+/* In the actions list, treat outline buttons as the filled/card style
+   so the four middle buttons visually match the top/transport buttons. */
+.resident-actions-popover .actions ion-button.button-outline,
+.resident-actions-popover .actions .button-outline {
+	--background: #C5E2FF !important;
+	background: #C5E2FF !important;
+	--color: #023047 !important;
+	color: #023047 !important;
+	box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+	border: none !important;
+	border-radius: 12px !important;
+	padding: 10px 12px !important;
+	font-size: 13px !important;
+}
+
+/* Make outline and outline-action buttons visually match the filled top button */
+.resident-actions-popover ion-button[fill="outline"],
+.resident-actions-popover ion-button.outline-action,
+.resident-actions-popover .outline-action {
+	--background: #C5E2FF !important;
+	background: #C5E2FF !important;
+	--color: #023047 !important;
+	color: #023047 !important;
+	box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+	border: none !important;
+	border-radius: 12px !important;
+	padding: 10px 12px !important;
+	font-size: 13px !important;
+}
+
+/* Ensure the native part (shadow DOM) matches the filled style too */
+::ng-deep .resident-actions-popover ion-button[fill="outline"]:not(.cancel-btn)::part(native),
+::ng-deep .resident-actions-popover ion-button.outline-action:not(.cancel-btn)::part(native) {
+	background: #C5E2FF !important;
+	color: #023047 !important;
+	box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+	border: none !important;
+	border-radius: 12px !important;
+}
+
+/* Ensure the Cancel button's host and shadow-DOM part are fully dark blue */
+::ng-deep .resident-actions-popover .cancel ion-button::part(native),
+::ng-deep .resident-actions-popover ion-button.cancel-btn::part(native) {
+	background: #0a5ef0 !important;
+	color: #ffffff !important;
+	box-shadow: none !important;
+	border: none !important;
+	border-radius: 10px !important;
+}
+
+::ng-deep .resident-actions-popover ion-button[fill="solid"]::part(native) {
+	background: #C5E2FF !important;
+	color: #023047 !important;
+	box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+}
+
+/* Stronger override for cancel native part placed after generic solid rule */
+::ng-deep .resident-actions-popover ion-button.cancel-btn::part(native),
+::ng-deep .resident-actions-popover ion-button.cancel-btn[fill="solid"]::part(native) {
+	background: #0a5ef0 !important;
+	color: #ffffff !important;
+	box-shadow: none !important;
+	border: none !important;
+	border-radius: 10px !important;
+}
+
+/* Also ensure inner text label colors are enforced */
+::ng-deep .resident-actions-popover ion-button::part(native) .button-inner,
+::ng-deep .resident-actions-popover ion-button::part(native) span,
+::ng-deep .resident-actions-popover ion-button::part(native) ion-label {
+	color: inherit !important;
+}
+
+/* Target the outline-action class specifically so these buttons match the filled/card style */
+.resident-actions-popover ion-button.outline-action,
+.resident-actions-popover .outline-action {
+	background: #C5E2FF !important;
+	border: none !important;
+	box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+	border-radius: 12px !important;
+	padding: 10px 12px !important;
+	font-size: 13px !important;
+	color: #023047 !important;
+}
+
+::ng-deep .resident-actions-popover ion-button.outline-action::part(native) {
+	background: #C5E2FF !important;
+	color: #023047 !important;
+	box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+	border: none !important;
+	border-radius: 12px !important;
+}
+
+/* Cancel button specifics: white background and blue font color */
+.resident-actions-popover .cancel ion-button,
+.resident-actions-popover ion-button.cancel-btn {
+	--background: #0a5ef0 !important;
+	background: #0a5ef0 !important;
+	--color: #ffffff !important;
+	color: #ffffff !important;
+	border: none !important;
+	box-shadow: none !important;
+	border-radius: 10px !important;
+}
+
+/* Ensure the actions area scrolls if tall and that cancel stays below */
+.resident-actions-popover .actions {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 8px;
+	max-height: calc(100vh - 240px);
+	overflow: auto;
+}
+
+.resident-actions-popover .cancel {
+	margin-top: 12px;
+	text-align: center;
+}
+
+
