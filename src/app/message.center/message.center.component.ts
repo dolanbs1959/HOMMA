@@ -91,21 +91,18 @@ export class MessageCenterComponent implements OnInit, OnDestroy {
         this.activeStaff = (staff || []).map((s: any) => {
           const displayName = s.displayName || '';
           const isDbAdmin = displayName.toString().toLowerCase() === 'database administrator';
-          let name = isDbAdmin ? 'Barry Dolan' : displayName;
-          if (name.toString().toLowerCase() === 'michael lovrick') {
-            name = `(Prayer Requests) ${name}`;
-          }
+          // keep the base display name for special-case checks
+          let baseName = isDbAdmin ? 'Barry Dolan' : displayName;
+
+          // Append feedbackRole in parentheses; provide both plain and HTML variants for rendering
+          const fid = s.feedbackRole ? String(s.feedbackRole).trim() : null;
+          const namePlain = fid ? `${baseName} (${fid})` : baseName;
+          const nameHtml = fid ? `${baseName} (<em>${fid}</em>)` : baseName;
           const value = s.email || s.staffRecordId || s.userId || '';
           const sendValue = isDbAdmin ? 'Database Administrator' : (s.email || s.userId || value);
-          return { userId: value, name, email: s.email, sendValue };
+          return { userId: value, name: namePlain, nameHtml, email: s.email, sendValue };
         });
 
-        // Ensure Michael Lovrick (Prayer Requests) is at the top
-        this.activeStaff.sort((a, b) => {
-          if (a.name.toString().startsWith('(Prayer Requests)')) return -1;
-          if (b.name.toString().startsWith('(Prayer Requests)')) return 1;
-          return 0;
-        });
       },
       (error) => {
         // console.error('Error loading active staff:', error);
@@ -153,14 +150,18 @@ export class MessageCenterComponent implements OnInit, OnDestroy {
       let staffValueToSend = selectedStaffUserIdTrimmed;
       try {
         const selLower = String(selectedStaffUserIdTrimmed || '').toLowerCase();
-        if (selLower === 'barry dolan' || selLower === 'database administrator') {
+        if (selLower.includes('barry dolan') || selLower.includes('database administrator')) {
           const svcList: any = (this.quickbaseService as any).activeStaff?.value || null;
           let adminEntry: any = null;
           if (Array.isArray(svcList)) {
             adminEntry = svcList.find((s: any) => ((s.displayName || s.name || '').toString().toLowerCase()) === 'database administrator');
           }
           if (!adminEntry && Array.isArray(this.activeStaff)) {
-            adminEntry = this.activeStaff.find((s: any) => ((s.name || '').toString().toLowerCase() === 'barry dolan' || (s.name || '').toString().toLowerCase() === 'database administrator'));
+            adminEntry = this.activeStaff.find((s: any) => {
+              const n = (s.name || '').toString().toLowerCase();
+              const sv = (s.sendValue || '').toString().toLowerCase();
+              return n.includes('barry dolan') || n.includes('database administrator') || sv.includes('database administrator');
+            });
           }
           if (adminEntry) {
             staffValueToSend = adminEntry.email || adminEntry.userId || adminEntry.staffRecordId || (adminEntry.staffRecordId && adminEntry.staffRecordId.value) || adminEntry.sendValue || staffValueToSend;

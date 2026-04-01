@@ -1226,7 +1226,7 @@ getActiveStaff(): Observable<any> {
   const body = {
     from: this.queryStaffTableId,
     // Include additional fields that may contain email or identifiers (best-effort)
-    select: [3, 9, 10, 55, 102, 118, 139, 177],  // fid 3 = Staff Record ID, fid 9 = Related Participant, fid 10 = Display Name, others may include contact info
+    select: [3, 9, 10, 55, 102, 118, 139, 177, 301],  // fid 3 = Staff Record ID, fid 9 = Related Participant, fid 10 = Display Name, others may include contact info
     where: `{6.EX.'Active'}AND{292.EX.'Yes'}`, //fields for Staff Status; Senior Staff
     sortBy: [
       {
@@ -1304,6 +1304,7 @@ getActiveStaff(): Observable<any> {
           raw: record,
           userId: record['3']?.value,
           displayName: record['10']?.value,
+          feedbackRole: (record['301'] && (record['301'].value ?? record['301'])) || null,
           relatedParticipantId: record['9']?.value,
           email
         };
@@ -1321,6 +1322,7 @@ getActiveStaff(): Observable<any> {
           return {
             userId: s.userId,
             displayName: renameMap[lname] || name,
+            feedbackRole: s.feedbackRole || null,
             relatedParticipantId: s.relatedParticipantId,
             email: s.email
           };

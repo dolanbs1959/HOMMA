@@ -220,7 +220,7 @@
             <ion-item>
               <ion-select formControlName="staff" label="Staff Member" placeholder="Select staff member" interface="action-sheet">
                 <ion-select-option *ngFor="let staff of activeStaff" [value]="staff.sendValue || staff.email || staff.userId">
-                  {{ staff.name }}
+                  <span [innerHTML]="staff.nameHtml || staff.name"></span>
                 </ion-select-option>
               </ion-select>
             </ion-item>

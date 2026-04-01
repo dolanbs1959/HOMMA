@@ -274,14 +274,17 @@ openStaffTasks() {
             // If the service earlier remapped the current user to "Database Administrator",
             // show the real name "Barry Dolan" in the UI but send the mapped value when selected.
             const isDbAdminLabel = staffMember.displayName === 'Database Administrator';
-            let displayName = isDbAdminLabel ? 'Barry Dolan' : staffMember.displayName;
-            if (staffMember.displayName === 'Michael Lovrick') {
-              displayName = 'Michael Lovrick (Prayer Requests)';
-            }
+            // baseName used for special-case checks
+            let baseName = isDbAdminLabel ? 'Barry Dolan' : staffMember.displayName;
+            // Append feedbackRole in parentheses (HTML-italicized for template) but keep a plain-text fallback
+            const fid = staffMember.feedbackRole ? String(staffMember.feedbackRole).trim() : null;
+            const displayNamePlain = fid ? `${baseName} (${fid})` : baseName;
+            const displayNameHtml = fid ? `${baseName} (<em>${fid}</em>)` : baseName;
             return {
               userId: staffMember.userId,
-              // Display the friendly name to users; keep 'Database Administrator' sent value if applicable
-              name: displayName,
+              // Plain text name (used as a fallback) and HTML-safe name for rendering
+              name: displayNamePlain,
+              nameHtml: displayNameHtml,
               email: staffMember.email,
               sendValue: isDbAdminLabel ? 'Database Administrator' : (staffMember.email || staffMember.userId)
             };
@@ -352,8 +355,9 @@ openStaffTasks() {
       // entry in the active staff list and using its email (preferred) or id.
       let staffValueToSend = selectedStaffUserId;
       try {
-        const selectedIsBarry = (String(selectedStaffUserId || '')).toLowerCase() === 'barry dolan';
-        const selectedIsDbAdmin = (String(selectedStaffUserId || '')).toLowerCase() === 'database administrator';
+        const selLower = (String(selectedStaffUserId || '')).toLowerCase();
+        const selectedIsBarry = selLower.includes('barry dolan');
+        const selectedIsDbAdmin = selLower.includes('database administrator');
         if (selectedIsBarry || selectedIsDbAdmin) {
           // Try service cache first
           const svcList: any = (this.quickbaseService as any).activeStaff?.value || null;
@@ -366,7 +370,11 @@ openStaffTasks() {
           }
           // Fallback to the HomePage-local `activeStaff` mapping
           if (!adminEntry && Array.isArray(this.activeStaff)) {
-            adminEntry = this.activeStaff.find((s: any) => (s.name || '').toString().toLowerCase() === 'barry dolan' || (s.name || '').toString().toLowerCase() === 'database administrator');
+            adminEntry = this.activeStaff.find((s: any) => {
+              const n = (s.name || '').toString().toLowerCase();
+              const sv = (s.sendValue || '').toString().toLowerCase();
+              return n.includes('barry dolan') || n.includes('database administrator') || sv.includes('database administrator');
+            });
           }
           if (adminEntry) {
             staffValueToSend = adminEntry.email || adminEntry.userId || adminEntry.sendValue || staffValueToSend;
