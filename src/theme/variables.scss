@@ -520,3 +520,68 @@ ion-button.button-clear, .button-clear {
   box-shadow: none !important;
   border: 1px solid rgba(0,0,0,0.06) !important;
 }
+
+/* resident-actions shared button styles (moved here to keep component CSS small) */
+.resident-actions-popover ion-button.button-fill,
+.resident-actions-popover ion-button.button-solid,
+.resident-actions-popover .button.fill,
+.resident-actions-popover .button-solid,
+.resident-actions-popover ion-button[fill="outline"],
+.resident-actions-popover ion-button.outline-action,
+.resident-actions-popover .outline-action {
+  --background: #C5E2FF !important;
+  background: #C5E2FF !important;
+  --color: #023047 !important;
+  color: #023047 !important;
+  box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  font-size: 13px !important;
+}
+
+/* Shadow-DOM native parts for resident-actions buttons */
+::ng-deep .resident-actions-popover ion-button[fill="outline"]::part(native),
+::ng-deep .resident-actions-popover ion-button[fill="solid"]::part(native),
+::ng-deep .resident-actions-popover ion-button.outline-action::part(native) {
+  background: #C5E2FF !important;
+  color: #023047 !important;
+  box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+  border: none !important;
+  border-radius: 12px !important;
+}
+
+/* Cancel button native override for resident-actions */
+::ng-deep .resident-actions-popover ion-button.cancel-btn::part(native),
+::ng-deep .resident-actions-popover ion-button.cancel-btn[fill="solid"]::part(native) {
+  background: #0a5ef0 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 10px !important;
+}
+
+/* Dark-mode variants for resident-actions shared styles */
+body.dark .resident-actions-popover ion-button.button-fill,
+body.dark .resident-actions-popover ion-button.button-solid,
+body.dark .resident-actions-popover .button.fill,
+body.dark .resident-actions-popover .button-solid,
+body.dark .resident-actions-popover ion-button[fill="outline"],
+body.dark .resident-actions-popover ion-button.outline-action,
+body.dark .resident-actions-popover .outline-action {
+  --background: #C5E2FF !important;
+  background: #C5E2FF !important;
+  --color: #023047 !important;
+  color: #023047 !important;
+  box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+}
+
+::ng-deep body.dark .resident-actions-popover ion-button[fill="outline"]::part(native),
+::ng-deep body.dark .resident-actions-popover ion-button[fill="solid"]::part(native),
+::ng-deep body.dark .resident-actions-popover ion-button.outline-action::part(native) {
+  background: #C5E2FF !important;
+  color: #023047 !important;
+  box-shadow: 0 6px 18px rgba(11,132,255,0.14) !important;
+  border: none !important;
+  border-radius: 12px !important;
+}

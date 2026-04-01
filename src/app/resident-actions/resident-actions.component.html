@@ -6,6 +6,9 @@
   </div>
 
   <div class="actions">
+    <!-- For pending new arrivals show a top button that routes to Resident Update -->
+    <ion-button *ngIf="isPending" expand="block" fill="solid" class="outline-action" (click)="addResidentUpdate()">Add Resident Update</ion-button>
+
     <ion-button *ngIf="!isPending" expand="block" fill="solid" (click)="gotoDetail()">Resident Vitals</ion-button>
 
     <ng-container *ngIf="!isPending">
