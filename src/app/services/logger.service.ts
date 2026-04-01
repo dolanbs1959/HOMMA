@@ -11,7 +11,8 @@ import { environment } from 'src/environments/environment';
 })
 export class LoggerService {
   // When true, suppress all non-error logs regardless of environment
-  private suppressAllLogs = true;
+  // Set to false during local/dev testing to see debug/log output
+  private suppressAllLogs = false;
 
   /**
    * Log general information (only in development)

@@ -34,6 +34,11 @@ export class WeeklyMeetingsPage implements OnInit {
   showConfirmation: boolean = false;
   confirmationCount: number = 0;
   confirmationIds: any[] = [];
+  // Resident/KPI monitoring
+  residentCount: number = 0;
+  kpiOccupiedBeds: number | null = null;
+  residentCountMismatch: boolean = false;
+  showResidentWarning: boolean = false;
   
 
   private residentDataSubscription!: Subscription;
@@ -45,7 +50,7 @@ export class WeeklyMeetingsPage implements OnInit {
   constructor(
     public quickbaseService: QuickbaseService, 
     private route: ActivatedRoute, 
-    private router: Router, 
+    public router: Router, 
     private location: Location,
     private formBuilder: FormBuilder,
     private logger: LoggerService,
@@ -284,6 +289,28 @@ updateAttendanceRecords(newActivityId?: any): Observable<any> {
     } catch (e) {}
     this.residentDataSubscription = this.quickbaseService.residentData.subscribe(data => {
       this.residentData = data;
+      // compute resident counts for monitoring
+      try {
+        this.residentCount = Array.isArray(data) ? data.length : 0;
+      } catch (e) {
+        this.residentCount = 0;
+      }
+      // compare with house KPI if available
+      try {
+        const kpi = this.quickbaseService.getHouseKPIsByName(this.theHouseName);
+        if (kpi && typeof kpi.occupiedBeds === 'number') {
+          this.kpiOccupiedBeds = kpi.occupiedBeds as number;
+          this.residentCountMismatch = (this.kpiOccupiedBeds !== null && this.residentCount !== this.kpiOccupiedBeds);
+        } else {
+          this.kpiOccupiedBeds = null;
+          this.residentCountMismatch = false;
+        }
+      } catch (e) {
+        this.kpiOccupiedBeds = null;
+        this.residentCountMismatch = false;
+      }
+      // Show a blocking warning when zero residents loaded
+      this.showResidentWarning = (this.residentCount === 0);
       try {
         const len = Array.isArray(data) ? data.length : (data ? 1 : 0);
         console.log('WeeklyMeetingsPage - residentData received, length:', len);

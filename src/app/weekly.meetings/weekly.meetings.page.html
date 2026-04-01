@@ -67,11 +67,23 @@
     </ion-card>
     <router-outlet></router-outlet>
   </div>
+  <!-- Warning when no residents loaded (moved outside action card so it can expand full-width) -->
+  <div *ngIf="showResidentWarning || residentCountMismatch" style="display:flex;justify-content:center;">
+    <div *ngIf="showResidentWarning" class="warning-card">
+      <h3>Residents not loaded</h3>
+      <p>We couldn't load any residents for this house. You cannot submit an empty attendance report.</p>
+      <p>Please report this issue to the database administrator via the feedback form on the Home page.</p>
+    </div>
+    <div *ngIf="!showResidentWarning && residentCountMismatch" class="warning-card">
+      <h3>Resident count mismatch</h3>
+      <p>Expected {{ kpiOccupiedBeds }} residents from House KPIs but found {{ residentCount }}. Please verify before submitting.</p>
+    </div>
+  </div>
 
   <ion-card>
     <ion-card-content scrollable-content>    
       <div class="wrapper">
-        <div *ngIf="!isActivityAdded && !quickbaseService.isActivityAddedOnce" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue" (click)="addWeeklyHouseMeeting()">
+        <div *ngIf="!isActivityAdded && !quickbaseService.isActivityAddedOnce" [class.disabled]="residentCount===0" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue" (click)="residentCount>0 && addWeeklyHouseMeeting()">
         Add Weekly House Meeting
         <ion-ripple-effect></ion-ripple-effect>
         </div>
@@ -132,5 +144,22 @@
     }
     .confirmation-card h2 { margin-top: 0; }
     .confirmation-actions { margin-top: 16px; }
+    .warning-card {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      padding: 18px 20px;
+      border-radius: 8px;
+      margin: 12px auto 16px auto;
+      max-width: 920px;
+      width: calc(100% - 48px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      text-align: center;
+      line-height: 1.4;
+      font-size: 15px;
+    }
+    .warning-card h3 { margin: 0 0 8px 0; font-size: 16px; }
+    .warning-card p { margin: 6px 0; }
+    .warning-card a { color: var(--ion-color-primary); text-decoration: underline; cursor: pointer; }
+    .disabled { opacity: 0.55; pointer-events: none; }
   </style>
   

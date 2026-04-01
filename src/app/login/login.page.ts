@@ -183,7 +183,15 @@ ngOnInit() {
               this.quickbaseService.residentData.next(residentResponse);
             },
           );
-          // Note: temporary session persistence removed (debugging-only changes previously)
+          // Persist minimal session info so pages survive a refresh or installed PWA lifecycle
+          try {
+            localStorage.setItem('savedRecordNumber', String(this.savedRecordNumber));
+            if (theHouseName) localStorage.setItem('theHouseName', String(theHouseName));
+            if (HouseLeaderName) localStorage.setItem('HouseLeaderName', String(HouseLeaderName));
+            if (HLphone) localStorage.setItem('HLphone', String(HLphone));
+          } catch (e) {
+            this.logger.warn('Failed to persist session info to localStorage', e);
+          }
           this.quickbaseService.getPendingArrivals(this.savedRecordNumber).subscribe(
             pendingArrivalsResponse => {
               this.quickbaseService.pendingArrivals.next(pendingArrivalsResponse);
