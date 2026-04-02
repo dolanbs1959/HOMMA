@@ -1,6 +1,6 @@
 # HOM Mobile Assistant (HOMMA) - Standard Operating Procedure (SOP)
 
-Welcome to the **HOM Mobile Assistant (HOMMA)**. This Progressive Web Application (PWA) is designed to help House of Mercy (HOM) Program Participants and House Leaders/Staff manage their tasks, communicate efficiently, and submit required documentation directly from their mobile devices.
+Welcome to the **HOM Mobile Assistant (HOMMA)**. This Progressive Web Application (PWA) is designed to help House of Mercy (HOM) Program Participants and House Leaders manage their tasks, communicate efficiently, and submit required documentation directly from their mobile devices.
 
 This Standard Operating Procedure (SOP) provides a comprehensive, step-by-step guide to using the application.
 
@@ -17,12 +17,12 @@ HOMMA is a Progressive Web App (PWA). This means you can access it via a web bro
 
 ## 2. Login Process
 
-Upon launching the app, you will see a daily inspirational gospel verse. Below it, choose your user role to log in.
+Upon launching the app, choose your user role to log in.
 
-### A. Program Participant Login
+### A. Program Participant Login 
 1. Tap on the **Program Participant Login** option.
-2. Enter your HOM-provided email address.
-3. Enter your password. *(If you do not have a password, request one from your Care Navigator).*
+2. Enter your email address.
+3. Enter your HOM-provided password. *(If you do not have a password, request one from staff).*
 4. Tap **Enter** to access your dashboard.
 
 ### B. House Leader Login
@@ -31,6 +31,8 @@ Upon launching the app, you will see a daily inspirational gospel verse. Below i
 3. Enter your assigned **Staff ID**.
 4. (Optional) Check "Remember this device" to save your login session.
 5. Tap **Enter** to access the staff dashboard.
+
+Below you will also see an inspirational gospel verse that is refreshed each time you log in. 
 
 ---
 
@@ -75,6 +77,7 @@ Tap **Resident Vitals** to view detailed participant information:
 Used to log specific behaviors or incidents.
 - Tap **Add Observation Report**.
 - Select one or more **Observation Types** (e.g., Behavior, Rule Violation).
+   - Note: If selecting "Dirty UA", you will see a button labelled, "TAP HERE TO TAKE PHOTO OF THE UA SPECIMEN". Tap the button to take a photo and follow the prompts. The photo will be submitted with the Observation report.
 - Select the **Observation Tone** (e.g., Positive, Negative, Neutral).
 - Select the **Observation Class**.
 - Type a detailed **Observation Description**.
@@ -96,7 +99,7 @@ Used to log required check-in meetings with the participant.
 - Tap **Add Participant 1-on-1**.
 - Verify or update the participant's phone number and email address.
 - Select Yes/No for current statuses: **On Supervision**, **In SOTP**, **In Drug/Alcohol Treatment**, and **In Mental Health Counseling**.
-- Verify or update the **CCO Contact Information** (Name, Phone, Mobile, Email).
+- If on supervison, verify or update the **CCO Contact Information** (Name, Phone, Mobile, Email).
 - Add detailed **Meeting Notes**, including comments on any recent observations.
 - Enter the **Meeting Administrator**'s name.
 - Select **How Administered** (e.g., Live, Phone).
@@ -118,6 +121,8 @@ Used to request a ride for the participant.
 - Select the **Pick-up Location** and **Destination Location** from the dropdown lists.
 - Enter detailed **Transportation Notes**.
 - Tap **Submit Request**.
+
+**Note:** For Pending New Arrivals the only options available are to add a resident update or a transportation request.
 
 ### D. Submitting Feedback & Requests
 Use the "Submit Prayer Request or Feedback" card on the home dashboard to communicate with HOM Staff.
