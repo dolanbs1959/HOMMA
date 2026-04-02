@@ -84,6 +84,7 @@ Functionality: Allows House Leaders to add a weekly house meeting, log what was 
 5. System Workflow Diagram
 Below is a Mermaid.js diagram illustrating the high-level application flow and module interactions. (See Section 6 for instructions on how to render this).
 
+```mermaid
 graph TD
     %% App Entry
     A[App Launch] --> B{Role Selection}
@@ -138,4 +139,4 @@ graph TD
     H1 -.-> API
     H2 -.-> API
     H3 -.-> API
-    H4 -.-> API
+    H4 -.-> API```
