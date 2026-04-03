@@ -4,6 +4,9 @@
     <ion-title color="Primary">
       HOM Mobile Assistant
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" size="small" class="header-version-btn" (click)="showVersionAlert()">VERSION</ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -18,7 +21,9 @@
 
 
   <ion-card-header>
-    <ion-card-title>Tap on your role below to get started.</ion-card-title>
+      <div class="header-row">
+      <ion-card-title>Tap on your role below to get started.</ion-card-title>
+    </div>
     <div *ngIf="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>

@@ -39,6 +39,41 @@ ion-card-title {
     padding-top: 10px;
   }
 
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .version-label {
+    --padding-start: 6px;
+    --padding-end: 6px;
+    --padding-top: 2px;
+    --padding-bottom: 2px;
+    font-size: 12px;
+    color: var(--ion-color-primary);
+  }
+
+  .header-version-btn {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --padding-top: 6px;
+    --padding-bottom: 6px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.06);
+    color: #fff;
+    --color: #fff;
+  }
+
+  /* Slightly smaller alert text for the About dialog */
+  .about-alert .alert-message {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+  .about-alert .alert-message {
+    white-space: pre-wrap;
+  }
+
   .logo-container {
     text-align: center;
     margin-left: 15px;

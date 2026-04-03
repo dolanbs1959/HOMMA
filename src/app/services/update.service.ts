@@ -1,50 +1,76 @@
 import { Injectable, Optional } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 import { ToastController, AlertController } from '@ionic/angular';
-import { interval, fromEvent, Subscription } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 interface UpdateInfo { version?: string; force?: boolean }
 
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
+  private readonly PROMPTED_VERSION_KEY = 'HOMMA__APP_UPDATE_VERSION_PROMPTED';
   // Default production interval: 30 minutes. Can be overridden for testing.
   private checkIntervalMs = 1000 * 60 * 30;
   private pollSub?: Subscription;
+  // When true, allow showing non-forced prompts regardless of current route.
+  private allowPromptsAnywhere = false;
+  private readonly APP_LOAD_KEY = 'HOMMA__APP_UPDATE_CHECKED_SESSION';
 
   constructor(
     @Optional() private updates?: SwUpdate,
     private toastCtrl?: ToastController,
     private alertCtrl?: AlertController,
+    private router?: Router,
   ) {
-    // If the service worker provider isn't enabled (e.g., dev mode), still
-    // enable the remote update checks (they're harmless) but avoid calling
-    // SwUpdate APIs when unavailable.
-    const updatesAny = this.updates as any;
-
-    if (updatesAny && updatesAny.versionUpdates && updatesAny.versionUpdates.subscribe) {
-      updatesAny.versionUpdates.subscribe((evt: any) => {
-        try {
-          if (evt && evt.type === 'VERSION_READY') this.promptForReload();
-        } catch (e) {}
-      });
-    } else if (updatesAny && updatesAny.available && updatesAny.available.subscribe) {
-      updatesAny.available.subscribe(() => this.promptForReload());
-    }
-
-    // Visibility/focus triggers attempt to check for update via SwUpdate
-    fromEvent(document, 'visibilitychange').subscribe(() => {
-      if (document.visibilityState === 'visible') this.checkForUpdate();
-    });
-    fromEvent(window, 'focus').subscribe(() => this.checkForUpdate());
-
-    // Start polling the server-driven update flag (if present)
-    this.startPollingServerFlag();
+    // Intentionally do not subscribe to automatic SW/version events or
+    // visibility/focus triggers here. We only check for updates when the
+    // app explicitly requests it (for example, immediately after user
+    // login) to avoid repeatedly prompting users during a session.
+    // The server-driven polling is available via startPollingServerFlag(),
+    // but it will not run automatically unless explicitly started.
   }
 
-  private async promptForReload(force = false) {
+  /**
+   * Call this once after a user successfully logs in (or on first app
+   * load) to perform a single update check. This avoids prompting users
+   * repeatedly during a session.
+   */
+  async initOnLogin() {
+    await this.pollOnce();
+  }
+
+  /**
+   * Run a one-time update check on app load. While running, allow prompts
+   * even if the user isn't on the login route.
+   */
+  async initOnAppLoad() {
+    try {
+      // Only perform the app-load check once per browser session.
+      if (typeof sessionStorage !== 'undefined') {
+        const done = sessionStorage.getItem(this.APP_LOAD_KEY);
+        if (done) return;
+        try { sessionStorage.setItem(this.APP_LOAD_KEY, '1'); } catch (e) {}
+      }
+      this.allowPromptsAnywhere = true;
+      await this.pollOnce();
+    } finally {
+      this.allowPromptsAnywhere = false;
+    }
+  }
+
+  private async promptForReload(force = false, version?: string) {
     // Force = mandatory modal, otherwise show a toast.
+    // If we've already prompted for this version and not forced, skip.
+    try {
+      if (!force && version) {
+        const prev = window && (window as any).__APP_UPDATE_VERSION;
+        const stored = localStorage.getItem(this.PROMPTED_VERSION_KEY) || prev || '';
+        if (stored === version) return;
+      }
+    } catch (e) {}
     if (force) {
       if (!this.alertCtrl) return;
+      try { if (version) this.setPromptedVersion(version); } catch (e) {}
       const alert = await this.alertCtrl.create({
         header: 'Update available',
         message: 'A critical update is available and will be applied now.',
@@ -56,6 +82,14 @@ export class UpdateService {
     }
 
     if (!this.toastCtrl) return;
+    // If prompts aren't currently allowed anywhere, only show non-forced
+    // toast prompts when on the login page. This prevents the black bottom
+    // banner from appearing while navigating through the app.
+    try {
+      if (!this.allowPromptsAnywhere && this.router && this.router.url && !this.router.url.includes('/login')) {
+        return;
+      }
+    } catch (e) {}
     const toast = await this.toastCtrl.create({
       message: 'A new version is available.',
       position: 'bottom',
@@ -64,6 +98,8 @@ export class UpdateService {
         { text: 'Later', role: 'cancel' }
       ]
     });
+    // store the prompted version so subsequent reloads won't immediately re-prompt
+    try { if (version) this.setPromptedVersion(version); } catch (e) {}
     if (toast && toast.present) await toast.present();
   }
 
@@ -111,17 +147,21 @@ export class UpdateService {
       if (!res || res.status !== 200) return;
       const info: UpdateInfo = await res.json();
       if (!info || !info.version) return;
-      // Compare versions; simple string compare. You can use semantic versioning or timestamps.
-      const current = (window && (window as any).__APP_UPDATE_VERSION) || '';
+      // Compare versions; simple string compare. Use localStorage so the prompt
+      // does not reappear after a full reload for the same version.
+      const current = localStorage.getItem(this.PROMPTED_VERSION_KEY) || '';
       if (current !== info.version) {
-        // mark the version so we don't re-prompt repeatedly during the same session
-        try { (window as any).__APP_UPDATE_VERSION = info.version; } catch (e) {}
         // If force flagged, show mandatory modal
-        this.promptForReload(Boolean(info.force));
+        this.promptForReload(Boolean(info.force), info.version);
       }
     } catch (e) {
       // ignore network errors; polling is best-effort
     }
+  }
+
+  private setPromptedVersion(v: string) {
+    try { localStorage.setItem(this.PROMPTED_VERSION_KEY, v); } catch (e) {}
+    try { (window as any).__APP_UPDATE_VERSION = v; } catch (e) {}
   }
 
   stopPolling() {

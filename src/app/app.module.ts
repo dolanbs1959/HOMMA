@@ -7,6 +7,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Import For
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
+import { VersionFooterComponent } from './components/version-footer/version-footer.component';
 import { DatePipe } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { LocationComponent } from 'src/app/components/location/location.component';
@@ -30,7 +31,7 @@ import { LoginPageModule } from './login/login.module';
 import { MessageCenterComponent } from './message.center/message.center.component';
 
 @NgModule({
-  declarations: [AppComponent, LocationComponent, MessageCenterComponent, ResidentActionsComponent],
+  declarations: [AppComponent, LocationComponent, MessageCenterComponent, ResidentActionsComponent, VersionFooterComponent],
   imports: [MatDialogModule, 
     BrowserModule, 
     IonicModule.forRoot(), 

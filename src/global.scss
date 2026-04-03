@@ -67,3 +67,13 @@
     }
   }
 }
+
+/* When the small version footer is present, ensure pages leave room for it */
+body.has-version-footer {
+  --footer-reserve: 56px;
+}
+
+body.has-version-footer ion-router-outlet,
+body.has-version-footer .ion-page {
+  padding-bottom: var(--footer-reserve, 56px) !important;
+}

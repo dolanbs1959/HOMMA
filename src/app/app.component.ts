@@ -34,6 +34,7 @@ export class AppComponent implements OnDestroy {
       take(1)
     ).subscribe(() => this.loadingService.hide());
     // UpdateService instantiation ensures update checks, notifications, and activation logic
+    try { if (this.updateService && (this.updateService as any).initOnAppLoad) (this.updateService as any).initOnAppLoad(); } catch (e) {}
   }
 
   ngOnDestroy(): void {
