@@ -36,7 +36,11 @@ export class UpdateService {
    * repeatedly during a session.
    */
   async initOnLogin() {
+    // Perform an immediate check, then start background polling so the
+    // running app will detect updates during the session and prompt users
+    // to reload without having to refresh manually.
     await this.pollOnce();
+    try { this.startPollingServerFlag(); } catch (e) {}
   }
 
   /**
@@ -58,7 +62,7 @@ export class UpdateService {
     }
   }
 
-  private async promptForReload(force = false, version?: string) {
+  private async promptForReload(force = false, version?: string, fromPolling: boolean = false) {
     // Force = mandatory modal, otherwise show a toast.
     // If we've already prompted for this version and not forced, skip.
     try {
@@ -86,7 +90,10 @@ export class UpdateService {
     // toast prompts when on the login page. This prevents the black bottom
     // banner from appearing while navigating through the app.
     try {
-      if (!this.allowPromptsAnywhere && this.router && this.router.url && !this.router.url.includes('/login')) {
+      // If this prompt originated from the background poll, allow it regardless
+      // of current route. Otherwise keep the previous guard to avoid noisy
+      // prompts while users navigate the app.
+      if (!fromPolling && !this.allowPromptsAnywhere && this.router && this.router.url && !this.router.url.includes('/login')) {
         return;
       }
     } catch (e) {}
@@ -151,8 +158,10 @@ export class UpdateService {
       // does not reappear after a full reload for the same version.
       const current = localStorage.getItem(this.PROMPTED_VERSION_KEY) || '';
       if (current !== info.version) {
-        // If force flagged, show mandatory modal
-        this.promptForReload(Boolean(info.force), info.version);
+        // If force flagged, show mandatory modal. Mark that this came from
+        // polling so promptForReload can bypass the route check and notify
+        // the user even when not on the login page.
+        this.promptForReload(Boolean(info.force), info.version, true);
       }
     } catch (e) {
       // ignore network errors; polling is best-effort
