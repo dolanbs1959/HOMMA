@@ -109,6 +109,7 @@ export class UserService {
   // Manual logout method
   public manualLogout() {
     try { this.quickbaseService.clearAllCaches(); } catch (e) {}
+    try { this.quickbaseService.clearLastResidentSearch(); } catch (e) {}
     try { this.router.navigate(['/login']); } catch (e) {}
   }
 

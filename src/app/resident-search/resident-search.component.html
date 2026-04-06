@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Active Participant Search</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">Close</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-searchbar placeholder="Search by full name" [(ngModel)]="query" animated></ion-searchbar>
+  <div class="search-actions">
+    <ion-button expand="block" (click)="search()">Search</ion-button>
+  </div>
+  <ion-list *ngIf="results && results.length > 0">
+    <ion-card *ngFor="let r of results" (click)="presentResidentActions(r)">
+      <ion-item>
+        <ion-thumbnail slot="start">
+          <img [src]="r.residentPhoto" (click)="$event.stopPropagation(); presentResidentActions(r)" />
+        </ion-thumbnail>
+        <ion-label>
+          <h2>{{ r.residentFullName?.value || r.residentFullName || r.residentName || 'Unknown' }}</h2>
+          <p>
+            {{ r.houseName?.value || r.houseName || '' }}
+            <span *ngIf="(r.ParticipantStatus?.value || r.ParticipantStatus)"> • {{ r.ParticipantStatus?.value || r.ParticipantStatus }}</span>
+          </p>
+        </ion-label>
+        <ion-button slot="end" fill="clear" (click)="$event.stopPropagation(); viewResident(r)">View Vitals</ion-button>
+      </ion-item>
+    </ion-card>
+  </ion-list>
+
+  <div *ngIf="isLoading" class="loading-wrapper">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading && results && results.length === 0 && query.length >= 2" class="no-results">
+    No residents found
+  </div>
+</ion-content>

@@ -19,7 +19,7 @@
       <div *ngIf="residentData">
         <h1>{{ residentData.residentFullName.value }}</h1>
         <br>
-        <img *ngIf="residentData.residentPhoto" [src]="residentData.residentPhoto" alt="Resident Photo" class="thumbnail" />
+        <img *ngIf="residentData.residentPhoto" [src]="residentData.residentPhoto" alt="Resident Photo" class="thumbnail" (click)="presentResidentActions(residentData, false)" />
         <!-- Hide contact info for staff users -->
         <ng-container *ngIf="!isStaff">
           <ion-card-subtitle *ngIf="isResident" class="phone-link">House Leader: {{ residentData.houseLeaderName.value }} <a (click)="promptAction(residentData.houseLeaderPhone.value, residentData.houseLeaderName.value)">{{ residentData.houseLeaderPhone.value }}</a></ion-card-subtitle>
@@ -87,6 +87,14 @@
 <ion-card *ngIf="isStaff">
   <ion-card-content class="scrollable-content">
     <div class="wrapper">
+      <div *ngIf="searchSessionExists && isStaff" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-yellow" (click)="goBackToSearch()">
+        Back to Search Results
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
+      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="openResidentSearch()">
+        Resident Search
+        <ion-ripple-effect></ion-ripple-effect>
+      </div>
       <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="navigateToExpenseReceipt()">
         Submit Expense Receipt
         <ion-ripple-effect></ion-ripple-effect>

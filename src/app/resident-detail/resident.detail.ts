@@ -9,6 +9,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../dialog/dialog.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PhotoStorageService } from '../services/photoProcessing.service';
+import { PopoverController } from '@ionic/angular';
+import { ResidentActionsComponent } from '../resident-actions/resident-actions.component';
+import { ModalController } from '@ionic/angular';
+import { ResidentSearchComponent } from '../resident-search/resident-search.component';
 
 @Component({
   selector: 'HOMMA-resident-detail',
@@ -26,6 +30,10 @@ export class ResidentDetailComponent  implements OnInit {
   isResident: boolean = false;
   isStaff: boolean = false;
   announcements: any[] = [];
+  // Search session state
+  searchSessionExists: boolean = false;
+  searchResults: any[] = [];
+  searchQuery: string = '';
 
   constructor(
     private router: Router,
@@ -36,8 +44,31 @@ export class ResidentDetailComponent  implements OnInit {
     private photoStorageService: PhotoStorageService,
     private quickbaseService: QuickbaseService,
     private userService: UserService,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private popoverCtrl: PopoverController,
+    private modalCtrl: ModalController
   ) { 
+  }
+
+  async presentResidentActions(resident: any, isPending: boolean = false) {
+    try {
+      const pop = await this.popoverCtrl.create({
+        component: ResidentActionsComponent,
+        componentProps: {
+          resident,
+          isPending,
+          theHouseName: this.theHouseName,
+          houseLeaderRecordId: this.houseLeaderRecordId,
+          houseLeaderName: this.houseLeaderName,
+          HLphone: this.houseLeaderPhone,
+          maxMeetingDate: ''
+        },
+        translucent: true
+      });
+      await pop.present();
+    } catch (e) {
+      console.error('Error presenting resident actions popover', e);
+    }
   }
 
   // Wait for the participant photo to be available (either on residentData or in PhotoStorageService)
@@ -285,6 +316,14 @@ addObservationReport() {
 
   ngOnInit(): void {
     const navigation = this.router.getCurrentNavigation();
+    console.log('ResidentDetail.ngOnInit - currentNavigation', navigation);
+    this.router.events.subscribe(e => {
+      try {
+        // Log Navigation events to help debug why view isn't updating
+        const name = (e as any).constructor && (e as any).constructor.name;
+        console.log('Router event in ResidentDetail:', name, e);
+      } catch (err) {}
+    });
     const state = navigation?.extras.state as { 
       residentData: any, 
       theHouseName: string, 
@@ -292,7 +331,10 @@ addObservationReport() {
       houseLeaderPhone: string, 
       residentPhoto: string, 
       isResident: boolean,
-      announcements?: any[]
+      announcements?: any[],
+      fromSearch?: boolean,
+      searchResults?: any[],
+      searchQuery?: string
      };
     // Read query params early so we can show the passed photo immediately
     let queryParticipantId: string | null = null;
@@ -315,6 +357,7 @@ addObservationReport() {
     });
 
     if (state && state.residentData) {
+      console.log('ResidentDetail.ngOnInit - navigation state present', { fromSearch: state.fromSearch, searchQuery: state.searchQuery });
       this.residentData = state.residentData;
       this.theHouseName = state.theHouseName || '';
       this.houseLeaderName = state.houseLeaderName || '';
@@ -327,8 +370,17 @@ addObservationReport() {
         if (safeSrc) this.residentData.residentPhoto = safeSrc;
       } catch (e) {}
       this.isResident = state.isResident;
-      this.isStaff = this.userService.isStaffUser();
+      // When navigated from the staff 'Resident Search', show the participant view
+      // (hide senior-staff-only buttons) so staff can view resident vitals as a resident.
+      this.isStaff = state.fromSearch ? false : this.userService.isStaffUser();
       this.announcements = state.announcements || [];
+      // If navigated from a search session, capture the search data so we can return
+      if (state.fromSearch) {
+        this.searchSessionExists = true;
+        this.searchResults = state.searchResults || [];
+        this.searchQuery = state.searchQuery || '';
+      }
+      console.log('ResidentDetail.ngOnInit - residentData loaded', { id: this.residentData?.recordNumber2 || this.residentData?.recordNumber });
 
       // console.log('Resident Data from state:', this.residentData); // Log the resident data from state
       // console.log('House Name:', this.theHouseName); // Log the house name
@@ -415,6 +467,39 @@ addObservationReport() {
 
   navigateToExpenseReceipt(): void {
     this.router.navigate(['/expense-receipt']);
+  }
+
+  async openResidentSearch() {
+    try {
+      const modal = await this.modalCtrl.create({
+        component: ResidentSearchComponent,
+        componentProps: {
+          initialQuery: this.searchQuery || '',
+          initialResults: this.searchResults || []
+        },
+        cssClass: 'resident-search-modal'
+      });
+      await modal.present();
+    } catch (e) {
+      console.error('Failed to open resident search', e);
+    }
+  }
+
+  async goBackToSearch() {
+    if (!this.searchSessionExists) return;
+    try {
+      const modal = await this.modalCtrl.create({
+        component: ResidentSearchComponent,
+        componentProps: {
+          initialQuery: this.searchQuery || this.quickbaseService.getLastResidentSearch()?.query || '',
+          initialResults: this.searchResults && this.searchResults.length ? this.searchResults : (this.quickbaseService.getLastResidentSearch()?.results || [])
+        },
+        cssClass: 'resident-search-modal'
+      });
+      await modal.present();
+    } catch (e) {
+      console.error('Failed to reopen resident search', e);
+    }
   }
   
   clearCache() {

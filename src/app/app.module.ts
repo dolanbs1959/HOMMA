@@ -12,6 +12,7 @@ import { DatePipe } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { LocationComponent } from 'src/app/components/location/location.component';
 import { ResidentActionsComponent } from 'src/app/resident-actions/resident-actions.component';
+import { ResidentSearchComponent } from './resident-search/resident-search.component';
 import { QuickbaseService } from 'src/app/services/quickbase.service';
 import { UserService } from 'src/app/services/user.service'; // Import UserService
 import { ThemeService } from 'src/app/services/theme.service'; // Import ThemeService
@@ -31,7 +32,7 @@ import { LoginPageModule } from './login/login.module';
 import { MessageCenterComponent } from './message.center/message.center.component';
 
 @NgModule({
-  declarations: [AppComponent, LocationComponent, MessageCenterComponent, ResidentActionsComponent, VersionFooterComponent],
+  declarations: [AppComponent, LocationComponent, MessageCenterComponent, ResidentActionsComponent, VersionFooterComponent, ResidentSearchComponent],
   imports: [MatDialogModule, 
     BrowserModule, 
     IonicModule.forRoot(), 

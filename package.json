@@ -1,12 +1,12 @@
 {
   "name": "HOMMA",
-  "version": "0.0.8",
+  "version": "0.0.11",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "prebuild": "node scripts/generate-update-json.js",
+    "prebuild": "echo 'prebuild skipped - run scripts/generate-update-json.js manually when releasing'",
     "build": "ng build",
     "build:dist": "ng build --output-path=dist",
     "build:docs": "npm run build:dist && robocopy dist docs /MIR",

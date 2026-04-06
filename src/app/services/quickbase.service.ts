@@ -62,6 +62,8 @@ export class QuickbaseService {
   // API call tracking for debugging
   private apiCallCount = 0;
   private cacheHitCount = 0;
+  // Temporary in-memory cache for last resident search (to support back-navigation)
+  private _lastResidentSearch: { query: string; results: any[] } | null = null;
 
   private functions = getFunctions();
   private quickbaseProxy = httpsCallable(this.functions, 'quickbaseProxy');
@@ -200,6 +202,25 @@ export class QuickbaseService {
     this.residentData.next(null);
     this.pendingArrivals.next(null);
     this.logger.log('All caches cleared');
+  }
+
+  // Store last resident search in memory (cleared on logout or explicit clear)
+  public setLastResidentSearch(query: string, results: any[]): void {
+    try {
+      this._lastResidentSearch = { query: query || '', results: Array.isArray(results) ? results : [] };
+      this.logger.debug('Last resident search cached', { query, count: this._lastResidentSearch.results.length });
+    } catch (e) {
+      this.logger.warn('Failed to cache last resident search', e);
+    }
+  }
+
+  public getLastResidentSearch(): { query: string; results: any[] } | null {
+    return this._lastResidentSearch;
+  }
+
+  public clearLastResidentSearch(): void {
+    this._lastResidentSearch = null;
+    this.logger.debug('Last resident search cleared');
   }
 
   // getHeaders() method removed - all requests now go through secure Firebase Cloud Function proxy
@@ -860,6 +881,33 @@ getResidents(savedRecordNumber: number | { value: number }): Observable<any> {
 
   return this.postData2(body);
 }
+
+  /**
+   * Search residents by full name (field 72) — returns mapped resident objects
+   */
+  searchResidentsByName(name: string, top: number = 50, houseName?: string): Observable<any[]> {
+    this.trackApiCall('searchResidentsByName');
+    const escaped = this.escapeForQuickbase(name || '');
+    const escapedHouse = houseName ? this.escapeForQuickbase(houseName) : null;
+    const whereName = `{72.CT.'${escaped}'}AND{349.XEX.'In-Active'}AND{349.XEX.''}`;
+    const whereWithHouse = escapedHouse ? `{275.EX.'${escapedHouse}'}AND{72.CT.'${escaped}'}AND{349.XEX.'In-Active'}AND{349.XEX.''}` : whereName;
+    const body = {
+      from: this.queryResidentTableId,
+      select: [
+        3, 692, 14, 31, 24, 40, 72, 116, 177, 131, 132, 133, 135, 141,
+        564, 576, 150, 442, 296, 275, 7, 340, 53, 439, 90, 441, 448, 477,
+        655, 693, 694, 699, 700, 705, 706, 789, 790, 797, 798, 897
+      ],
+      where: whereWithHouse,
+      options: {
+        skip: 0,
+        top: top,
+        compareWithAppLocalTime: false
+      }
+    };
+
+    return this.postData2(body);
+  }
  
 postData2(body: any): Observable<any[]> {
   this.logger.debug('Executing query via proxy');
@@ -913,6 +961,7 @@ postData2(body: any): Observable<any[]> {
           houseName: record['275'],
           houseLeaderName: record['693'],
           houseLeaderPhone: record['694'],
+          houseLeaderRecordId: record['692'],
           AreaMgrName: record['699'],
           AreaMgrPhone: record['700'],
           CareMgrName: record['705'],

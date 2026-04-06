@@ -4,7 +4,8 @@ import { Title } from '@angular/platform-browser';
 import { ThemeService } from './services/theme.service';
 import { UserService } from './services/user.service';
 import { UpdateService } from './services/update.service';
-import { Router, NavigationEnd, NavigationError } from '@angular/router';
+import { Router, NavigationEnd, NavigationError, NavigationStart } from '@angular/router';
+import { QuickbaseService } from './services/quickbase.service';
 import { filter, take } from 'rxjs/operators';
 import { LoadingService } from './services/loading.service';
 
@@ -25,6 +26,8 @@ export class AppComponent implements OnDestroy {
     public loadingService: LoadingService,
     @Optional() private updates?: SwUpdate,
     private updateService?: UpdateService
+    ,
+    private quickbaseService?: QuickbaseService
   ) {
     this.titleService.setTitle('HOMMA');
     // show global spinner until first navigation completes
@@ -33,6 +36,19 @@ export class AppComponent implements OnDestroy {
       filter(e => e instanceof NavigationEnd || e instanceof NavigationError),
       take(1)
     ).subscribe(() => this.loadingService.hide());
+    // Clear transient search cache when navigating to login to avoid stale state
+    try {
+      this.router.events.subscribe((e: any) => {
+        try {
+          if (e instanceof NavigationStart) {
+            const url = (e && e.url) || '';
+            if (typeof url === 'string' && url.includes('/login')) {
+              try { if (this.quickbaseService) this.quickbaseService.clearLastResidentSearch(); } catch (err) {}
+            }
+          }
+        } catch (err) {}
+      });
+    } catch (err) {}
     // UpdateService instantiation ensures update checks, notifications, and activation logic
     try { if (this.updateService && (this.updateService as any).initOnAppLoad) (this.updateService as any).initOnAppLoad(); } catch (e) {}
   }
