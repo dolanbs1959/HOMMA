@@ -7,6 +7,7 @@
     "ng": "ng",
     "start": "ng serve",
     "prebuild": "echo 'prebuild skipped - run scripts/generate-update-json.js manually when releasing'",
+    "generate-update": "node scripts/generate-update-json.js",
     "build": "ng build",
     "build:dist": "ng build --output-path=dist",
     "build:docs": "npm run build:dist && robocopy dist docs /MIR",
