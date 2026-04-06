@@ -25,7 +25,7 @@
             <span *ngIf="(r.ParticipantStatus?.value || r.ParticipantStatus)"> • {{ r.ParticipantStatus?.value || r.ParticipantStatus }}</span>
           </p>
         </ion-label>
-        <ion-button slot="end" fill="clear" (click)="$event.stopPropagation(); viewResident(r)">View Vitals</ion-button>
+        <!-- View Vitals removed: tapping the card now opens the resident actions popover -->
       </ion-item>
     </ion-card>
   </ion-list>
