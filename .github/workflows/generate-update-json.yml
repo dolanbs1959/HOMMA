@@ -1,9 +1,12 @@
-name: Generate update.json on push
+name: Generate update.json on release/tags
 
 on:
   push:
-    branches:
-      - master
+    # Run only when a git tag like v1.2.3 is pushed
+    tags:
+      - 'v*'
+  release:
+    types: [published]
 
 jobs:
   generate:
