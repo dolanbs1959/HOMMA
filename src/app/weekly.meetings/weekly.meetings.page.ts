@@ -106,18 +106,38 @@ export class WeeklyMeetingsPage implements OnInit {
       43: { value: TaskRecordId }
     };
 
-    this.quickbaseService.insertActivity(activityBody).subscribe(response => {
+    // Robust insert with simple retry/backoff to avoid intermittent missing activityId
+    const tryInsertActivity = (attemptsLeft: number, delayMs: number) => {
+      return new Observable<any>((observer) => {
+        this.quickbaseService.insertActivity(activityBody).subscribe((res: any) => {
+          observer.next(res);
+          observer.complete();
+        }, (err: any) => {
+          if (attemptsLeft > 0) {
+            this.logger.warn('insertActivity failed, retrying', { attemptsLeft, err });
+            setTimeout(() => {
+              tryInsertActivity(attemptsLeft - 1, delayMs * 2).subscribe(r => { observer.next(r); observer.complete(); }, e => observer.error(e));
+            }, delayMs);
+          } else {
+            observer.error(err);
+          }
+        });
+      });
+    };
+
+    tryInsertActivity(3, 500).subscribe(response => {
       this.logger.log('Activity inserted successfully', response);
       this.activityId = response; // Store the new record ID in the activityId variable
-      this.logger.log('New activityId set', this.activityId, 'activityBody', activityBody);
+      this.logger.debug('New activityId set', this.activityId, 'activityBody', activityBody);
       this.message = 'Weekly meeting submitted successfully.';
       this.quickbaseService.isActivityAddedOnce = true;
       this.isActivityAdded = false;
+
       // After creating the activity, create all attendance records in a single batch call.
       this.isLoading = true;
       try {
         const records = (this.residentData || []).map((resident: any, index: number) => {
-          const participantId = resident.recordNumber2?.value ?? resident.recordNumber2;
+          const participantId = resident.recordNumber2?.value ?? resident.recordNumber2 ?? resident.recordNumber;
           const attendanceStatus = resident.AttendanceStatus ?? null;
           const commentsControl = this.residentForm.get('residents')?.get(index.toString())?.get('Comments');
           const comments = commentsControl?.value ?? null;
@@ -129,10 +149,13 @@ export class WeeklyMeetingsPage implements OnInit {
           };
         }).filter((r: any) => r[9] && r[38]);
 
+        this.logger.debug('Prepared attendance records', { count: records.length, sample: records[0] });
+
         if (records.length === 0) {
-          this.logger.warn('No attendance records to create in batch');
+          this.logger.warn('No attendance records to create in batch (guard triggered)', { activityId: this.activityId });
+          this.message = 'Unable to submit attendance records automatically. Please retry.';
           this.isLoading = false;
-          this.router.navigate(['/home', { theHouseName: this.theHouseName, HouseLeaderName: this.HouseLeaderName, HLphone: this.HLphone, maxMeetingDate: this.quickbaseService.maxMeetingDate }]);
+          // Do not navigate away so user can retry or investigate
         } else {
           this.quickbaseService.createAttendanceRecordsBulk(records).subscribe(resp => {
             this.logger.log('Batch attendance records created', resp);
@@ -148,17 +171,17 @@ export class WeeklyMeetingsPage implements OnInit {
           }, err => {
             this.logger.error('Batch create failed', err);
             this.isLoading = false;
-            this.router.navigate(['/home', { theHouseName: this.theHouseName, HouseLeaderName: this.HouseLeaderName, HLphone: this.HLphone, maxMeetingDate: this.quickbaseService.maxMeetingDate }]);
+            // Consider retry/cleanup here — for now, surface and allow user to retry
+            this.message = 'Failed to create attendance records. Please retry.';
           });
         }
       } catch (e) {
         this.logger.error('Unexpected error preparing batch attendance records', e);
         this.isLoading = false;
-        this.router.navigate(['/home', { theHouseName: this.theHouseName, HouseLeaderName: this.HouseLeaderName, HLphone: this.HLphone, maxMeetingDate: this.quickbaseService.maxMeetingDate }]);
       }
     }, error => {
       this.message = 'Error submitting weekly meeting. Please try again.';
-      this.logger.error('Error inserting activity', error);
+      this.logger.error('Error inserting activity after retries', error);
       this.isLoading = false;
     });
   }

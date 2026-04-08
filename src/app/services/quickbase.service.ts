@@ -413,8 +413,13 @@ insertActivity(activityData: any): Observable<any> {
   };
   return this.callQuickbaseProxy('POST', 'records', body).pipe(
     map((response: any) => {
-      this.logger.debug('Activity inserted successfully');
-      const activityId = response.data[0]?.['3'].value;
+      this.logger.debug('Activity inserted successfully', response);
+      // Quickbase proxy may return field values as either an object with a `value`
+      // property or as a raw primitive. Handle both shapes defensively.
+      const first = response?.data?.[0] || {};
+      const rawId = first?.['3'];
+      const activityId = rawId && rawId.value !== undefined ? rawId.value : rawId;
+      this.logger.debug('Resolved activityId', { activityId });
       return activityId;
     })
   );
