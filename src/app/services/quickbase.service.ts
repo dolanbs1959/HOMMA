@@ -1360,6 +1360,7 @@ getActiveStaff(): Observable<any> {
           displayName: record['10']?.value,
           feedbackRole: (record['301'] && (record['301'].value ?? record['301'])) || null,
           relatedParticipantId: record['9']?.value,
+          staffId: record['102']?.value || record['102'],
           email
         };
       });
@@ -1378,6 +1379,7 @@ getActiveStaff(): Observable<any> {
             displayName: renameMap[lname] || name,
             feedbackRole: s.feedbackRole || null,
             relatedParticipantId: s.relatedParticipantId,
+            staffId: s.staffId,
             email: s.email
           };
         });
