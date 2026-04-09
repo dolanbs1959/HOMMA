@@ -303,7 +303,10 @@ updateAttendanceRecords(newActivityId?: any): Observable<any> {
         if (savedRecordNumber) {
           this.logger.log('Recovered recordNumber from service, re-fetching residents', savedRecordNumber);
           this.quickbaseService.getResidents(savedRecordNumber).subscribe((res: any) => {
-            try { this.quickbaseService.residentData.next(res); } catch (e) {}
+            try {
+              const residents = Array.isArray(res) ? res : (res?.data || []);
+              this.quickbaseService.residentData.next(residents);
+            } catch (e) {}
           }, err => {
             this.logger.error('Failed to re-fetch residents during recovery', err);
           });

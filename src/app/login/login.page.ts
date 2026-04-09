@@ -223,18 +223,20 @@ ngOnInit() {
           this.quickbaseService.getResidents(this.savedRecordNumber).subscribe(
             residentResponse => {
               try {
-                const len = Array.isArray(residentResponse) ? residentResponse.length : (residentResponse ? 1 : 0);
+                // Coerce the response to an array for downstream consumers (handles {data:[]} or [...] shapes)
+                const residents = Array.isArray(residentResponse) ? residentResponse : (residentResponse?.data || []);
+                const len = Array.isArray(residents) ? residents.length : (residents ? 1 : 0);
                 this.logger.log('Resident data loaded - length:', len);
-                // Log a small preview for debugging
-                if (Array.isArray(residentResponse) && residentResponse.length > 0) {
-                  this.logger.debug('Resident sample:', residentResponse[0]);
+                if (Array.isArray(residents) && residents.length > 0) {
+                  this.logger.debug('Resident sample:', residents[0]);
                 } else {
                   this.logger.debug('Resident response (non-array):', residentResponse);
                 }
+                this.quickbaseService.residentData.next(residents);
               } catch (e) {
-                this.logger.warn('Error logging residentResponse', e);
+                this.logger.warn('Error processing residentResponse', e);
+                this.quickbaseService.residentData.next([]);
               }
-              this.quickbaseService.residentData.next(residentResponse);
             },
           );
           // Persist minimal session info so pages survive a refresh or installed PWA lifecycle
