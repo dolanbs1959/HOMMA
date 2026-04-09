@@ -74,7 +74,11 @@ export class HomePage implements OnInit {
 
     this.quickbaseService.residentData.subscribe(data => {
         this.residentData = data;
-        this.logger.debug('Resident data updated');
+        try {
+          const len = Array.isArray(data) ? data.length : (data ? 1 : 0);
+          this.logger.log('HomePage - residentData updated', { length: len });
+          console.log('HOMMA: HomePage residentData updated length=', len, 'sample=', Array.isArray(data) && data.length > 0 ? Object.keys(data[0]).slice(0,10) : data ? Object.keys(data).slice(0,10) : null);
+        } catch (e) {}
     });
     this.quickbaseService.pendingArrivals.subscribe(data => {
       this.pendingArrivals = data;

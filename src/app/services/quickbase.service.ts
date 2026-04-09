@@ -92,7 +92,13 @@ export class QuickbaseService {
         const parsed = JSON.parse(preserved);
         if (parsed && Array.isArray(parsed.residentData)) {
           this.residentData.next(parsed.residentData);
-          this.logger.log('Restored residentData from preserved state');
+          try {
+            const len = parsed.residentData.length || 0;
+            const sample = parsed.residentData.length > 0 ? parsed.residentData[0] : null;
+            this.logger.log('Restored residentData from preserved state', { length: len, sample: sample ? Object.keys(sample).slice(0,10) : null });
+            // Also output a console.log for immediate visibility in DevTools
+            console.log('HOMMA: restored residentData length=', len, 'sampleKeys=', sample ? Object.keys(sample).slice(0,10) : null);
+          } catch (e) {}
         }
         if (parsed && parsed.queryData) {
           this.queryData = parsed.queryData;
