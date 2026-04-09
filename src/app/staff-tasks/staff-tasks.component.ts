@@ -56,7 +56,8 @@ export class StaffTasksComponent  implements OnInit {
   ngOnInit() {
 
 
-    this.residentData = this.quickbaseService.residentData;
+    // keep residentData as the resolved array from the service subscription
+    this.residentData = [];
 
     const navigation = this.router.getCurrentNavigation();
 
