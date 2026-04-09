@@ -84,6 +84,7 @@ export class UpdateService {
         header: 'Update available',
         message: 'A critical update is available and will be applied now.',
         backdropDismiss: false,
+        cssClass: 'update-alert',
         buttons: [{ text: 'OK', handler: () => this.activateAndReload() }]
       });
       await alert.present();

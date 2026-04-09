@@ -80,6 +80,14 @@
   --ion-color-light-tint: #f5f6f9;
 }
 
+/* Ensure update-alert text is readable in dark and light themes */
+.update-alert .alert-message,
+.update-alert .alert-title,
+.update-alert .alert-sub-title {
+  color: var(--ion-text-color) !important;
+}
+
+
 @media (prefers-color-scheme: dark) {
   /*
    * Dark Colors
