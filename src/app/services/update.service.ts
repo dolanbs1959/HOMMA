@@ -11,6 +11,10 @@ export class UpdateService {
   private readonly PROMPTED_VERSION_KEY = 'HOMMA__APP_UPDATE_VERSION_PROMPTED';
   // Default production interval: 30 minutes. Can be overridden for testing.
   private checkIntervalMs = 1000 * 60 * 30;
+  // Idle timeout to force update (1 hour)
+  private idleTimeoutMs = 1000 * 60 * 60;
+  private lastActivityAt = Date.now();
+  private idleTimerHandle: any = null;
   private pollSub?: Subscription;
   // When true, allow showing non-forced prompts regardless of current route.
   private allowPromptsAnywhere = false;
@@ -57,6 +61,7 @@ export class UpdateService {
       }
       this.allowPromptsAnywhere = true;
       await this.pollOnce();
+      this.startIdleTracker();
     } finally {
       this.allowPromptsAnywhere = false;
     }
@@ -158,13 +163,52 @@ export class UpdateService {
       // does not reappear after a full reload for the same version.
       const current = localStorage.getItem(this.PROMPTED_VERSION_KEY) || '';
       if (current !== info.version) {
-        // If force flagged, show mandatory modal. Mark that this came from
-        // polling so promptForReload can bypass the route check and notify
-        // the user even when not on the login page.
-        this.promptForReload(Boolean(info.force), info.version, true);
+        // Automatically activate updates when server indicates a new version.
+        try {
+          // If the update is marked as forced or we detect a newer version,
+          // activate immediately to ensure clients pick up the release.
+          await this.activateAndReload();
+        } catch (e) {
+          // If activation fails, at least prompt the user politely.
+          this.promptForReload(Boolean(info.force), info.version, true);
+        }
       }
     } catch (e) {
       // ignore network errors; polling is best-effort
+    }
+  }
+
+  // --- Idle tracker: if no user activity for idleTimeoutMs, force update/reload ---
+  private startIdleTracker() {
+    try {
+      const reset = () => { this.lastActivityAt = Date.now(); if (this.idleTimerHandle) { clearTimeout(this.idleTimerHandle); this.scheduleIdleCheck(); } };
+      ['mousemove','keydown','touchstart','click'].forEach(evt => window.addEventListener(evt, reset, { passive: true }));
+      this.scheduleIdleCheck();
+    } catch (e) {}
+  }
+
+  private scheduleIdleCheck() {
+    try {
+      if (this.idleTimerHandle) clearTimeout(this.idleTimerHandle);
+      const since = Date.now() - this.lastActivityAt;
+      const wait = Math.max(1000, this.idleTimeoutMs - since);
+      this.idleTimerHandle = setTimeout(() => this.onIdleTimeout(), wait);
+    } catch (e) {}
+  }
+
+  private async onIdleTimeout() {
+    try {
+      // When idle threshold reached, perform a poll and force-reload to ensure
+      // the client runs the latest code. This is aggressive but avoids long-
+      // lived stale PWA clients.
+      await this.pollOnce();
+      // If pollOnce didn't trigger a reload (no new version), still perform
+      // a conservative activation attempt to drop caches and refresh.
+      await this.activateAndReload();
+    } catch (e) {
+      // ignore and reschedule
+      this.lastActivityAt = Date.now();
+      this.scheduleIdleCheck();
     }
   }
 
