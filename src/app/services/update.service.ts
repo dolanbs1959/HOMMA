@@ -117,6 +117,20 @@ export class UpdateService {
   }
 
   private async activateAndReload() {
+    // Before doing anything destructive, attempt to capture a minimal
+    // snapshot of UI state so the app can restore it after the reload.
+    try {
+      const exporter = (window as any).HOMMA_exportState;
+      if (exporter && typeof exporter === 'function') {
+        try {
+          const snapshot = exporter();
+          if (snapshot) {
+            try { sessionStorage.setItem('HOMMA__PRESERVED_STATE', JSON.stringify(snapshot)); } catch (e) {}
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+
     try { if (this.updates) await this.updates.activateUpdate(); } catch (e) {}
 
     // Attempt to clear caches to ensure fresh assets (aggressive but effective)

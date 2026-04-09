@@ -84,6 +84,36 @@ export class QuickbaseService {
     }
 
     this.logger.log('🚀 QuickbaseService initialized with enhanced caching and secure proxy');
+
+    // Restore preserved app state after a reload if present.
+    try {
+      const preserved = sessionStorage.getItem('HOMMA__PRESERVED_STATE');
+      if (preserved) {
+        const parsed = JSON.parse(preserved);
+        if (parsed && Array.isArray(parsed.residentData)) {
+          this.residentData.next(parsed.residentData);
+          this.logger.log('Restored residentData from preserved state');
+        }
+        if (parsed && parsed.queryData) {
+          this.queryData = parsed.queryData;
+          this.logger.log('Restored queryData from preserved state');
+        }
+        try { sessionStorage.removeItem('HOMMA__PRESERVED_STATE'); } catch (e) {}
+      }
+    } catch (e) {}
+
+    // Expose a lightweight state exporter so UpdateService can preserve
+    // minimal UI state before forcing an update/reload.
+    try {
+      (window as any).HOMMA_exportState = () => {
+        try {
+          return {
+            residentData: this.residentData.value || [],
+            queryData: this.queryData || null
+          };
+        } catch (e) { return null; }
+      };
+    } catch (e) {}
   }
 
   // Escape single quotes for Quickbase where clauses by doubling them
