@@ -15,5 +15,16 @@
         "npm --prefix \"$RESOURCE_DIR\" run lint"
       ]
     }
+  ],
+  "hosting": [
+    {
+      "site": "homma-analytics",
+      "public": "docs",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    }
   ]
 }
