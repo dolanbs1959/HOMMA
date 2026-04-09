@@ -919,7 +919,11 @@ postData2(body: any): Observable<any[]> {
   return this.callQuickbaseProxy('POST', 'query', body).pipe(
     switchMap((response2: any): Observable<any[]> => {
       this.logger.debug('Query response received');
-      const dataArray = response2.data;
+      // Support both shapes returned by the proxy: { data: [...] } or [...]
+      const dataArray = Array.isArray(response2) ? response2 : (response2?.data || []);
+      if (!Array.isArray(dataArray) && dataArray) {
+        this.logger.warn('postData2 - unexpected dataArray shape, coercing to array', { dataArray });
+      }
       try {
         const len = Array.isArray(dataArray) ? dataArray.length : 0;
         this.logger.debug(`postData2 - received data array length: ${len}`);
