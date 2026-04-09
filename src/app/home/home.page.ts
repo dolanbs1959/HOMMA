@@ -181,8 +181,10 @@ openStaffTasks() {
         // Load active staff for feedback form - will use cache if fresh
         this.loadActiveStaff();
 
-        this.residentData = this.quickbaseService.residentData;
-        this.pendingArrivals = this.quickbaseService.pendingArrivals;
+        // `residentData` and `pendingArrivals` are updated via subscriptions
+        // set up in the constructor — do not overwrite them with the
+        // BehaviorSubject objects here (causes the UI to receive the
+        // wrong shape and briefly flash then disappear).
 
     this.route.params.subscribe(params => {
       this.logger.debug('Route params loaded');
