@@ -201,15 +201,12 @@ export class UpdateService {
       // does not reappear after a full reload for the same version.
       const current = localStorage.getItem(this.PROMPTED_VERSION_KEY) || '';
       if (current !== info.version) {
-        // Automatically activate updates when server indicates a new version.
-        try {
-          // If the update is marked as forced or we detect a newer version,
-          // activate immediately to ensure clients pick up the release.
-          await this.activateAndReload();
-        } catch (e) {
-          // If activation fails, at least prompt the user politely.
-          this.promptForReload(Boolean(info.force), info.version, true);
-        }
+        // Do NOT automatically activate and reload here to avoid wiping
+        // in-memory state (photos, form data). Instead, prompt the user
+        // so they can choose when to reload. Forced updates will still
+        // display a modal that informs the user, but we won't silently
+        // reload the page.
+        this.promptForReload(Boolean(info.force), info.version, true);
       }
     } catch (e) {
       // ignore network errors; polling is best-effort
@@ -237,12 +234,15 @@ export class UpdateService {
   private async onIdleTimeout() {
     try {
       // When idle threshold reached, perform a poll and force-reload to ensure
-      // the client runs the latest code. This is aggressive but avoids long-
-      // lived stale PWA clients.
+      // the client runs the latest code. To avoid destructive reloads that
+      // can clear user state (photos, unsaved forms), we no longer force a
+      // reload on idle. Instead, poll once and rely on prompt logic to let
+      // the user choose when to update.
       await this.pollOnce();
-      // If pollOnce didn't trigger a reload (no new version), still perform
-      // a conservative activation attempt to drop caches and refresh.
-      await this.activateAndReload();
+      // Do not call `activateAndReload()` here. Reschedule the idle check
+      // so the app continues monitoring activity.
+      this.lastActivityAt = Date.now();
+      this.scheduleIdleCheck();
     } catch (e) {
       // ignore and reschedule
       this.lastActivityAt = Date.now();
