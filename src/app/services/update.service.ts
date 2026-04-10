@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { SwUpdate } from '@angular/service-worker';
 import { ToastController, AlertController } from '@ionic/angular';
+import { UserService } from './user.service';
 import { interval, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -26,6 +27,7 @@ export class UpdateService {
     private toastCtrl?: ToastController,
     private alertCtrl?: AlertController,
     private router?: Router,
+    private userService?: UserService,
   ) {
     // Intentionally do not subscribe to automatic SW/version events or
     // visibility/focus triggers here. We only check for updates when the
@@ -83,10 +85,10 @@ export class UpdateService {
       try { if (version) this.setPromptedVersion(version); } catch (e) {}
       const alert = await this.alertCtrl.create({
         header: 'Update available',
-        message: 'A critical update is available and will be applied now.',
+        message: 'A critical update is available and will force you to sign in again.',
         backdropDismiss: false,
         cssClass: 'update-alert',
-        buttons: [{ text: 'OK', handler: () => this.activateAndReload() }]
+        buttons: [{ text: 'OK', handler: () => this.expireSessionAndRedirect(version) }]
       });
       await alert.present();
       return;
@@ -105,10 +107,10 @@ export class UpdateService {
       }
     } catch (e) {}
     const toast = await this.toastCtrl.create({
-      message: 'A new version is available.',
+      message: 'A new version is available. Proceeding will sign you out.',
       position: 'bottom',
       buttons: [
-        { text: 'Reload', handler: () => this.activateAndReload() },
+        { text: 'Reload', handler: () => this.expireSessionAndRedirect(version) },
         { text: 'Later', role: 'cancel' }
       ]
     });
@@ -176,6 +178,38 @@ export class UpdateService {
 
     // Finally reload the page
     try { location.reload(); } catch (e) {}
+  }
+
+  private async expireSessionAndRedirect(version?: string) {
+    try {
+      // clear caches to ensure fresh assets on next full load
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch (e) {}
+
+    try {
+      // unregister service workers for a clean next load
+      if ('serviceWorker' in navigator && (navigator as any).serviceWorker.getRegistrations) {
+        const regs = await (navigator as any).serviceWorker.getRegistrations();
+        for (const r of regs) {
+          try { await r.unregister(); } catch (e) {}
+        }
+      }
+    } catch (e) {}
+
+    try {
+      // call the app's logout/cleanup routine if available
+      if (this.userService && typeof (this.userService as any).manualLogout === 'function') {
+        try { (this.userService as any).manualLogout(); } catch (e) {}
+      } else {
+        // fallback: navigate to login
+        try { this.router?.navigate(['/login']); } catch (e) {}
+      }
+    } catch (e) {}
+
+    try { if (version) this.setPromptedVersion(version); } catch (e) {}
   }
 
   async checkForUpdate() {
