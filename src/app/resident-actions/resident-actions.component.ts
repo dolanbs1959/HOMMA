@@ -1,6 +1,7 @@
 import { Component, OnInit, NgZone, ApplicationRef } from '@angular/core';
 import { PopoverController, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { PhotoStorageService } from '../services/photoProcessing.service';
 
 @Component({
   selector: 'app-resident-actions',
@@ -24,7 +25,8 @@ export class ResidentActionsComponent implements OnInit {
     private router: Router,
     private ngZone: NgZone,
     private appRef: ApplicationRef,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private photoStorageService: PhotoStorageService
   ) {}
 
   ngOnInit(): void {
@@ -124,11 +126,48 @@ export class ResidentActionsComponent implements OnInit {
     await this.close();
     try { (document.activeElement as HTMLElement)?.blur(); } catch (e) {}
     await this.clearOverlays();
-    // ParticipantReviews expects query params for participantId/name
+    // Build the same detailed query params the ResidentDetail page uses so
+    // participant-reviews receives CCO/contact/work status information.
+    const r = this.residentOriginal || this.resident || {};
+    const participantName = r.residentFullName && (r.residentFullName.value || r.residentFullName) || r.residentName || r.name || 'Unknown Participant';
+    const residentPhoto = r.residentPhoto || null;
+    const ccoFirstName = r.residentCCOfirst?.value || '';
+    const ccoLastName = r.residentCCOlast?.value || '';
+    const ccoFullName = ccoFirstName && ccoLastName ? `${ccoFirstName} ${ccoLastName}` : ccoFirstName || ccoLastName || 'CCO not listed';
+    const ccoPhoneNumber = r.residentCCOphone?.value || 'No Phone Number';
+    const ccoMobile = r.residentCCOmobile?.value || 'No Mobile Number';
+    const ccoEmail = r.residentCCOemail?.value || r.residentCCOEmail?.value || 'No CCO Email';
+    const workStatus = r.WorkStatus?.value || 'Unknown Work Status';
+    const docStatus = r.residentDOCstatus?.value || '';
+    const participantEmail = r.residentEmail?.value || 'No Email';
+    const participantPhone = r.residentPhone?.value || 'No Phone';
+    const participantId = r.recordNumber2?.value || r.recordNumber || this.normalizedId || 'No ID';
+    const Last1on1Date = r.Last1on1Date?.value || 'No Date';
+
+    // Persist photo for destination retrieval and navigate without embedding full photo
+    try {
+      if (residentPhoto && participantId) {
+        try { this.photoStorageService.setPhoto(String(participantId), residentPhoto); } catch (e) {}
+        try { sessionStorage.setItem(`residentPhoto_${participantId}`, residentPhoto); } catch (e) {}
+      }
+    } catch (e) {}
+
     const queryParams: any = {
-      participantId: this.normalizedId,
-      participantName: this.normalizedName
+      ccoFullName,
+      ccoPhoneNumber,
+      ccoMobile,
+      ccoEmail,
+      docStatus,
+      participantId,
+      participantName,
+      participantEmail,
+      participantPhone,
+      workStatus,
+      Last1on1Date,
+      theHouseName: this.theHouseName,
+      houseLeaderName: this.houseLeaderName
     };
+
     this.ngZone.run(() => {
       this.router.navigate(['/participant-reviews'], { queryParams, state: { residentData: this.residentOriginal || this.resident, fromSearch: this.fromSearchModal || false } }).catch(err => console.error('ResidentActions.addParticipantOneOnOne - navigation error', err));
     });
