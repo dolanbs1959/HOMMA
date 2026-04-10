@@ -77,7 +77,6 @@ export class HomePage implements OnInit {
         try {
           const len = Array.isArray(data) ? data.length : (data ? 1 : 0);
           this.logger.log('HomePage - residentData updated', { length: len });
-          console.log('HOMMA: HomePage residentData updated length=', len, 'sample=', Array.isArray(data) && data.length > 0 ? Object.keys(data[0]).slice(0,10) : data ? Object.keys(data).slice(0,10) : null);
         } catch (e) {}
     });
     this.quickbaseService.pendingArrivals.subscribe(data => {
@@ -261,9 +260,11 @@ openStaffTasks() {
       this.logger.debug('House KPIs loaded from cache');
     } else {
       // If no cached data, the house data should be loaded when getHouseNames() was called during login
-      this.logger.debug('No KPI data available for this house');
+      this.logger.debug('No KPI data available for this house - preserving existing KPI view if present');
+      // Do not overwrite existing `houseKPIs` with null/empty which causes a UI flash.
+      // Leave `this.houseKPIs` unchanged so the restored state remains visible until
+      // a successful fresh response is available.
       this.isLoadingKPIs = false;
-      this.houseKPIs = null;
     }
   }
 

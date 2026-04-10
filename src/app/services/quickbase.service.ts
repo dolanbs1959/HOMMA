@@ -40,6 +40,8 @@ export class QuickbaseService {
   STAalert: string = '';
   Alert: string = '';
   maxMeetingDate: string = '';
+  theHouseName: string = '';
+  HLphone: string = '';
   queryData: any;
   isActivityAddedOnce = false;
   
@@ -80,8 +82,26 @@ export class QuickbaseService {
         this.logger.log('🔧 Connected QuickbaseService functions to localhost:5001 emulator');
       }
     } catch (e) {
-      this.logger.warn('Failed to connect functions emulator', e);
-    }
+
+    // Instrument BehaviorSubject.next for key caches so we catch any
+    // direct `.next()` calls from other modules (intercepts overwrites).
+    try {
+      const wrapNext = (name: string, subj: BehaviorSubject<any>) => {
+        if (!subj || !(subj instanceof BehaviorSubject)) return;
+        const orig = subj.next.bind(subj);
+        subj.next = (v: any) => {
+          try {
+            // debug logging disabled for intercepted next
+          } catch (e) {}
+          return orig(v);
+        };
+      };
+
+      try { wrapNext('houseKPIs', this.houseKPIs); } catch (e) {}
+      try { wrapNext('staffTasks', this.staffTasks); } catch (e) {}
+    } catch (e) {}
+
+  }
 
     this.logger.log('🚀 QuickbaseService initialized with enhanced caching and secure proxy');
 
@@ -91,20 +111,98 @@ export class QuickbaseService {
       if (preserved) {
         const parsed = JSON.parse(preserved);
         if (parsed && Array.isArray(parsed.residentData)) {
-          this.residentData.next(parsed.residentData);
+          // Before publishing restored residents, repair photo fields so we don't
+          // display placeholder trimmed strings as image srcs. Prefer any
+          // sessionStorage-saved `residentPhoto_{id}` or in-memory PhotoStorageService value.
           try {
-            const len = parsed.residentData.length || 0;
-            const sample = parsed.residentData.length > 0 ? parsed.residentData[0] : null;
-            this.logger.log('Restored residentData from preserved state', { length: len, sample: sample ? Object.keys(sample).slice(0,10) : null });
-            // Also output a console.log for immediate visibility in DevTools
-            console.log('HOMMA: restored residentData length=', len, 'sampleKeys=', sample ? Object.keys(sample).slice(0,10) : null);
-          } catch (e) {}
+            const repaired = (parsed.residentData || []).map((r: any) => {
+              try {
+                const copy = Object.assign({}, r);
+                const rid = copy && (copy.recordNumber2?.value || copy.recordNumber || copy.residentIDnumber?.value);
+                const photo = copy && copy.residentPhoto;
+                // If the preserved snapshot contains the trimmed placeholder, attempt to restore from sessionStorage
+                if (photo && typeof photo === 'string' && photo.startsWith('<base64 trimmed')) {
+                  try {
+                    const ss = sessionStorage.getItem(`residentPhoto_${rid}`);
+                    if (ss) {
+                      copy.residentPhoto = ss;
+                      try { this.photoStorageService.setPhoto(String(rid), ss); } catch (e) {}
+                    } else {
+                      // remove invalid placeholder so template falls back to default image logic
+                      copy.residentPhoto = undefined;
+                    }
+                  } catch (e) { copy.residentPhoto = undefined; }
+                } else if (photo && typeof photo === 'string' && !photo.startsWith('data:') && !photo.startsWith('http')) {
+                  // unknown non-data src; attempt to look up saved session copy
+                  try {
+                    const ss2 = sessionStorage.getItem(`residentPhoto_${rid}`);
+                    if (ss2) {
+                      copy.residentPhoto = ss2;
+                      try { this.photoStorageService.setPhoto(String(rid), ss2); } catch (e) {}
+                    }
+                  } catch (e) {}
+                }
+                return copy;
+              } catch (e) { return r; }
+            });
+              this.residentData.next(parsed.residentData);
+            try {
+              const len = repaired.length || 0;
+              const sample = repaired.length > 0 ? repaired[0] : null;
+              this.logger.log('Restored residentData from preserved state', { length: len, sample: sample ? Object.keys(sample).slice(0,10) : null });
+              // restored residentData logging disabled
+            } catch (e) {}
+          } catch (e) {
+            // Fallback to original publish if repair fails
+            try { this.residentData.next(parsed.residentData); } catch (err) {}
+          }
         }
         if (parsed && parsed.queryData) {
           this.queryData = parsed.queryData;
           this.logger.log('Restored queryData from preserved state');
         }
+        // Restore pendingArrivals and staffTasks if present in preserved state
+        try {
+          if (parsed && parsed.pendingArrivals) {
+            const pa = parsed.pendingArrivals;
+            this.pendingArrivals.next(pa);
+            try { /* restored pendingArrivals (logging disabled) */ } catch (e) {}
+            this.logger.log('Restored pendingArrivals from preserved state');
+          }
+        } catch (e) {}
+        try {
+          if (parsed && parsed.staffTasks) {
+              let st = parsed.staffTasks;
+              // Normalize shape: accept either an array of tasks or an object with `.data`
+              try {
+                if (Array.isArray(st)) {
+                  st = { data: st };
+                } else if (st && st.data && !Array.isArray(st.data)) {
+                  // ensure data is array
+                  st.data = Array.isArray(st.data) ? st.data : [st.data];
+                }
+              } catch (e) {}
+              this.publishCache('staffTasks', this.staffTasks, st);
+              try { /* restored staffTasks (logging disabled) */ } catch (e) {}
+              this.logger.log('Restored staffTasks from preserved state');
+            }
+        } catch (e) {}
         try { sessionStorage.removeItem('HOMMA__PRESERVED_STATE'); } catch (e) {}
+        // If staffTasks wasn't included in the preserved snapshot, try restoring
+        // a previously persisted staffTasks from sessionStorage (helps when
+        // export ran before tasks were fetched).
+        try {
+          const raw = sessionStorage.getItem('HOMMA__STAFFTASKS');
+          if (raw && !this.isCacheAvailable('staffTasks')) {
+            try {
+              const parsedTasks = JSON.parse(raw);
+              if (parsedTasks) {
+                try { this.publishCache('staffTasks', this.staffTasks, parsedTasks); } catch (e) { this.staffTasks.next(parsedTasks); }
+                try { /* restored staffTasks from sessionStorage (logging disabled) */ } catch (e) {}
+              }
+            } catch (e) {}
+          }
+        } catch (e) {}
       }
     } catch (e) {}
 
@@ -113,9 +211,40 @@ export class QuickbaseService {
     try {
       (window as any).HOMMA_exportState = () => {
         try {
+          const sanitizeResident = (r: any) => {
+            try {
+              const copy: any = Object.assign({}, r);
+              // Trim very large base64 photo strings to avoid massive preserved payloads
+              if (copy && copy.residentPhoto && typeof copy.residentPhoto === 'string') {
+                copy.residentPhoto = `<base64 trimmed ${copy.residentPhoto.length} chars>`;
+              }
+              return copy;
+            } catch (e) { return r; }
+          };
+
+          const residents = Array.isArray(this.residentData.value) ? this.residentData.value.map(sanitizeResident) : (this.residentData.value || []);
+
+          // Export a compact summary for staff tasks to avoid large payloads while
+          // still preserving the list identity/count for a smooth restore.
+          const rawStaff = this.staffTasks.value;
+          let staffSummary: any = null;
+          try {
+            if (rawStaff) {
+              if (Array.isArray(rawStaff)) {
+                staffSummary = { dataLength: rawStaff.length };
+              } else if (rawStaff.data && Array.isArray(rawStaff.data)) {
+                staffSummary = { dataLength: rawStaff.data.length };
+              } else {
+                staffSummary = { info: typeof rawStaff };
+              }
+            }
+          } catch (e) { staffSummary = null; }
+
           return {
-            residentData: this.residentData.value || [],
-            queryData: this.queryData || null
+            residentData: residents,
+            queryData: this.queryData || null,
+            pendingArrivals: this.pendingArrivals.value || [],
+            staffTasks: staffSummary
           };
         } catch (e) { return null; }
       };
@@ -174,12 +303,10 @@ export class QuickbaseService {
         return payload?.data ?? payload;
       }),
       catchError(error => {
-        // Log more details about the Firebase error
         try {
           this.logger.error('Quickbase Proxy Error - code:', (error && error.code) || 'N/A');
           this.logger.error('Quickbase Proxy Error - message:', (error && error.message) || 'N/A');
           this.logger.error('Quickbase Proxy Error - details:', (error && error.details) || error);
-          // Also emit console.error with payload preview to help capture what triggered the 500
           this.logger.error('QuickbaseProxy ERROR', { method, endpoint, bodyPreview: safeBody.substring(0, 100), error });
         } catch (e) {
           this.logger.error('Quickbase Proxy Error (failed to extract details)', error);
@@ -189,81 +316,7 @@ export class QuickbaseService {
     );
   }
 
-  private isCacheAvailable(cacheKey: string): boolean {
-    // Simple check - if we have cached data in this session, use it
-    const cacheMap: any = {
-      'staffTasks': this.staffTasks.value,
-      'announcements': this.announcements.value,
-      'activeStaff': this.activeStaff.value,
-      'trainingRecords': this.trainingRecords.value,
-      'residentData': this.residentData.value,
-      'pendingArrivals': this.pendingArrivals.value,
-      'houseKPIs': this.houseKPIs.value,
-      'transportRequests': this.transportRequests.value,
-      'locations': this.locations.value
-    };
-    
-    const hasCache = !!cacheMap[cacheKey];
-    if (hasCache) {
-      this.cacheHitCount++;
-      this.logger.debug(`📊 Cache HIT for ${cacheKey} (Total hits: ${this.cacheHitCount})`);
-    } else {
-      this.logger.debug(`📊 Cache MISS for ${cacheKey} - fetching fresh data`);
-    }
-    
-    return hasCache;
-  }
-
-  private trackApiCall(methodName: string): void {
-    this.apiCallCount++;
-    this.logger.debug(`🌐 API CALL ${this.apiCallCount}: ${methodName} (Cache hits: ${this.cacheHitCount})`);
-  }
-
-  public getApiStats(): { apiCalls: number, cacheHits: number, efficiency: string } {
-    const totalRequests = this.apiCallCount + this.cacheHitCount;
-    const efficiency = totalRequests > 0 ? ((this.cacheHitCount / totalRequests) * 100).toFixed(1) + '%' : '0%';
-    return {
-      apiCalls: this.apiCallCount,
-      cacheHits: this.cacheHitCount,
-      efficiency
-    };
-  }
-
-  // Clear all caches (useful for logout)
-  public clearAllCaches(): void {
-    this.staffTasks.next(null);
-    this.announcements.next(null);
-    this.activeStaff.next(null);
-    this.trainingRecords.next(null);
-    this.residentData.next(null);
-    this.pendingArrivals.next(null);
-    this.logger.log('All caches cleared');
-  }
-
-  // Store last resident search in memory (cleared on logout or explicit clear)
-  public setLastResidentSearch(query: string, results: any[]): void {
-    try {
-      this._lastResidentSearch = { query: query || '', results: Array.isArray(results) ? results : [] };
-      this.logger.debug('Last resident search cached', { query, count: this._lastResidentSearch.results.length });
-    } catch (e) {
-      this.logger.warn('Failed to cache last resident search', e);
-    }
-  }
-
-  public getLastResidentSearch(): { query: string; results: any[] } | null {
-    return this._lastResidentSearch;
-  }
-
-  public clearLastResidentSearch(): void {
-    this._lastResidentSearch = null;
-    this.logger.debug('Last resident search cleared');
-  }
-
-  // getHeaders() method removed - all requests now go through secure Firebase Cloud Function proxy
-  // The API token is never exposed to the client
-
-  // quickbase.service.ts
-refreshAnnouncements(): Observable<any> {
+  refreshAnnouncements(): Observable<any> {
   // Check if cached data is available
   if (this.isCacheAvailable('announcements')) {
     return this.announcements.asObservable();
@@ -288,6 +341,108 @@ refreshAnnouncements(): Observable<any> {
     })
   );
 }
+
+  // Utility: check whether a named BehaviorSubject cache has data
+  isCacheAvailable(cacheKey: string): boolean {
+    try {
+      const subj: any = (this as any)[cacheKey];
+      if (!subj || !(subj instanceof BehaviorSubject)) return false;
+      const val = subj.value;
+      if (val === null || val === undefined) return false;
+      if (Array.isArray(val)) return val.length > 0;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Helper to publish to a BehaviorSubject with diagnostics (stack + payload summary)
+  private publishCache(cacheName: string, subj: BehaviorSubject<any>, value: any): void {
+    try {
+      const stack = (new Error(`publishCache:${cacheName} stack trace`)).stack || 'no-stack';
+      try { this.logger.debug(`publishCache invoked for ${cacheName}`, { stack }); } catch (e) { /* suppressed console output */ }
+      // Defensive: avoid overwriting restored UI caches with null/empty responses
+      // for specific critical caches where a transient empty response would
+      // cause a visible UI flash (residents/pendingArrivals are already stable).
+      if ((cacheName === 'houseKPIs' || cacheName === 'staffTasks')) {
+        try {
+          const isEmptyArray = Array.isArray(value) && value.length === 0;
+          const isEmptyData = value && Array.isArray(value.data) && value.data.length === 0;
+          const isNullish = value === null || value === undefined;
+          if (isNullish || isEmptyArray || isEmptyData) {
+            try { this.logger.debug(`publishCache skipped for ${cacheName} because incoming value empty`, { isNullish, isEmptyArray, isEmptyData }); } catch (e) {}
+            return;
+          }
+        } catch (e) {}
+      }
+      // payload summary
+      try {
+        if (!value) {
+          // publishCache summary logging suppressed
+        } else if (Array.isArray(value)) {
+          // publishCache summary logging suppressed
+        } else if (value.data && Array.isArray(value.data)) {
+          // publishCache summary logging suppressed
+        } else {
+          // publishCache summary logging suppressed
+        }
+      } catch (e) {}
+      subj.next(value);
+      // Persist staffTasks to sessionStorage so it survives reload timing issues
+      try {
+        if (cacheName === 'staffTasks' && value) {
+          try {
+            const serial = JSON.stringify(value);
+            try { sessionStorage.setItem('HOMMA__STAFFTASKS', serial); } catch (e) {}
+            try { /* persisted staffTasks to sessionStorage (logging suppressed) */ } catch (e) {}
+          } catch (e) {}
+        }
+      } catch (e) {}
+    } catch (e) {
+      try { subj.next(value); } catch (err) { this.logger.warn(`Failed to publish cache ${cacheName}`, err); }
+    }
+  }
+
+  // Lightweight API call tracker for diagnostics
+  trackApiCall(name: string): void {
+    try {
+      this.apiCallCount = (this.apiCallCount || 0) + 1;
+      this.logger.debug('QuickbaseService API call', { name, count: this.apiCallCount });
+    } catch (e) {}
+  }
+
+  // Last resident search helpers (support back-navigation UX)
+  setLastResidentSearch(query: string, results: any[]): void {
+    this._lastResidentSearch = { query, results };
+  }
+
+  getLastResidentSearch(): { query: string; results: any[] } | null {
+    return this._lastResidentSearch;
+  }
+
+  clearLastResidentSearch(): void {
+    this._lastResidentSearch = null;
+  }
+
+  // Clear commonly used caches (used during logout / user switch)
+  clearAllCaches(): void {
+    try {
+      const stack = (new Error('clearAllCaches stack trace')).stack || 'no-stack';
+      try { this.logger.warn('clearAllCaches invoked', { stack: stack }); } catch (e) { /* suppressed console warn */ }
+
+      this.residentData.next(null);
+      this.pendingArrivals.next(null);
+      this.publishCache('staffTasks', this.staffTasks, null);
+      this.announcements.next(null);
+      this.activeStaff.next(null);
+      this.trainingRecords.next(null);
+      this.publishCache('houseKPIs', this.houseKPIs, null);
+      this.transportRequests.next(null);
+      this.locations.next(null);
+    } catch (e) {
+      this.logger.warn('clearAllCaches failed', e);
+    }
+  }
 
   insertCommunication(data: any): Observable<any> {
     this.logger.log('Inserting communication record');
@@ -417,9 +572,19 @@ getStaffTasks(): Observable<any> {
   if (this.isCacheAvailable('staffTasks')) {
     return this.staffTasks.asObservable();
   }
-  
+  // If we don't yet have a valid staffRecordID, try to rehydrate from queryData/TaskRecordId
+  const resolvedStaffId = this.staffRecordID || (this.queryData?.TaskRecordId?.value ?? this.queryData?.recordNumber?.value ?? this.TaskRecordId) || 0;
+  if (!resolvedStaffId || resolvedStaffId === 0) {
+    this.logger.warn('getStaffTasks: staffRecordID not yet available, skipping fetch to avoid empty overwrite');
+    // Return the cached observable (may be null) without making the API call
+    return this.staffTasks.asObservable();
+  }
+
+  // update staffRecordID to the resolved value for future calls
+  this.staffRecordID = resolvedStaffId;
+
   this.trackApiCall('getStaffTasks');
-  this.logger.log('Fetching fresh staff tasks from API');
+  this.logger.log('Fetching fresh staff tasks from API', { staffRecordID: this.staffRecordID });
   const body = {
     from: this.StaffTasksTableID, 
     select: [3, 22, 32, 8, 36, 47, 15, 263],
@@ -431,14 +596,45 @@ getStaffTasks(): Observable<any> {
     }
   };
   this.logger.debug('Requesting staff tasks');
+        // Log current cached value to help diagnose overwrites
+        try {
+          const cur = this.staffTasks.value;
+          this.logger.debug('getStaffTasks - current staffTasks shape', { current: cur });
+        } catch (e) {}
 
-  return this.callQuickbaseProxy('POST', 'query', body).pipe(
-    tap(response => {
-      this.logger.debug('Staff tasks loaded successfully');
-      // Update cache with fresh data
-      this.staffTasks.next(response);
-    })
-  );
+        return this.callQuickbaseProxy('POST', 'query', body).pipe(
+          tap(response => {
+            this.logger.debug('Staff tasks loaded successfully', { rawResponse: response });
+
+            const incomingCount = (() => {
+              try {
+                if (!response) return 0;
+                if (Array.isArray(response)) return response.length;
+                if (response.data && Array.isArray(response.data)) return response.data.length;
+                return 0;
+              } catch (e) { return 0; }
+            })();
+
+            const currentCount = (() => {
+              try {
+                const cur = this.staffTasks.value;
+                if (!cur) return 0;
+                if (Array.isArray(cur)) return cur.length;
+                if (cur.data && Array.isArray(cur.data)) return cur.data.length;
+                return 0;
+              } catch (e) { return 0; }
+            })();
+
+            this.logger.log('QuickbaseService - staffTasks incoming vs current', { incomingCount, currentCount });
+
+            if (incomingCount === 0 && currentCount > 0) {
+              this.logger.debug('getStaffTasks: incoming empty, preserving existing staffTasks cache');
+              return;
+            }
+
+            this.publishCache('staffTasks', this.staffTasks, response);
+          })
+        );
 }
 
 insertActivity(activityData: any): Observable<any> {
@@ -1151,6 +1347,27 @@ this.logger.debug('Requesting pending arrivals via proxy');
 return this.postDataForPendingArrivals(body);
 }
 
+  // Diagnostic wrapper for when pendingArrivals is next'ed from login
+  public publishPendingArrivals(data: any) {
+    try {
+      const len = Array.isArray(data) ? data.length : (data ? 1 : 0);
+      this.logger.log('QuickbaseService - pendingArrivals populated', { length: len });
+      this.logger.debug('publishPendingArrivals length', { length: len });
+    } catch (e) {}
+    try {
+      const incomingLen = Array.isArray(data) ? data.length : (data ? 1 : 0);
+      const current = this.pendingArrivals.value;
+      const currentLen = Array.isArray(current) ? current.length : (current ? 1 : 0);
+      // If the incoming payload is empty but we already have cached items, keep the cache
+      if (incomingLen === 0 && currentLen > 0) {
+        this.logger.debug('publishPendingArrivals: incoming empty, preserving existing cache');
+        return;
+      }
+    } catch (e) {}
+
+    this.pendingArrivals.next(data);
+  }
+
 postDataForPendingArrivals(body: any) {
   return this.callQuickbaseProxy('POST', 'query', body).pipe(
     map((response: any) => {
@@ -1268,8 +1485,24 @@ getHouseNames(): Observable<any> {
       }));
       
       // Cache the house data for KPI lookups
-      this.houseKPIs.next(houseData);
-      this.logger.debug('🏠 House data with KPIs cached successfully');
+      const incomingCount = Array.isArray(houseData) ? houseData.length : 0;
+      const currentCount = (() => {
+        try {
+          const cur = this.houseKPIs.value;
+          if (!cur) return 0;
+          if (Array.isArray(cur)) return cur.length;
+          return 0;
+        } catch (e) { return 0; }
+      })();
+
+      // If the fresh response is empty but we already have cached KPI data,
+      // preserve the existing cache instead of overwriting with an empty set.
+      if (incomingCount === 0 && currentCount > 0) {
+        this.logger.debug('getHouseNames: incoming empty, preserving existing houseKPIs cache', { incomingCount, currentCount });
+      } else {
+        this.publishCache('houseKPIs', this.houseKPIs, houseData);
+        this.logger.debug('🏠 House data with KPIs cached successfully');
+      }
       
       // Return both house names for dropdown AND full house data with KPIs
       return {
@@ -1304,7 +1537,7 @@ getHouseKPIsByName(houseName: string): any {
 
 // Clear house KPI cache (useful for logout or data refresh)
 clearHouseKPICache(): void {
-  this.houseKPIs.next(null);
+  this.publishCache('houseKPIs', this.houseKPIs, null);
   this.logger.log('🏠 House KPI cache cleared');
 }
 

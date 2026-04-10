@@ -58,14 +58,22 @@
   text-decoration: none;
 }
 
-ion-header {
-  --ion-background-color: #4194ab !important; /* Header background color */
+ion-header.home-header {
+  --ion-background-color: var(--ion-color-primary) !important; /* Header background color scoped to home */
   --ion-color-base: #fff !important; /* Text color */
 }
 ion-title {
   font-size: 1.1em; /* Adjust the font size */
   font-weight: normal;
   text-shadow: none;
+}
+
+/* Force header/title visibility in case of theme conflicts (scoped to home) */
+ion-header.home-header, ion-header.home-header ion-toolbar, ion-header.home-header ion-title {
+  color: #fff !important;
+}
+ion-header.home-header ion-title {
+  color: #fff !important;
 }
 
 .alert-format {

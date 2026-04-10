@@ -233,6 +233,9 @@ ngOnInit() {
                   this.logger.debug('Resident response (non-array):', residentResponse);
                 }
                 this.quickbaseService.residentData.next(residents);
+                // Ensure update checks run after resident data is populated to avoid
+                // exporting an empty snapshot during forced updates.
+                try { this.updateService.initOnLogin(); } catch (e) {}
               } catch (e) {
                 this.logger.warn('Error processing residentResponse', e);
                 this.quickbaseService.residentData.next([]);
@@ -250,7 +253,8 @@ ngOnInit() {
           }
           this.quickbaseService.getPendingArrivals(this.savedRecordNumber).subscribe(
             pendingArrivalsResponse => {
-              this.quickbaseService.pendingArrivals.next(pendingArrivalsResponse);
+              // Use diagnostic wrapper to publish pending arrivals
+              try { this.quickbaseService.publishPendingArrivals(pendingArrivalsResponse); } catch (e) { this.quickbaseService.pendingArrivals.next(pendingArrivalsResponse); }
               this.logger.log('Pending arrivals loaded');
             },
           );
@@ -272,7 +276,6 @@ ngOnInit() {
               });
               
               this.loadingService.hide();
-              try { this.updateService.initOnLogin(); } catch (e) {}
               this.router.navigate(['/home', { theHouseName, HouseLeaderName, HouseLeaderRecordId, HLphone, maxMeetingDate: this.maxMeetingDate }]);
             });
           }

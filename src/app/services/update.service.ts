@@ -1,4 +1,5 @@
 import { Injectable, Optional } from '@angular/core';
+import { environment } from 'src/environments/environment';
 import { SwUpdate } from '@angular/service-worker';
 import { ToastController, AlertController } from '@ionic/angular';
 import { interval, Subscription } from 'rxjs';
@@ -117,6 +118,21 @@ export class UpdateService {
   }
 
   private async activateAndReload() {
+    // Allow disabling forced reloads during development to avoid interrupting
+    // users and breaking in-memory state (photos, caches). Behavior:
+    // - If `HOMMA__DISABLE_FORCED_RELOAD` is set in localStorage explicitly,
+    //   its value '1'/'0' will override the default.
+    // - By default, forced reloads are disabled in non-production builds.
+    try {
+      const override = (typeof localStorage !== 'undefined') ? localStorage.getItem('HOMMA__DISABLE_FORCED_RELOAD') : null;
+      const disableByDefault = !environment.production;
+      const disabled = override ? (override === '1') : disableByDefault;
+      if (disabled) {
+        // forced reload disabled (logging suppressed)
+        return; // skip the reload flow entirely
+      }
+    } catch (e) {}
+
     // Before doing anything destructive, attempt to capture a minimal
     // snapshot of UI state so the app can restore it after the reload.
     try {
@@ -126,6 +142,13 @@ export class UpdateService {
           const snapshot = exporter();
           if (snapshot) {
             try { sessionStorage.setItem('HOMMA__PRESERVED_STATE', JSON.stringify(snapshot)); } catch (e) {}
+            // DEBUG: also write a copy to localStorage so the preserved snapshot
+            // survives even if sessionStorage is removed during restore. Remove
+            // this in production once debugging is complete.
+            try {
+              localStorage.setItem('HOMMA__PRESERVED_STATE_DEBUG', JSON.stringify(snapshot));
+              // DEBUG preserved snapshot written (logging suppressed)
+            } catch (e) {}
           }
         } catch (e) {}
       }
