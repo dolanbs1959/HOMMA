@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { QuickbaseService } from '../services/quickbase.service';
 import { LoggerService } from '../services/logger.service';
 import { ActivatedRoute, Router } from '@angular/router'; // Import ActivatedRoute
@@ -9,7 +9,7 @@ import { Location } from '@angular/common';
   templateUrl: './staff-tasks.component.html',
   styleUrls: ['./staff-tasks.component.scss'],
 })
-export class StaffTasksComponent  implements OnInit {
+export class StaffTasksComponent  implements OnInit, OnDestroy {
   HouseLeaderName: string = '';
   theHouseName: string = '';
   HLphone: string = '';
@@ -19,6 +19,7 @@ export class StaffTasksComponent  implements OnInit {
   weeklyHouseMeeting: string = '';
   maxMeetingDate: string = '';
   tasks: any[] = [];
+  private _subs: any[] = [];
 
   constructor(
     public quickbaseService: QuickbaseService, 
@@ -95,6 +96,54 @@ export class StaffTasksComponent  implements OnInit {
         // ignore
       });
     }
+
+    // Subscribe to service cache so the page updates if tasks refresh in background
+    const sub = this.quickbaseService.staffTasks.subscribe((raw: any) => {
+      try {
+        // If router provided a transformed tasks array, keep it unless service provides fresh data
+        if (!raw) {
+          return;
+        }
+
+        // Normalize shapes: accept either an object with `.data` or an array
+        const dataArr = Array.isArray(raw) ? raw : (raw.data && Array.isArray(raw.data) ? raw.data : []);
+        if (!dataArr || dataArr.length === 0) {
+          // If the router state previously provided tasks, do not wipe them out unless service explicitly has empty array
+          if (this.tasks && this.tasks.length > 0) return;
+        }
+
+        // Transform Quickbase record shape into friendly task objects
+        const mapped = dataArr.map((taskRecord: any) => {
+          // If already transformed (has id/taskName), pass through
+          if (taskRecord && (taskRecord.id || taskRecord.taskName)) return taskRecord;
+          try {
+            return {
+              id: taskRecord[3]?.value || taskRecord[3],
+              taskName: taskRecord[8]?.value || taskRecord[8],
+              priority: taskRecord[15]?.value || taskRecord[15],
+              status: taskRecord[22]?.value || taskRecord[22],
+              role: taskRecord[32]?.value || taskRecord[32],
+              houseName: taskRecord[36]?.value || taskRecord[36],
+              frequency: taskRecord[47]?.value || taskRecord[47],
+              p1on1sDue: taskRecord[263]?.value || taskRecord[263]
+            };
+          } catch (e) {
+            return taskRecord;
+          }
+        });
+
+        this.tasks = mapped;
+      } catch (e) {
+        this.logger.warn('staff-tasks - failed to update tasks from service', e);
+      }
+    });
+    this._subs.push(sub);
+  }
+
+  ngOnDestroy() {
+    try {
+      this._subs.forEach(s => s && s.unsubscribe && s.unsubscribe());
+    } catch (e) {}
   }
 
 }

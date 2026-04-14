@@ -49,6 +49,9 @@ export class QuickbaseService {
   residentData = new BehaviorSubject<any>(null);
   pendingArrivals = new BehaviorSubject<any>(null);
   staffTasks = new BehaviorSubject<any>(null);
+  // Reactive alert subjects so UI can subscribe to changes
+  private _STAalert = new BehaviorSubject<string>('');
+  STAalert$ = this._STAalert.asObservable();
   announcements = new BehaviorSubject<any>(null);
   activeStaff = new BehaviorSubject<any>(null);
   trainingRecords = new BehaviorSubject<any>(null);
@@ -104,6 +107,8 @@ export class QuickbaseService {
   }
 
     this.logger.log('🚀 QuickbaseService initialized with enhanced caching and secure proxy');
+    // Initialize STAalert subject with current value
+    try { this._STAalert.next(this.STAalert || ''); } catch (e) {}
 
     // Restore preserved app state after a reload if present.
     try {
@@ -257,6 +262,25 @@ export class QuickbaseService {
     return String(value).replace(/'/g, "''");
   }
 
+  // Normalize various Quickbase field shapes into a display string
+  private normalizeFieldToString(field: any): string {
+    try {
+      if (field === null || field === undefined) return '';
+      if (typeof field === 'string') return field;
+      if (typeof field === 'number' || typeof field === 'boolean') return String(field);
+      if (typeof field === 'object') {
+        if ('value' in field) return String(field.value ?? '');
+        if ('display' in field) return String(field.display ?? '');
+        if ('text' in field) return String(field.text ?? '');
+        if ('html' in field) return String(field.html ?? '');
+        try { return JSON.stringify(field); } catch (e) { return String(field); }
+      }
+      return String(field);
+    } catch (e) {
+      return '';
+    }
+  }
+
   /**
    * Secure proxy method - calls Firebase Cloud Function instead of Quickbase directly
    * This keeps the API token server-side and never exposed to clients
@@ -364,7 +388,7 @@ export class QuickbaseService {
       // Defensive: avoid overwriting restored UI caches with null/empty responses
       // for specific critical caches where a transient empty response would
       // cause a visible UI flash (residents/pendingArrivals are already stable).
-      if ((cacheName === 'houseKPIs' || cacheName === 'staffTasks')) {
+      if (cacheName === 'houseKPIs') {
         try {
           const isEmptyArray = Array.isArray(value) && value.length === 0;
           const isEmptyData = value && Array.isArray(value.data) && value.data.length === 0;
@@ -626,6 +650,14 @@ getStaffTasks(): Observable<any> {
             })();
 
             this.logger.log('QuickbaseService - staffTasks incoming vs current', { incomingCount, currentCount });
+
+            // Set STAalert based on the incoming API count (reflect actual overdue tasks)
+            try {
+              if (typeof incomingCount === 'number') {
+                this.STAalert = `There are ${incomingCount} Staff Task Assignments Overdue`;
+                try { this._STAalert.next(this.STAalert); } catch (e) {}
+              }
+            } catch (e) {}
 
             if (incomingCount === 0 && currentCount > 0) {
               this.logger.debug('getStaffTasks: incoming empty, preserving existing staffTasks cache');
@@ -1041,10 +1073,11 @@ insertActivity(activityData: any): Observable<any> {
             const STAalert = record['225'];
             const Alert = record['139'];
 
-            // Store values for service state
+            // Store values for service state (normalize alert fields to strings)
             this.TaskRecordId = record['247']?.value || record['247'] || 0;
-            this.STAalert = record['225']?.value || record['225'] || '';
-            this.Alert = record['139']?.value || record['139'] || '';
+            this.STAalert = this.normalizeFieldToString(record['225']) || '';
+            try { this._STAalert.next(this.STAalert); } catch (e) {}
+            this.Alert = this.normalizeFieldToString(record['139']) || '';
 
             return of({
               'recordNumber': recordNumber,

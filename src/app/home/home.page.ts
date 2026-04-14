@@ -10,6 +10,7 @@ import { PopoverController } from '@ionic/angular';
 import { ResidentActionsComponent } from '../resident-actions/resident-actions.component';
 import { environment } from 'src/environments/environment';
 import { Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { LoggerService } from '../services/logger.service';
 
 @Component({
@@ -83,8 +84,15 @@ export class HomePage implements OnInit {
       this.pendingArrivals = data;
       this.logger.debug('Pending arrivals updated');
     });
+    // Keep STAalert in sync with the service (service publishes changes via STAalert$)
+    this.quickbaseService.STAalert$.subscribe((val: string) => {
+      try {
+        this.STAalert = val || 'There are 0 Staff Task Assignments Overdue';
+      } catch (e) {
+        this.logger.warn('Failed to update STAalert from service', e);
+      }
+    });
     
-    this.STAalert = this.quickbaseService.STAalert;
     this.Alert = this.quickbaseService.Alert;
   }
 
@@ -118,11 +126,12 @@ export class HomePage implements OnInit {
   }
   
 openStaffTasks() {
-  // Subscribe to cached staff tasks
-  this.quickbaseService.staffTasks.subscribe(cachedTasks => {
-    if (cachedTasks && cachedTasks.data) {
-      const tasks = cachedTasks.data.map((task: any) => {
-        return {
+  // Read current cached staff tasks once and navigate immediately (allow empty list)
+  this.quickbaseService.staffTasks.pipe(take(1)).subscribe(cachedTasks => {
+    let tasks: any[] = [];
+    try {
+      if (cachedTasks && cachedTasks.data && Array.isArray(cachedTasks.data)) {
+        tasks = cachedTasks.data.map((task: any) => ({
           id: task[3].value,
           taskName: task[8].value,
           priority: task[15].value,
@@ -131,28 +140,28 @@ openStaffTasks() {
           houseName: task[36].value,
           frequency: task[47].value,
           p1on1sDue: task[263].value
-        };
-      });
-    
-      this.logger.debug('Tasks transformed for navigation');
-      this.router.navigate(['/staff-tasks'], { state: { 
-        tasks,
-        theHouseName: this.theHouseName, 
-        HouseLeaderName: this.HouseLeaderName, 
-        HLphone: this.HLphone,
-        maxMeetingDate: this.maxMeetingDate
-      } });
+        }));
+      }
+    } catch (e) {
+      this.logger.warn('openStaffTasks - failed to transform cached tasks', e);
+      tasks = [];
     }
+
+    this.logger.debug('Tasks transformed for navigation', { count: tasks.length });
+    // Navigate even if tasks is empty so the House Leader can access the page
+    this.router.navigate(['/staff-tasks'], { state: {
+      tasks,
+      theHouseName: this.theHouseName,
+      HouseLeaderName: this.HouseLeaderName,
+      HLphone: this.HLphone,
+      maxMeetingDate: this.maxMeetingDate
+    }});
   });
 
-  // Trigger API call (will use cache if fresh, or fetch new data)
+  // Trigger API call (will use cache if fresh, or fetch new data) to refresh in background
   this.quickbaseService.getStaffTasks().subscribe(
-    () => {
-      this.logger.debug('Staff tasks loaded');
-    },
-    (error) => {
-      this.logger.error('Error fetching staff tasks', error);
-    }
+    () => this.logger.debug('Staff tasks refreshed'),
+    (error) => this.logger.error('Error fetching staff tasks', error)
   );
 }
 
