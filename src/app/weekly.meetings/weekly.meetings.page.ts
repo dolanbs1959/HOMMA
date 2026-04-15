@@ -131,7 +131,9 @@ export class WeeklyMeetingsPage implements OnInit {
       this.logger.debug('New activityId set', this.activityId, 'activityBody', activityBody);
       this.message = 'Weekly meeting submitted successfully.';
       this.quickbaseService.isActivityAddedOnce = true;
-      this.isActivityAdded = false;
+      // Keep the activity-added flag true so the UI retry controls remain visible
+      // if the subsequent batch attendance call fails.
+      this.isActivityAdded = true;
 
       // After creating the activity, create all attendance records in a single batch call.
       this.isLoading = true;

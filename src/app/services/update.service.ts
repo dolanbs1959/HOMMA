@@ -222,6 +222,16 @@ export class UpdateService {
     if (typeof window === 'undefined') return;
     // poll immediately, then every interval
     this.pollOnce();
+    // When the document becomes visible (user returns to the tab), trigger an immediate
+    // poll to ensure backgrounded tabs pick up new versions as soon as they are foregrounded.
+    try {
+      document.addEventListener('visibilitychange', () => {
+        try { if (document.visibilityState === 'visible') this.pollOnce(); } catch (e) {}
+      });
+      // also trigger on window focus for platforms where visibilitychange is unreliable
+      window.addEventListener('focus', () => { try { this.pollOnce(); } catch (e) {} }, { passive: true });
+    } catch (e) {}
+
     this.pollSub = interval(this.checkIntervalMs).subscribe(() => this.pollOnce());
   }
 
