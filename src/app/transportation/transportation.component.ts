@@ -45,6 +45,14 @@ export class TransportationComponent implements OnInit {
     // console.log('User Info:', userInfo);
 
     this.route.queryParams.subscribe(params => {
+      console.debug('TransportationComponent query params', {
+        participantName: params['participantName'],
+        participantId: params['participantId'],
+        theHouseName: params['theHouseName'],
+        houseLeaderName: params['houseLeaderName'],
+        houseLeaderRecordId: params['houseLeaderRecordId'],
+        HouseLeaderRecordId: params['HouseLeaderRecordId']
+      });
       this.participantName = params['participantName'] || '';
       this.houseLeaderName = params['houseLeaderName'] || '';
       this.houseName = params['theHouseName'] || '';
@@ -57,7 +65,15 @@ export class TransportationComponent implements OnInit {
           this.participantPhoto = this.photoStorageService.getSafeSrc(stored, String(this.participantId)) || stored;
         }
       }
-      this.houseLeaderRecordId = params['houseLeaderRecordId'] || ''; // Get house leader record ID directly from params
+      this.houseLeaderRecordId = this.resolveHouseLeaderRecordId(params);
+      console.debug('TransportationComponent resolved houseLeaderRecordId', {
+        resolved: this.houseLeaderRecordId,
+        queryParamLower: params['houseLeaderRecordId'],
+        queryParamUpper: params['HouseLeaderRecordId'],
+        snapshotLower: this.route.snapshot?.queryParamMap?.get('houseLeaderRecordId'),
+        snapshotUpper: this.route.snapshot?.queryParamMap?.get('HouseLeaderRecordId'),
+        historyState: history.state
+      });
       // this.participantPhoto = this.photoStorageService.getPhoto(this.participantId);
       // console.log('Participant Name:', this.participantName, 'Participant ID:', this.participantId);
       // console.log('House Leader Name:', this.houseLeaderName);
@@ -71,6 +87,29 @@ export class TransportationComponent implements OnInit {
 
     // console.log('Calling fetchLocations...');
     this.fetchLocations();
+  }
+
+  private resolveHouseLeaderRecordId(params: any): string {
+    const candidates = [
+      params?.['houseLeaderRecordId'],
+      params?.['HouseLeaderRecordId'],
+      this.route.snapshot?.queryParamMap?.get('houseLeaderRecordId'),
+      this.route.snapshot?.queryParamMap?.get('HouseLeaderRecordId'),
+      (history.state && (history.state.houseLeaderRecordId || history.state.HouseLeaderRecordId))
+    ];
+
+    console.debug('TransportationComponent houseLeaderRecordId candidates', candidates);
+
+    for (const candidate of candidates) {
+      const value = candidate === null || candidate === undefined ? '' : String(candidate).trim();
+      if (value) {
+        console.debug('TransportationComponent selected houseLeaderRecordId candidate', value);
+        return value;
+      }
+    }
+
+    console.warn('TransportationComponent could not resolve houseLeaderRecordId from any source');
+    return '';
   }
 
   initializeForm() {
@@ -151,7 +190,19 @@ export class TransportationComponent implements OnInit {
     // console.log('House Leader Record ID:', this.houseLeaderRecordId);
     
     // Check if house leader record ID is available
-    if (!this.houseLeaderRecordId) {
+    const requestedById = this.houseLeaderRecordId || String(this.transportationForm.get('requestedBy')?.value || '').trim();
+
+    if (!requestedById) {
+      console.warn('TransportationComponent submit blocked: missing houseLeaderRecordId', {
+        houseLeaderRecordId: this.houseLeaderRecordId,
+        requestedByControl: this.transportationForm.get('requestedBy')?.value,
+        formValue: this.transportationForm.getRawValue(),
+        queryParams: this.route.snapshot?.queryParamMap?.keys?.reduce((acc: any, key: string) => {
+          acc[key] = this.route.snapshot?.queryParamMap?.get(key);
+          return acc;
+        }, {}),
+        historyState: history.state
+      });
       // console.error('House leader record ID not found');
       this.submissionErrorMessage = 'Unable to find house leader record. Please try again or contact support.';
       return;
@@ -196,13 +247,17 @@ export class TransportationComponent implements OnInit {
             51: { value: this.houseLeaderName }, // House Leader Name
             50: { value: this.houseName }, // House Name
             9: { value: this.participantId }, // Example field ID for participant ID
-            42: { value: parseInt(this.houseLeaderRecordId) || null } // Requested By field - house leader record ID (numeric)
+            42: { value: parseInt(requestedById, 10) || null } // Requested By field - house leader record ID (numeric)
             // Field 52 (Participant Name) removed - field no longer exists in QuickBase table
           }
         ]
       };
 
       // console.log('Payload:', payload);
+      console.debug('TransportationComponent submit payload preview', {
+        requestedById,
+        payload
+      });
 
       this.quickbaseService.callQuickbaseProxy('POST', 'records', payload).subscribe({
         next: (response: any) => {

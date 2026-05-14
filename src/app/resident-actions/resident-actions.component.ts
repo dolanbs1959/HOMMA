@@ -36,11 +36,45 @@ export class ResidentActionsComponent implements OnInit {
     try {
       this.isPending = !!this.isPending;
       this.theHouseName = this.theHouseName || '';
-      this.houseLeaderRecordId = this.houseLeaderRecordId || '';
+      this.houseLeaderRecordId = this.houseLeaderRecordId || this.resolveHouseLeaderRecordId() || '';
       this.houseLeaderName = this.houseLeaderName || '';
+      console.debug('ResidentActions.ngOnInit resolved route context', {
+        theHouseName: this.theHouseName,
+        houseLeaderName: this.houseLeaderName,
+        houseLeaderRecordId: this.houseLeaderRecordId,
+        residentHouseLeaderRecordId: this.getResidentValue(this.residentOriginal || this.resident, 'houseLeaderRecordId'),
+        normalizedId: this.normalizedId
+      });
     } catch (e) {
       // ignore
     }
+  }
+
+  private getResidentValue(resident: any, key: string): string {
+    const value = resident?.[key];
+    if (value && typeof value === 'object' && 'value' in value) {
+      return String(value.value || '').trim();
+    }
+    return String(value || '').trim();
+  }
+
+  private resolveHouseLeaderRecordId(): string {
+    const resident = this.residentOriginal || this.resident || {};
+    const candidates = [
+      this.houseLeaderRecordId,
+      this.getResidentValue(resident, 'houseLeaderRecordId'),
+      this.getResidentValue(resident, 'HouseLeaderRecordId'),
+      this.getResidentValue(resident, 'houseLeaderRecordID'),
+      this.getResidentValue(resident, 'houseLeaderRecordID2')
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate) {
+        return candidate;
+      }
+    }
+
+    return '';
   }
 
   get normalizedId(): string {
@@ -174,7 +208,13 @@ export class ResidentActionsComponent implements OnInit {
   }
 
   async addTransportRequest() {
-    console.log('ResidentActions.addTransportRequest - navigating to transportation', { id: this.normalizedId });
+    const resolvedHouseLeaderRecordId = this.resolveHouseLeaderRecordId();
+    console.log('ResidentActions.addTransportRequest - navigating to transportation', {
+      id: this.normalizedId,
+      houseLeaderRecordId: resolvedHouseLeaderRecordId,
+      houseLeaderName: this.houseLeaderName,
+      theHouseName: this.theHouseName
+    });
     await this.close();
     try { (document.activeElement as HTMLElement)?.blur(); } catch (e) {}
     await this.clearOverlays();
@@ -184,10 +224,18 @@ export class ResidentActionsComponent implements OnInit {
       participantId: this.normalizedId,
       theHouseName: this.theHouseName,
       houseLeaderName: this.houseLeaderName || '',
-      houseLeaderRecordId: this.houseLeaderRecordId || ''
+      houseLeaderRecordId: resolvedHouseLeaderRecordId || ''
     };
     this.ngZone.run(() => {
-      this.router.navigate(['/transportation'], { queryParams, state: { fromSearch: this.fromSearchModal || false } }).catch(err => console.error('ResidentActions.addTransportRequest - navigation error', err));
+      this.router.navigate(['/transportation'], {
+        queryParams,
+        state: {
+          fromSearch: this.fromSearchModal || false,
+          houseLeaderRecordId: resolvedHouseLeaderRecordId || '',
+          houseLeaderName: this.houseLeaderName || '',
+          theHouseName: this.theHouseName
+        }
+      }).catch(err => console.error('ResidentActions.addTransportRequest - navigation error', err));
     });
   }
 

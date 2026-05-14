@@ -50,6 +50,29 @@ export class ResidentDetailComponent  implements OnInit {
   ) { 
   }
 
+  private resolveHouseLeaderRecordIdFromContext(state?: any): string {
+    const candidates = [
+      this.houseLeaderRecordId,
+      state?.houseLeaderRecordId,
+      state?.HouseLeaderRecordId,
+      this.route.snapshot?.queryParamMap?.get('houseLeaderRecordId'),
+      this.route.snapshot?.queryParamMap?.get('HouseLeaderRecordId'),
+      this.route.snapshot?.queryParams?.['houseLeaderRecordId'],
+      this.route.snapshot?.queryParams?.['HouseLeaderRecordId'],
+      this.residentData?.houseLeaderRecordId?.value,
+      this.residentData?.houseLeaderRecordId
+    ];
+
+    for (const candidate of candidates) {
+      const value = candidate === null || candidate === undefined ? '' : String(candidate).trim();
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
+  }
+
   async presentResidentActions(resident: any, isPending: boolean = false) {
     try {
       const pop = await this.popoverCtrl.create({
@@ -182,6 +205,14 @@ export class ResidentDetailComponent  implements OnInit {
     const participantName = this.residentData.residentFullName.value;
     const participantPhoto = this.residentData.residentPhoto;
     const participantId = this.residentData.recordNumber2.value;
+    const resolvedHouseLeaderRecordId = this.resolveHouseLeaderRecordIdFromContext();
+    console.debug('ResidentDetail.navigateToTransportation', {
+      participantName,
+      participantId,
+      theHouseName: this.theHouseName,
+      houseLeaderName: this.houseLeaderName,
+      houseLeaderRecordId: resolvedHouseLeaderRecordId
+    });
     // Persist photo and navigate passing only identifiers; avoid sending photo data in query params.
     try {
       if (participantPhoto && participantId) {
@@ -192,7 +223,10 @@ export class ResidentDetailComponent  implements OnInit {
       }
     } catch (e) {}
 
-    this.router.navigate(['/transportation'], { queryParams: { participantName, participantId, theHouseName: this.theHouseName, houseLeaderName: this.houseLeaderName, houseLeaderRecordId: this.houseLeaderRecordId } });
+    this.router.navigate(['/transportation'], {
+      queryParams: { participantName, participantId, theHouseName: this.theHouseName, houseLeaderName: this.houseLeaderName, houseLeaderRecordId: resolvedHouseLeaderRecordId },
+      state: { houseLeaderRecordId: resolvedHouseLeaderRecordId, houseLeaderName: this.houseLeaderName, theHouseName: this.theHouseName }
+    });
   }
 
   addParticipantReviews() {
@@ -329,6 +363,8 @@ addObservationReport() {
       theHouseName: string, 
       houseLeaderName: string, 
       houseLeaderPhone: string, 
+      houseLeaderRecordId?: string,
+      HouseLeaderRecordId?: string,
       residentPhoto: string, 
       isResident: boolean,
       announcements?: any[],
@@ -343,9 +379,7 @@ addObservationReport() {
         this.residentPhoto = params['residentPhoto'];
       }
       // Extract house leader record ID from query params (passed from home page)
-      if (params['houseLeaderRecordId']) {
-        this.houseLeaderRecordId = params['houseLeaderRecordId'];
-      }
+      this.houseLeaderRecordId = params['houseLeaderRecordId'] || params['HouseLeaderRecordId'] || this.houseLeaderRecordId || '';
       if (params['theHouseName']) {
         this.theHouseName = params['theHouseName'];
       }
@@ -354,6 +388,15 @@ addObservationReport() {
       }
       // some navigations use recordNumber2 or participantId
       queryParticipantId = params['recordNumber2'] || params['participantId'] || null;
+
+      console.debug('ResidentDetail query params resolved', {
+        houseLeaderRecordId: this.houseLeaderRecordId,
+        rawLower: params['houseLeaderRecordId'],
+        rawUpper: params['HouseLeaderRecordId'],
+        theHouseName: this.theHouseName,
+        houseLeaderName: this.houseLeaderName,
+        participantId: queryParticipantId
+      });
     });
 
     if (state && state.residentData) {
@@ -362,6 +405,7 @@ addObservationReport() {
       this.theHouseName = state.theHouseName || '';
       this.houseLeaderName = state.houseLeaderName || '';
       this.houseLeaderPhone = state.houseLeaderPhone || '';
+      this.houseLeaderRecordId = this.resolveHouseLeaderRecordIdFromContext(state);
       // Resolve safe photo src (may come from PhotoStorageService/sessionStorage)
       const safeSrc = this.photoStorageService.getSafeSrc(state.residentPhoto, this.residentData?.recordNumber2?.value);
       this.residentPhoto = safeSrc || '';
@@ -383,6 +427,13 @@ addObservationReport() {
       console.log('ResidentDetail.ngOnInit - residentData loaded', { id: this.residentData?.recordNumber2 || this.residentData?.recordNumber });
 
       // console.log('Resident Data from state:', this.residentData); // Log the resident data from state
+      console.debug('ResidentDetail.ngOnInit resolved houseLeaderRecordId', {
+        houseLeaderRecordId: this.houseLeaderRecordId,
+        stateHouseLeaderRecordId: state?.houseLeaderRecordId,
+        stateHouseLeaderRecordIdUpper: state?.HouseLeaderRecordId,
+        queryParamLower: this.route.snapshot?.queryParamMap?.get('houseLeaderRecordId'),
+        queryParamUpper: this.route.snapshot?.queryParamMap?.get('HouseLeaderRecordId')
+      });
       // console.log('House Name:', this.theHouseName); // Log the house name
       // console.log('House Leader Name:', this.houseLeaderName); // Log the house leader name
       // console.log('House Leader Phone:', this.houseLeaderPhone); // Log the house leader phone
