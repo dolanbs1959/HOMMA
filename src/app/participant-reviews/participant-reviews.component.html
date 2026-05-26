@@ -437,7 +437,7 @@
           <ion-label>Work Status</ion-label>
           <div [innerHTML]="workStatus"></div>
         </ion-item>
-    
+
         <!-- Current Employment Status -->
         <ion-item>
           <ion-label position="stacked"><strong>Current Employment Status</strong></ion-label><br>
@@ -447,6 +447,33 @@
               <span class="small-text">{{ option }}</span>
             </ion-item>
           </ion-list>
+        </ion-item>
+
+        <ion-item *ngIf="shouldShowEmploymentDetails()">
+          <ion-label position="stacked"><strong>Employer</strong></ion-label>
+          <ion-input
+            formControlName="employer"
+            type="text"
+            placeholder="Enter employer">
+          </ion-input>
+        </ion-item>
+
+        <ion-item *ngIf="shouldShowEmploymentDetails()">
+          <ion-label position="stacked"><strong>Position/Title</strong></ion-label>
+          <ion-input
+            formControlName="positionTitle"
+            type="text"
+            placeholder="Enter position or title">
+          </ion-input>
+        </ion-item>
+
+        <ion-item *ngIf="shouldShowEmploymentDetails()">
+          <ion-label position="stacked"><strong>Pay Rate</strong></ion-label>
+          <ion-input
+            formControlName="payRate"
+            type="text"
+            placeholder="Enter pay rate">
+          </ion-input>
         </ion-item>
     
         <!-- Goals -->

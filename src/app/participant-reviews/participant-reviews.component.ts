@@ -82,6 +82,9 @@ export class ParticipantReviewsComponent implements OnInit {
       howAdministered: ['', Validators.required],
       meetingNotes: ['', Validators.required],
       workStatus: [''],
+      employer: [''],
+      positionTitle: [''],
+      payRate: [''],
       currentEmploymentStatus: [[], Validators.required],
       Goals: [[], Validators.required],
       hygieneIssues: [[], Validators.required],
@@ -133,6 +136,9 @@ export class ParticipantReviewsComponent implements OnInit {
           154: { value: formData.meetingAdministrator },
           298: { value: formData.howAdministered },
           178: { value: formData.meetingNotes },
+          315: { value: formData.employer },
+          316: { value: formData.positionTitle },
+          317: { value: formData.payRate },
           280: { value: formData.currentEmploymentStatus },
           216: { value: formData.Goals },
           161: { value: formData.hygieneIssues },
@@ -561,6 +567,38 @@ export class ParticipantReviewsComponent implements OnInit {
       }
     }
     this.reportForm.controls[controlName].setValue(selectedValues);
+
+    if (controlName === 'currentEmploymentStatus') {
+      this.updateEmploymentDetailValidators();
+    }
+  }
+
+  shouldShowEmploymentDetails(): boolean {
+    const currentEmploymentStatus = this.reportForm.get('currentEmploymentStatus')?.value as string[] || [];
+    const normalizedSelections = currentEmploymentStatus.map(status => (status || '').toLowerCase().trim());
+
+    return normalizedSelections.includes('employed') ||
+           normalizedSelections.includes('employed - pt') ||
+           normalizedSelections.includes('empolyed - pt');
+  }
+
+  private updateEmploymentDetailValidators() {
+    const shouldRequireEmploymentDetails = this.shouldShowEmploymentDetails();
+    const employmentDetailControls = ['employer', 'positionTitle', 'payRate'];
+
+    employmentDetailControls.forEach(controlName => {
+      const control = this.reportForm.get(controlName);
+      if (!control) return;
+
+      if (shouldRequireEmploymentDetails) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+        control.setValue('');
+      }
+
+      control.updateValueAndValidity();
+    });
   }
 
   togglePhoneUpdate() {
@@ -1096,6 +1134,9 @@ export class ParticipantReviewsComponent implements OnInit {
 
  async onSubmit() {
     // console.log('onSubmit called');
+
+   // Keep employment detail validators in sync with current employment selections.
+   this.updateEmploymentDetailValidators();
     
     // Early exit if validation blockers exist (double safety)
     if (this.hasValidationBlockers()) {
@@ -1296,6 +1337,9 @@ export class ParticipantReviewsComponent implements OnInit {
           154: { value: formData.meetingAdministrator },
           298: { value: formData.howAdministered },
           178: { value: formData.meetingNotes },
+          315: { value: formData.employer },
+          316: { value: formData.positionTitle },
+          317: { value: formData.payRate },
           280: { value: formData.currentEmploymentStatus },
           216: { value: formData.Goals },
           161: { value: formData.hygieneIssues },
