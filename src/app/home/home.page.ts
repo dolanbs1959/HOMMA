@@ -403,24 +403,27 @@ openStaffTasks() {
         this.logger.warn('Error while resolving Database Administrator email', e);
       }
 
-      // Attempt to resolve the House Leader's staff ID (fid36) from the cached active staff list
-      let houseLeaderStaffId: any = '';
-      try {
-        const svcList: any = (this.quickbaseService as any).activeStaff?.value || null;
-        if (Array.isArray(svcList)) {
-          const match = svcList.find((s: any) => {
-            const rel = (s.relatedParticipantId || (s.relatedParticipantId && s.relatedParticipantId.value) || '')?.toString();
-            return rel === (this.houseLeaderRecordId || '').toString();
-          });
-          if (match) {
-            houseLeaderStaffId = match.staffId || match.userId || match.email || '';
-            this.logger.debug('Resolved houseLeaderStaffId from cache', houseLeaderStaffId);
-          }
-        }
-      } catch (e) {
-        this.logger.warn('Error resolving house leader staffId', e);
-      }
+        // Attempt to resolve the House Leader's Staff Record ID (FID3) from the cached active staff list
+        let houseLeaderStaffId: any = '';
 
+        try {
+          const svcList: any = (this.quickbaseService as any).activeStaff?.value || null;
+
+          if (Array.isArray(svcList)) {
+            const match = svcList.find((s: any) => {
+              const rel = (s.relatedParticipantId || '')?.toString();
+              return rel === (this.houseLeaderRecordId || '').toString();
+            });
+
+            if (match) {
+              // FID36 expects the Staff Record ID (FID3)
+              houseLeaderStaffId = match.userId || '';
+              this.logger.debug('Resolved House Leader Staff Record ID from cache', houseLeaderStaffId);
+            }
+          }
+        } catch (e) {
+          this.logger.warn('Error resolving House Leader Staff Record ID', e);
+        }
       // Prepare the communication data for house leader feedback (include fid36)
       const communicationData = {
         6: { value: staffValueToSend }, // Staff Member field

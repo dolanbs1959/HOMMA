@@ -151,7 +151,14 @@ exports.quickbaseProxy = onCall({cors: true, secrets: ['QUICKBASE_API_KEY']}, as
       return { success: false, error: { type: 'quickbase', status: response.status, data, endpoint } };
     }
 
-    logger.info("Quickbase Proxy Success", {endpoint, status: response.status});
+    // logger.info("Quickbase Proxy Success", {endpoint, status: response.status});
+          logger.info("Quickbase Proxy Success", {
+        endpoint,
+        status: response.status,
+        metadata: data.metadata,
+        lineErrors: data.lineErrors,
+        data: data.data
+      });
     return {success: true, data};
   } catch (error) {
     // Log stack for deeper debugging
