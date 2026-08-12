@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { AlertController } from '@ionic/angular';
 import { VersionService } from 'src/app/services/version.service';
 import { Router } from '@angular/router';
 import { QuickbaseService } from '../services/quickbase.service';
@@ -53,7 +52,7 @@ export class LoginPage implements OnInit, OnDestroy {
   staticVerse: string = 'For I was an hungred, and ye gave me meat: I was thirsty, and ye gave me drink: I was a stranger, and ye took me in. Matthew 25:35, KJV';
   rememberDevice: boolean = false;
   storageBackend: string = 'unknown';
-  shortVersion = '';
+  appVersion = 'unknown';
   
   selectUserType(type: string) {
     this.userType = type;
@@ -80,7 +79,6 @@ constructor(
   private secureStorage: SecureStorageService,
   private loadingService: LoadingService
   , private updateService: UpdateService
-  , private alertCtrl: AlertController
   , private versionService: VersionService
 ) {
   this.houseNames$ = this.quickbaseService.getHouseNames().pipe(
@@ -142,12 +140,11 @@ ngOnInit() {
       (error: any) => this.logger.error('Error caching Senior Staff data', error)
     );
 
-    // get a short version to display in the header
+    // get the app version to display in the login footer
     try {
       this.versionService.getVersion().then(v => {
         if (v) {
-          const m = String(v).match(/^(\d+\.\d+\.\d+)/);
-          this.shortVersion = m ? m[0] : v;
+          this.appVersion = v;
         }
       }).catch(() => {});
     } catch (e) {}
@@ -155,43 +152,6 @@ ngOnInit() {
 //      // console.log('Submitting form with housename:', this.housename, 'and staffID:', this.staffID);
   }
 
-  async showVersionAlert() {
-    try {
-      const ver = await this.versionService.getVersion();
-      const short = String(ver).match(/^(\d+\.\d+\.\d+)/)?.[0] || ver || 'unknown';
-      const copyText = `App version: ${short}`;
-      const messageText = `App version: ${short}\n\nProperty of House of Mercy - Copyright 2026`;
-      const alert = await this.alertCtrl.create({
-        header: 'About',
-        message: messageText,
-        cssClass: 'about-alert',
-        buttons: [
-          {
-            text: 'Report',
-            handler: async () => {
-              try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                  await navigator.clipboard.writeText(copyText);
-                } else {
-                  const ta = document.createElement('textarea');
-                  ta.value = copyText;
-                  document.body.appendChild(ta);
-                  ta.select();
-                  document.execCommand('copy');
-                  document.body.removeChild(ta);
-                }
-              } catch (e) {
-                // ignore copy errors
-              }
-            }
-          },
-          { text: 'Close', role: 'cancel' }
-        ]
-      });
-      await alert.present();
-    } catch (e) {}
-  }
-  
   login() {
     this.logger.log('Login attempt for house:', this.housename);
     this.loadingService.show();

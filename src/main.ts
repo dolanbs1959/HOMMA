@@ -33,9 +33,4 @@ try {
 } catch (e) {}
 
 platformBrowserDynamic().bootstrapModule(AppModule)
-.then(() => {
-  if ('serviceWorker' in navigator && environment.production) {
-    navigator.serviceWorker.register('/ngsw-worker.js');
-  }
-})  .catch(err => // console.log(err)
-{});
+  .catch(err => {});

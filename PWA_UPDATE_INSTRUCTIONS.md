@@ -4,50 +4,36 @@ This document explains how the HOMMA PWA updates are delivered, how to deploy so
 
 Summary
 - The app uses Angular Service Worker (`ngsw-worker.js`). Built assets are content-hashed; the service worker controls when a new version is activated.
-- We added `src/app/services/update.service.ts` which:
-  - checks for updates periodically and on focus/visibility change,
-  - shows an Ionic toast prompt to users when a new version is ready,
-  - can `activateUpdate()`, clear client caches and unregister service workers before reloading (aggressive fallback).
+- `src/app/services/update.service.ts` subscribes to Angular's `SwUpdate.versionUpdates` and shows a bottom toast when a new version is ready. Users can choose **Later** or **Update Now**.
+- `Update Now` calls `SwUpdate.activateUpdate()` and reloads the page. `Later` keeps the current version running and will prompt again in the next session.
+- To avoid interrupting users while they are typing, the prompt is deferred while a form field is focused.
 
 Deployment checklist
-1. Build a production release:
+1. Update `version` in `package.json` before building.
+2. Build a production release:
 
 ```bash
-ng build --configuration=production
+npm run build
 ```
 
-2. Ensure you deploy the following root files to your hosting:
+The `prebuild` script writes the package version into `src/assets/update.json`, which is also the runtime version shown on the login page.
+
+3. Ensure you deploy the following root files to your hosting:
 - `/index.html`
 - `/ngsw.json`
 - `/ngsw-worker.js`
+- `/manifest.webmanifest`
 - `/assets`, other built files
 
-3. Critical caching headers (very important):
-- Serve `ngsw-worker.js` and `index.html` with `Cache-Control: no-cache, max-age=0, must-revalidate` so clients fetch the latest worker and shell quickly.
+4. Critical caching headers (very important):
+- Serve `ngsw-worker.js`, `index.html`, and `manifest.webmanifest` with `Cache-Control: no-cache, max-age=0, must-revalidate` so clients fetch the latest worker and shell quickly.
 - Serve hashed asset files with long cache lifetimes (e.g., `Cache-Control: public, max-age=31536000, immutable`).
 
 Why headers matter
-- Browsers will revalidate `index.html` and `ngsw-worker.js` only if the server allows revalidation. If these files are cached too aggressively, clients will not notice new versions.
+- Browsers will revalidate `index.html`, `ngsw-worker.js`, and the manifest only if the server allows revalidation. If these files are cached too aggressively, clients will not notice new versions.
 
-Server-driven update (quick implementation included)
-- The repo includes a simple server-driven mechanism using `src/assets/update.json` which is copied to the production output. The file format is:
-
-```json
-{ "version": "2026-04-02T20:00:00Z", "force": false }
-```
-
-- Clients poll `/assets/update.json`. When the `version` differs from the last-seen value the client will either show a soft toast prompt (`force:false`) or a mandatory modal that activates the update (`force:true`).
-
-CI/deploy snippet (example)
-- In your CI pipeline, after building and uploading the `docs` folder, update `/assets/update.json` with the new deploy timestamp or version. Example shell snippet:
-
-```bash
-# after `ng build --configuration=production` and uploading files
-NEW_VERSION=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-cat > docs/assets/update.json <<EOF
-{ "version": "${NEW_VERSION}", "force": false }
-EOF
-# upload `docs` to your host
-```
-
-Set `force` to `true` only for emergency/critical updates where you are prepared for potential cache clearing or forced reload UX.
+Version control recommendation
+- Keep the canonical version in `package.json`. Bump it before running `npm run build`.
+- `scripts/generate-update-json.js` is run automatically during `prebuild` and writes `src/assets/update.json`.
+- You can also pass an explicit version: `node scripts/generate-update-json.js --version 1.2.3`.
+- The login page footer reads this value from `/assets/update.json`.

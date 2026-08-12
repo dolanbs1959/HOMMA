@@ -20,7 +20,7 @@ for (let i = 0; i < argv.length; i++) {
 }
 
 const semver = provided || readPackageVersion();
-const displayVersion = `V.${semver}`;
+const displayVersion = `v${semver}`;
 const payload = {
   version: displayVersion,
   force: false,
@@ -28,8 +28,7 @@ const payload = {
 };
 
 const targets = [
-  path.join(__dirname, '..', 'src', 'assets', 'update.json'),
-  path.join(__dirname, '..', 'docs', 'assets', 'update.json')
+  path.join(__dirname, '..', 'src', 'assets', 'update.json')
 ];
 
 for (const t of targets) {

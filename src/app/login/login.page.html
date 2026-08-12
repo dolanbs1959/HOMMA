@@ -4,9 +4,6 @@
     <ion-title color="Primary">
       HOM Mobile Assistant
     </ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" size="small" class="header-version-btn" (click)="showVersionAlert()">VERSION</ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -110,11 +107,14 @@
 </ion-card>
     <div class="wrapper">
       <br>
-      <!-- <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" 
-      [ngClass]="{'disabled': isDisabled}" 
+      <!-- <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue"
+      [ngClass]="{'disabled': isDisabled}"
       (click)="!isDisabled && navigateToHelpDesk()">
         Submit Help Desk Ticket
         <ion-ripple-effect></ion-ripple-effect>
       </div> -->
       </div>
 
+  <div class="login-version-footer">
+    App Version: {{ appVersion }} Property of House of Mercy - Copyright 2026
+  </div>
