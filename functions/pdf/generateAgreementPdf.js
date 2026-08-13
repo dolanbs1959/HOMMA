@@ -5,8 +5,6 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const chromiumModule = require('@sparticuz/chromium');
-const Chromium = chromiumModule.default || chromiumModule;
 const {renderStipulatedAgreementPdf} = require('./stipulatedAgreementRenderer');
 
 /**
@@ -61,6 +59,8 @@ async function launchBrowser() {
   if (!executablePath) {
     executablePath = findLocalChrome();
   }
+
+  const { default: Chromium } = await import('@sparticuz/chromium');
 
   if (!executablePath) {
     executablePath = await Chromium.executablePath();
