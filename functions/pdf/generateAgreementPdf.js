@@ -5,7 +5,6 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const puppeteer = require('puppeteer-core');
 const chromiumModule = require('@sparticuz/chromium');
 const Chromium = chromiumModule.default || chromiumModule;
 const {renderStipulatedAgreementPdf} = require('./stipulatedAgreementRenderer');
@@ -66,6 +65,8 @@ async function launchBrowser() {
   if (!executablePath) {
     executablePath = await Chromium.executablePath();
   }
+
+  const { default: puppeteer } = await import('puppeteer-core');
 
   return puppeteer.launch({
     executablePath,
