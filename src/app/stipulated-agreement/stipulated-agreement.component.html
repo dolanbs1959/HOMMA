@@ -1,0 +1,192 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title color="Primary">HOM Mobile Assistant - Disciplinary Stipulated Agreement</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-card class="ion-text-center logo-card">
+    <img src="assets/logo/HOM3.png" alt="House of Mercy logo" class="hom-logo" />
+    <ion-card-header class="center-content">
+      <ion-card-subtitle>{{ participantName }}</ion-card-subtitle>
+      <p *ngIf="participantId" class="participant-meta">ID: {{ participantId }}</p>
+      <p *ngIf="houseName" class="participant-meta">House: {{ houseName }}</p>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Agreement Information</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">Effective Date</ion-label>
+        <ion-input type="date" [(ngModel)]="effectiveDate"></ion-input>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>This stipulated agreement is warranted based on the following:</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="violationCategories.alcohol"></ion-checkbox>
+          <ion-label>Alcohol, Drug, or Pornography Use</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="violationCategories.financial"></ion-checkbox>
+          <ion-label>Failure to Pay Program Fees in A Timely Manner</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="violationCategories.employment"></ion-checkbox>
+          <ion-label>Failure to Find Employment in a Timely Manner</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="violationCategories.program"></ion-checkbox>
+          <ion-label>Failure to Obey Program Rules/Policies</ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-item>
+        <ion-label position="stacked">Specify Guideline</ion-label>
+        <ion-input [(ngModel)]="specifyGuideline" placeholder="Enter guideline"></ion-input>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="violationCategories.alcohol || violationCategories.financial || violationCategories.employment || violationCategories.program">
+    <ion-card-header>
+      <ion-card-title>House of Mercy desires reconciliation, responsibility and cooperation. Based on the following actions, and in agreement with the following stipulations, participant agrees to the following:</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ng-container *ngIf="violationCategories.alcohol">
+        <h3 class="violation-heading">Alcohol/Drug Use Violation</h3>
+        <ion-list>
+          <ion-item *ngFor="let item of alcoholStipulations">
+            <ion-checkbox slot="start" [(ngModel)]="item.checked"></ion-checkbox>
+            <ion-label class="ion-text-wrap">{{ item.label }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ng-container>
+
+      <ng-container *ngIf="violationCategories.financial">
+        <h3 class="violation-heading">Financial Violation</h3>
+        <ion-list>
+          <ion-item *ngFor="let item of financialStipulations">
+            <ion-checkbox slot="start" [(ngModel)]="item.checked"></ion-checkbox>
+            <ion-label class="ion-text-wrap">{{ item.label }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ng-container>
+
+      <ng-container *ngIf="violationCategories.employment">
+        <h3 class="violation-heading">Employment Violation</h3>
+        <ion-list>
+          <ion-item *ngFor="let item of employmentStipulations">
+            <ion-checkbox slot="start" [(ngModel)]="item.checked"></ion-checkbox>
+            <ion-label class="ion-text-wrap">{{ item.label }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ng-container>
+
+      <ng-container *ngIf="violationCategories.program">
+        <h3 class="violation-heading">Program Rule Violation</h3>
+        <ion-list>
+          <ion-item *ngFor="let item of programRuleStipulations">
+            <ion-checkbox slot="start" [(ngModel)]="item.checked"></ion-checkbox>
+            <ion-label class="ion-text-wrap">{{ item.label }}</ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ion-item *ngIf="programRuleStipulations[3].checked">
+          <ion-label position="stacked">Other</ion-label>
+          <ion-input [(ngModel)]="programOtherText" placeholder="Describe other stipulation"></ion-input>
+        </ion-item>
+      </ng-container>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Participant Acknowledgement</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p class="agreement-text">
+        I, <strong>{{ participantName }}</strong>, agree to abide by all checked stipulations, HOM rules, and DOC
+        conditions. Failure to do so could subject myself to immediate termination of the House of Mercy program.
+        Stipulated agreement will end upon successful completion 90 days after its effective date.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Signatures</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <app-signature-pad label="Participant Signature" (signatureChange)="onParticipantSignatureChange($event)"></app-signature-pad>
+            <div class="signature-meta">
+              <div class="signature-name-row">
+                <p class="participant-name"><strong>{{ participantName }}</strong></p>
+                <ion-checkbox class="refused-checkbox" labelPlacement="end" [(ngModel)]="refusedSignature">Refused signature</ion-checkbox>
+              </div>
+              <p>{{ participantSignatureDate | date:'mediumDate' }}</p>
+            </div>
+            <ion-item>
+              <ion-label position="stacked">Participant Signature Date</ion-label>
+              <ion-input type="date" [(ngModel)]="participantSignatureDate"></ion-input>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="12" size-md="6">
+            <app-signature-pad label="HOM Staff Signature" (signatureChange)="onStaffSignatureChange($event)"></app-signature-pad>
+            <div class="signature-meta">
+              <p><strong>{{ staffName }}</strong></p>
+              <p>{{ staffSignatureDate | date:'mediumDate' }}</p>
+            </div>
+            <ion-item>
+              <ion-label position="stacked">HOM Staff Signature Date</ion-label>
+              <ion-input type="date" [(ngModel)]="staffSignatureDate"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-grid class="action-button-grid ion-no-padding">
+  <ion-row>
+    <ion-col size="12" size-sm="6">
+      <ion-button
+        class="save-btn"
+        expand="block"
+        [disabled]="!isSaveEnabled"
+        (click)="generateAndSend()">
+        Save Stipulated Agreement
+      </ion-button>
+    </ion-col>
+
+    <ion-col size="12" size-sm="6">
+      <ion-button
+        class="back-btn"
+        expand="block"
+        (click)="backToSearch()">
+        {{ fromSearch ? 'Back to Search Results' : 'Back to Participants' }}
+      </ion-button>
+    </ion-col>
+  </ion-row>
+</ion-grid>
+
+  <div class="form-note">
+    This will generate the agreement as a PDF and email it to the participant.
+  </div>
+</ion-content>

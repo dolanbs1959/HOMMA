@@ -6,6 +6,7 @@ import { TrainingComponent } from './training/training.component';
 import { MeetingsClassesComponent } from './meetings-classes/meetings-classes.component';
 import { RegistrationsComponent } from './registrations/registrations.component';
 import { MessageCenterComponent } from './message.center/message.center.component';
+import { StipulatedAgreementComponent } from './stipulated-agreement/stipulated-agreement.component';
 
 const routes: Routes = [
   {
@@ -76,6 +77,10 @@ const routes: Routes = [
   {
     path: 'message.center',
     component: MessageCenterComponent
+  },
+  {
+    path: 'stipulated-agreement',
+    component: StipulatedAgreementComponent
   }
 
 ];

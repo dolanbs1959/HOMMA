@@ -15,6 +15,7 @@ export class UserService {
     isStaff: boolean,
     staffRecordId: number 
   } = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0 };
+  private displayName = '';
 
   constructor(
     private router: Router,
@@ -28,6 +29,14 @@ export class UserService {
 
   getUserInfo() {
     return this.userInfo;
+  }
+
+  setDisplayName(name: string) {
+    this.displayName = name || '';
+  }
+
+  getDisplayName(): string {
+    return this.displayName;
   }
 
   // Participant login info methods
@@ -106,8 +115,21 @@ export class UserService {
     return 0;
   }
 
+  /**
+   * Reset all login-specific authentication state. Called at the start of any
+   * successful login and during logout so a subsequent login cannot inherit
+   * stale role information from a different login path.
+   */
+  public resetAuthState(): void {
+    this.userInfo = { houseName: '', staffId: '' };
+    this.participantInfo = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0 };
+    this.displayName = '';
+    try { this.quickbaseService.currentStaffRole = ''; } catch (e) {}
+  }
+
   // Manual logout method
   public manualLogout() {
+    this.resetAuthState();
     try { this.quickbaseService.clearAllCaches(); } catch (e) {}
     try { this.quickbaseService.clearLastResidentSearch(); } catch (e) {}
     try { this.router.navigate(['/login']); } catch (e) {}

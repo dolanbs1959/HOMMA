@@ -1,0 +1,19 @@
+<div class="signature-pad-wrapper">
+  <div class="signature-pad-header">
+    <span class="signature-label">{{ label }}</span>
+    <ion-button fill="clear" color="primary" size="small" class="clear-btn" (click)="clearSignaturePad()">Clear</ion-button>
+  </div>
+  <div class="signature-pad-canvas-wrapper">
+    <canvas
+      #signatureCanvas
+      class="signature-canvas"
+      width="720"
+      height="220"
+      (pointerdown)="beginSignatureStroke($event)"
+      (pointermove)="continueSignatureStroke($event)"
+      (pointerup)="endSignatureStroke()"
+      (pointerleave)="endSignatureStroke()"
+      (pointercancel)="endSignatureStroke()"
+    ></canvas>
+  </div>
+</div>

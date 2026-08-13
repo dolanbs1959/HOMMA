@@ -2,6 +2,8 @@ import { Component, OnInit, NgZone, ApplicationRef } from '@angular/core';
 import { PopoverController, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { PhotoStorageService } from '../services/photoProcessing.service';
+import { QuickbaseService } from '../services/quickbase.service';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-resident-actions',
@@ -19,6 +21,7 @@ export class ResidentActionsComponent implements OnInit {
   HLphone: string = '';
   maxMeetingDate: string = '';
   fromSearchModal: boolean = false;
+  canShowStipulated: boolean = false;
 
   constructor(
     private popoverCtrl: PopoverController,
@@ -26,12 +29,22 @@ export class ResidentActionsComponent implements OnInit {
     private ngZone: NgZone,
     private appRef: ApplicationRef,
     private modalCtrl: ModalController,
-    private photoStorageService: PhotoStorageService
+    private photoStorageService: PhotoStorageService,
+    private quickbaseService: QuickbaseService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
     // Keep original object and provide normalized accessors for templates/routes
     this.residentOriginal = this.resident;
+
+    // Determine whether the authenticated user may access the Stipulated Agreement.
+    // Staff logged in through Program Participant Login are marked as senior staff in UserService.
+    // Staff/House Leader logged in through House Leader Login have an authoritative role from QuickBase.
+    const isParticipantStaff = this.userService.isStaffUser();
+    const isHouseLeaderLoginStaff = !!this.quickbaseService.currentStaffRole && this.quickbaseService.currentStaffRole !== 'House Leader';
+    this.canShowStipulated = isParticipantStaff || isHouseLeaderLoginStaff;
+
     // Coerce boolean-like values passed via componentProps
     try {
       this.isPending = !!this.isPending;
@@ -109,7 +122,8 @@ export class ResidentActionsComponent implements OnInit {
         residentData: this.residentOriginal || this.resident,
         theHouseName: this.theHouseName,
         houseLeaderName: this.houseLeaderName || '',
-        fromSearch: this.fromSearchModal || false
+        fromSearch: this.fromSearchModal || false,
+        isResident: false
       }
     };
     console.log('ResidentActions.gotoDetail - navigating to resident-detail', { id: this.normalizedId, navigationExtras });
@@ -152,6 +166,25 @@ export class ResidentActionsComponent implements OnInit {
     // populate name/photo when opened from an active resident.
     this.ngZone.run(() => {
       this.router.navigate(['/resident-update', this.normalizedId], { state: { residentData: this.residentOriginal || this.resident, fromSearch: this.fromSearchModal || false } }).catch(err => console.error('ResidentActions.addResidentUpdate - navigation error', err));
+    });
+  }
+
+  async openStipulatedAgreement() {
+    console.log('ResidentActions.openStipulatedAgreement - navigating to stipulated-agreement', { id: this.normalizedId });
+    await this.close();
+    try { (document.activeElement as HTMLElement)?.blur(); } catch (e) {}
+    await this.clearOverlays();
+
+    const r = this.residentOriginal || this.resident || {};
+    const participantName = (r.residentFullName && (r.residentFullName.value || r.residentFullName)) || r.residentName || r.name || 'Unknown Participant';
+    const participantId = r.recordNumber2?.value || r.recordNumber2 || r.recordNumber || this.normalizedId || '';
+    const theHouseName = this.theHouseName || r.houseName?.value || r.houseName || '';
+
+    this.ngZone.run(() => {
+      this.router.navigate(['/stipulated-agreement'], {
+        queryParams: { participantName, participantId, theHouseName, houseLeaderName: this.houseLeaderName || '' },
+        state: { residentData: this.residentOriginal || this.resident, fromSearch: this.fromSearchModal || false }
+      }).catch(err => console.error('ResidentActions.openStipulatedAgreement - navigation error', err));
     });
   }
 

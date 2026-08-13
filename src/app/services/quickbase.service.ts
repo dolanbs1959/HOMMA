@@ -43,6 +43,7 @@ export class QuickbaseService {
   theHouseName: string = '';
   HLphone: string = '';
   queryData: any;
+  currentStaffRole: string = '';
   isActivityAddedOnce = false;
   
   // Enhanced caching with BehaviorSubjects
@@ -1048,6 +1049,10 @@ insertActivity(activityData: any): Observable<any> {
           this.logger.debug('Final record selected successfully');
         }
         
+        // Capture the authenticated user's actual role from the staff table (field 93)
+        const requestingUserRecord = allStaffRecords.find((r: any) => (r['102']?.value || r['102']) === staffID);
+        this.currentStaffRole = requestingUserRecord ? (requestingUserRecord['93']?.value || requestingUserRecord['93']) : '';
+
         // Return the modified response that postData can process
         return {
           ...response,

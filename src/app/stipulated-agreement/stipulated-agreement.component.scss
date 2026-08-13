@@ -1,0 +1,134 @@
+ion-card {
+  margin-bottom: 16px;
+}
+
+ion-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+ion-card-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.hom-logo {
+  max-width: 140px;
+  margin: 12px auto 0;
+  display: block;
+}
+
+.participant-meta {
+  margin: 2px 0;
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+}
+
+ion-label {
+  white-space: normal;
+}
+
+.violation-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 16px 0 8px;
+  color: var(--ion-color-dark);
+}
+
+.violation-heading:first-child {
+  margin-top: 0;
+}
+
+.agreement-text {
+  line-height: 1.5;
+  font-size: 1rem;
+  color: var(--ion-color-dark);
+}
+
+.signature-meta {
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+  color: var(--ion-color-dark);
+}
+
+.signature-meta p {
+  margin: 2px 0;
+}
+
+.signature-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 2px 0;
+}
+
+.signature-name-row .participant-name {
+  margin: 0;
+  flex: 1;
+}
+
+.signature-name-row .refused-checkbox {
+  --size: 18px;
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.form-note {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+  padding: 16px 8px 32px;
+}
+
+.action-button-grid {
+   background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  --background: transparent;
+  --ion-grid-column-padding: 6px;
+  padding-left: 8px;
+  padding-right: 8px;
+
+  ion-row {
+    align-items: stretch;
+  }
+
+  ion-col {
+    display: flex;
+  }
+
+  ion-button {
+    width: 100%;
+    height: 54px;
+    margin: 0;
+
+    /* IMPORTANT: no background on the ion-button host */
+    background: transparent !important;
+    padding: 0;
+
+    --border-radius: 10px;
+    --color: #fff;
+    --box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
+  }
+
+  .save-btn {
+    --background: #3d82f6;
+  }
+
+.back-btn {
+  --background: #ef4056 !important;
+  --background-hover: #ef4056 !important;
+  --background-activated: #ef4056 !important;
+  --background-focused: #ef4056 !important;
+  --color: #fff !important;
+}
+}
+
+@media (max-width: 575px) {
+  .action-button-grid ion-col {
+    margin-bottom: 8px;
+  }
+}

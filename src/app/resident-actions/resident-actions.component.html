@@ -15,6 +15,7 @@
       <ion-button expand="block" fill="solid" class="outline-action" (click)="addObservation()">Add Observation Report</ion-button>
       <ion-button expand="block" fill="solid" class="outline-action" (click)="addResidentUpdate()">Add Resident Update</ion-button>
       <ion-button expand="block" fill="solid" class="outline-action" (click)="addParticipantOneOnOne()">Add Participant 1-on-1</ion-button>
+      <ion-button *ngIf="canShowStipulated" expand="block" fill="solid" class="outline-action" (click)="openStipulatedAgreement()">Stipulated Agreement</ion-button>
       <ion-button expand="block" fill="solid" class="outline-action" (click)="registerForMeeting()">Class Registration</ion-button>
     </ng-container>
 

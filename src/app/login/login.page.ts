@@ -109,6 +109,7 @@ navigateToHelpDesk() {
 }
 
 onLogin() {
+  this.userService.resetAuthState(); // Clear any previous participant or staff role state
   this.userService.setUserInfo(this.housename, this.staffID); // Store user info in UserService
   this.router.navigate(['/home'], { 
     state: { 
@@ -153,6 +154,7 @@ ngOnInit() {
   }
 
   login() {
+    this.userService.resetAuthState(); // Clear any previous participant or staff role state
     this.logger.log('Login attempt for house:', this.housename);
     this.loadingService.show();
 
@@ -164,6 +166,7 @@ ngOnInit() {
           const HouseLeaderRecordId = response.HouseLeaderRecordId?.value; // Get house leader record ID from login query
           const HLphone = response.HLphone?.value;
           this.recordNumber = response.recordNumber;
+          this.userService.setDisplayName(HouseLeaderName || '');
           this.savedRecordNumber = this.recordNumber;
           this.maxMeetingDate = response.maxMeetingDate?.value;
           this.logger.log('Login successful');
@@ -254,6 +257,7 @@ ngOnInit() {
   }
   
   onResidentLogin() {
+    this.userService.resetAuthState(); // Clear any previous house leader or staff role state
     this.logger.log('=== RESIDENT LOGIN ATTEMPT ===');
     this.logger.log(`Email entered: "${this.email}"`);
     this.loadingService.show();
@@ -298,6 +302,7 @@ ngOnInit() {
             const participantEmail = this.email;
             const participantRecordId = resident.residentIDnumber.value;
             const participantFullName = resident.residentFullName?.value || 'Unknown';
+            this.userService.setDisplayName(participantFullName);
             
             // Check if this resident is a Senior Staff member (by matching record ID against staff Related Participant fid 9)
             // checkIsSeniorStaff returns the staff record ID if found, or 0 if not staff
