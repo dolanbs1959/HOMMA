@@ -29,6 +29,7 @@ export class StipulatedAgreementComponent implements OnInit {
   participantEmail = '';
   houseName = '';
   houseLeaderName = '';
+  houseLeaderEmail = '';
 
   effectiveDate = '';
   specifyGuideline = '';
@@ -136,6 +137,7 @@ export class StipulatedAgreementComponent implements OnInit {
 
     this.houseName = queryParams.theHouseName || state.theHouseName || r.houseName?.value || r.houseName || '';
     this.houseLeaderName = queryParams.houseLeaderName || state.houseLeaderName || r.houseLeaderName?.value || r.houseLeaderName || '';
+    this.houseLeaderEmail = (r.houseLeaderEmail?.value || r.houseLeaderEmail || '').trim();
 
     this.staffName = this.userService.getDisplayName() || 'Unknown Staff';
 
@@ -152,6 +154,8 @@ export class StipulatedAgreementComponent implements OnInit {
   onStaffSignatureChange(dataUrl: string): void {
     this.staffSignatureData = dataUrl;
   }
+
+
 
   get isSaveEnabled(): boolean {
     return (this.participantSignatureData !== '' || this.refusedSignature) && this.staffSignatureData !== '';
@@ -258,6 +262,15 @@ export class StipulatedAgreementComponent implements OnInit {
       }
     }
 
+    // If the participant has no email and the prompt was skipped, send the agreement to the
+    // House Leader as a fallback. If the House Leader email is also unavailable, send to the
+    // fixed escalation address so the agreement is not lost.
+    if (emailSkipped) {
+      recipient = this.houseLeaderEmail || 'timothy.ramirez@homtransitions.org';
+      updateParticipantEmail = false;
+      emailSkipped = false;
+    }
+
     const loading = await this.loadingController.create({
       message: 'Preparing agreement...'
     });
@@ -294,6 +307,7 @@ export class StipulatedAgreementComponent implements OnInit {
         buttons: ['OK']
       });
       await success.present();
+      success.onDidDismiss().then(() => this.goBack());
     } catch (error: any) {
       console.error('Agreement error', error);
       const alert = await this.alertController.create({
@@ -358,7 +372,8 @@ export class StipulatedAgreementComponent implements OnInit {
         pdfBase64,
         participantName: this.participantName,
         participantRecordId: this.participantRecordId,
-        updateParticipantEmail
+        updateParticipantEmail,
+        houseLeaderEmail: this.houseLeaderEmail
       }) as any;
 
       if (!result.data?.success) {

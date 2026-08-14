@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content>
-  <ion-searchbar placeholder="Search by full name" [(ngModel)]="query" animated></ion-searchbar>
+  <ion-searchbar placeholder="Search by full name" [(ngModel)]="query" (ionInput)="onInput($event)" animated></ion-searchbar>
   <div class="search-actions">
     <ion-button expand="block" (click)="search()">Search</ion-button>
   </div>

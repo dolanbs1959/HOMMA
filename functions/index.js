@@ -246,6 +246,7 @@ exports.sendStipulatedAgreementEmail = onCall({
     participantName,
     participantRecordId,
     updateParticipantEmail,
+    houseLeaderEmail,
   } = data;
 
   if (!recipientEmail || !pdfBase64) {
@@ -263,6 +264,14 @@ exports.sendStipulatedAgreementEmail = onCall({
   if (!smtpUser || !smtpPass) {
     throw new Error('SMTP credentials are not configured. Set EMAIL_USER and EMAIL_PASS secrets.');
   }
+
+  // Avoid exposing full email addresses in logs.
+  const maskEmail = (email) => {
+    if (!email || typeof email !== 'string') return null;
+    const [local, domain] = email.split('@');
+    if (!local || !domain) return null;
+    return `${local.slice(0, 2)}***@${domain}`;
+  };
 
   try {
     const nodemailer = require('nodemailer');
@@ -286,9 +295,20 @@ exports.sendStipulatedAgreementEmail = onCall({
 
     const pdfBuffer = Buffer.from(pdfBase64, 'base64');
 
+    // Build CC list: always include the fixed address; add the House Leader when available and not the primary recipient.
+    let ccList = ['timothy.ramirez@homtransitions.org'];
+    // let ccList = ['barry@intelli-bridge.net'];
+    if (houseLeaderEmail && emailRegex.test(houseLeaderEmail) && houseLeaderEmail !== recipientEmail) {
+      ccList.unshift(houseLeaderEmail);
+    }
+
+    // Never duplicate the primary recipient in CC (e.g., fallback case where Timothy is the To).
+    ccList = ccList.filter(addr => addr !== recipientEmail);
+
     await transporter.sendMail({
       from: `"House of Mercy" <${smtpUser}>`,
       to: recipientEmail,
+      cc: ccList,
       subject: `Disciplinary Stipulated Agreement - ${participantName || 'Participant'}`,
       text: `Hello ${participantName || 'Participant'},\n\nAttached is your Disciplinary Stipulated Agreement from House of Mercy.\n\nPlease retain this document for your records.\n\nThank you,\nHouse of Mercy`,
       html: `<p>Hello ${participantName || 'Participant'},</p><p>Attached is your Disciplinary Stipulated Agreement from House of Mercy.</p><p>Please retain this document for your records.</p><p>Thank you,<br>House of Mercy</p>`,
@@ -302,7 +322,8 @@ exports.sendStipulatedAgreementEmail = onCall({
     });
 
     logger.info('Stipulated agreement emailed', {
-      recipientEmail,
+      recipientEmail: maskEmail(recipientEmail),
+      cc: ccList.map(maskEmail),
       participantName,
       participantRecordId,
     });

@@ -1,5 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { PopoverController, ModalController } from '@ionic/angular';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import { QuickbaseService } from '../services/quickbase.service';
 import { LoggerService } from '../services/logger.service';
 import { ResidentActionsComponent } from '../resident-actions/resident-actions.component';
@@ -16,6 +18,7 @@ export class ResidentSearchComponent implements OnInit {
   isLoading = false;
   @Input() initialQuery?: string;
   @Input() initialResults?: any[];
+  private search$ = new Subject<string>();
 
   constructor(
     private quickbaseService: QuickbaseService,
@@ -36,6 +39,12 @@ export class ResidentSearchComponent implements OnInit {
         this.results = last.results;
       }
     }
+
+    this.search$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      filter(q => q.trim().length >= 2)
+    ).subscribe(q => this.performSearch(q));
   }
 
   async close() {
@@ -45,7 +54,7 @@ export class ResidentSearchComponent implements OnInit {
   onInput(ev: any) {
     const v = ev.target.value || ev.detail?.value || '';
     this.query = v;
-    // No automatic searching on input anymore — user must press Search button
+    this.search$.next(v);
     if (this.query.trim().length < 2) {
       this.results = [];
     }
@@ -53,25 +62,30 @@ export class ResidentSearchComponent implements OnInit {
 
   search() {
     console.log('ResidentSearch.search called', { query: this.query });
-    if (!this.query || this.query.trim().length < 2) {
-      console.log('ResidentSearch.search - query too short, aborting');
+    this.performSearch(this.query);
+  }
+
+  private performSearch(query: string) {
+    const trimmed = (query || '').trim();
+    if (trimmed.length < 2) {
+      console.log('ResidentSearch.performSearch - query too short, aborting');
       this.results = [];
       return;
     }
     this.isLoading = true;
-    console.log('ResidentSearch.search - calling QuickbaseService');
-    this.quickbaseService.searchResidentsByName(this.query, 50).subscribe(
+    console.log('ResidentSearch.performSearch - calling QuickbaseService');
+    this.quickbaseService.searchResidentsByName(trimmed, 50).subscribe(
       (resp: any[]) => {
         this.isLoading = false;
         this.results = Array.isArray(resp) ? resp : [];
         // Cache the search so Back can restore results without another API call
-        try { this.quickbaseService.setLastResidentSearch(this.query, this.results); } catch (e) {}
-        console.log('ResidentSearch.search - results received', { count: this.results.length });
-        this.logger.debug('Resident search results', { query: this.query, count: this.results.length });
+        try { this.quickbaseService.setLastResidentSearch(trimmed, this.results); } catch (e) {}
+        console.log('ResidentSearch.performSearch - results received', { count: this.results.length });
+        this.logger.debug('Resident search results', { query: trimmed, count: this.results.length });
       },
       (err) => {
         this.isLoading = false;
-        console.error('ResidentSearch.search - error', err);
+        console.error('ResidentSearch.performSearch - error', err);
         this.logger.error('Resident search error', err);
         this.results = [];
       }

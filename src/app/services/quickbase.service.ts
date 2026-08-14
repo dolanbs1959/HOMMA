@@ -1120,7 +1120,7 @@ insertActivity(activityData: any): Observable<any> {
     
     const body = {
       from: this.queryResidentTableId,
-      select: [3, 692, 31, 24, 40, 72, 116, 177, 131, 132, 135, 141, 564, 576, 150, 442, 296, 275, 7, 340, 53, 439, 90, 441, 448, 477, 655, 693, 694, 699, 700, 705, 706, 789, 790, 797, 798, 897],
+      select: [3, 692, 31, 24, 40, 72, 116, 177, 131, 132, 135, 141, 564, 576, 150, 442, 296, 275, 7, 340, 53, 439, 90, 441, 448, 477, 655, 693, 694, 695, 699, 700, 705, 706, 789, 790, 797, 798, 897],
       where: `{177.EX.'${email}'}`,// Query by email only first, password validated in login.page.ts
       options: {
         skip: 0,
@@ -1144,7 +1144,7 @@ getResidents(savedRecordNumber: number | { value: number }): Observable<any> {
     select: [
       3, 692, 14, 31, 24, 40, 72, 116, 177, 131, 132, 133, 135, 141,
       564, 576, 150, 442, 296, 275, 7, 340, 53, 439, 90, 441, 448, 477,
-      655, 693, 694, 699, 700, 705, 706, 789, 790, 797, 798, 897
+      655, 693, 694, 695, 699, 700, 705, 706, 789, 790, 797, 798, 897
     ],
     where: `{692.EX.${actualRecordNumber}}AND{349.EX.'Active'}`,
     options: {
@@ -1171,7 +1171,7 @@ getResidents(savedRecordNumber: number | { value: number }): Observable<any> {
       select: [
         3, 692, 14, 31, 24, 40, 72, 116, 177, 131, 132, 133, 135, 141,
         564, 576, 150, 442, 296, 275, 7, 340, 53, 439, 90, 441, 448, 477,
-        655, 693, 694, 699, 700, 705, 706, 789, 790, 797, 798, 897
+        655, 693, 694, 695, 699, 700, 705, 706, 789, 790, 797, 798, 897
       ],
       where: whereWithHouse,
       options: {
@@ -1241,6 +1241,7 @@ postData2(body: any): Observable<any[]> {
           houseLeaderName: record['693'],
           houseLeaderPhone: record['694'],
           houseLeaderRecordId: record['692'],
+          houseLeaderEmail: record['695'],
           AreaMgrName: record['699'],
           AreaMgrPhone: record['700'],
           CareMgrName: record['705'],
