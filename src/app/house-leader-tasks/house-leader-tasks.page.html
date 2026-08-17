@@ -1,0 +1,47 @@
+<ion-content class="ion-padding">
+  <h1 class="page-title ion-text-center">House Leader Tasks</h1>
+
+  <div class="alert-format" [ngStyle]="{'background-color': STAalert === 'No Alerts' ? 'green' : 'red', 'color': 'white'}">
+    <p class="ion-text-center">{{ STAalert | extractText }}</p>
+  </div>
+  <div class="alert-format" [ngStyle]="{'background-color': Alert.includes('No Alerts') ? 'green' : 'red', 'color': 'white'}">
+    <p class="ion-text-center">{{ Alert | extractText }}</p>
+  </div>
+
+  <ion-card class="meeting-card ion-text-center">
+    <ion-card-header>
+      <ion-card-subtitle>Your last weekly house meeting was on: {{ maxMeetingDate | date: 'MMM-dd-yyyy' }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button expand="block" color="primary" (click)="addWeeklyHouseMeeting()">
+        <ion-icon name="add-circle" slot="start"></ion-icon>
+        Add Weekly House Meeting
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="circular"></ion-spinner>
+    <p>Loading tasks…</p>
+  </div>
+
+  <div *ngIf="!isLoading && tasks.length === 0" class="ion-text-center ion-padding">
+    <p>No House Leader tasks found.</p>
+  </div>
+
+  <ion-card *ngFor="let task of tasks" class="task-card">
+    <ion-card-header>
+      <ion-card-title>{{ task.taskName }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Role:</strong> {{ task.role }}</p>
+      <p><strong>House:</strong> {{ task.houseName }}</p>
+      <p [ngClass]="{'status-overdue': (task.status || '').includes('Due')}"><strong>Status:</strong> {{ task.status | extractText }}</p>
+      <p><strong>Frequency:</strong> {{ task.frequency | extractText }}</p>
+      <p><strong>Priority:</strong> {{ task.priority }}</p>
+      <p *ngIf="(task.taskName || '').includes('Reviews')" [ngClass]="{'reviews-due': (task.status || '').includes('Reviews')}">
+        <strong>1 on 1's Due:</strong> {{ task.p1on1sDue }}
+      </p>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

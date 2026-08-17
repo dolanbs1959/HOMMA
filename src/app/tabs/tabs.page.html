@@ -1,3 +1,25 @@
+<ion-header class="app-header" [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title color="light">HOM Mobile Assistant - Participants</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleTheme()" fill="clear" color="light">
+        <ion-icon [name]="(themeService.isDarkMode$ | async) ? 'sunny' : 'moon'" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-card class="house-header-card ion-text-center ion-no-margin ion-no-padding">
+  <img src="assets/logo/HOM3.png" alt="Logo" />
+  <ion-card-header class="ion-no-padding">
+    <ion-card-title>{{ theHouseName }}</ion-card-title>
+    <ion-card-subtitle class="ion-text-left">
+      House Leader: {{ HouseLeaderName }}<br>
+      Phone: {{ HLphone }}
+    </ion-card-subtitle>
+  </ion-card-header>
+</ion-card>
+
 <ion-tabs>
   <ion-tab-bar slot="bottom">
     <ion-tab-button tab="kpis">

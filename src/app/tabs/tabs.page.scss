@@ -1,9 +1,69 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+ion-header.app-header {
+  flex: 0 0 auto;
+}
+
+ion-header.app-header ion-title {
+  color: #fff;
+}
+
+.house-header-card {
+  flex: 0 0 auto;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+  img {
+    width: 120px;
+    margin: 12px auto 0;
+  }
+
+  ion-card-header {
+    padding: 8px 16px 12px;
+  }
+
+  ion-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+
+  ion-card-subtitle {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    line-height: 1.4;
+  }
+}
+
+:host > ion-tabs {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  height: auto;
+}
+
 ion-tab-bar {
   --background: #4194ab;
   --color: #fff;
+  --color-selected: #fff;
+  padding: 4px 0;
 }
 
 ion-tab-button {
   --color: #fff;
   --color-selected: #fff;
+}
+
+ion-tab-button[selected]::part(native),
+ion-tab-button.tab-selected::part(native) {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 10px;
+  color: #fff;
 }

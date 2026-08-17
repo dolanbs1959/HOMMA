@@ -1,9 +1,3 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Participants</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content class="ion-padding">
   <ion-list *ngIf="(quickbaseService.residentData | async) as residents; else loadingResidents">
     <ion-list-header *ngIf="residents.length > 0">

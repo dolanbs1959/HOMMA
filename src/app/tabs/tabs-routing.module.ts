@@ -13,8 +13,7 @@ const routes: Routes = [
       },
       {
         path: 'house-leader-tasks',
-        loadChildren: () => import('../placeholder/placeholder.module').then(m => m.PlaceholderPageModule),
-        data: { title: 'House Leader Tasks' }
+        loadChildren: () => import('../house-leader-tasks/house-leader-tasks.module').then(m => m.HouseLeaderTasksPageModule)
       },
       {
         path: 'participants',

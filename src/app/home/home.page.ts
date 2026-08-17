@@ -4,13 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { QuickbaseService } from '../services/quickbase.service';
 import { UserService } from '../services/user.service';
 import { ThemeService } from '../services/theme.service';
-import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router'; // Import ActivatedRoute
-import { PopoverController } from '@ionic/angular';
-import { ResidentActionsComponent } from '../resident-actions/resident-actions.component';
-import { environment } from 'src/environments/environment';
-import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '../services/logger.service';
 
 @Component({
@@ -23,16 +17,6 @@ export class HomePage implements OnInit {
   HouseLeaderName: string = '';
   theHouseName: string = '';
   HLphone: string = '';
-  residentData: any;
-  residentPhoto: string = '';
-  residentFullName: string = '';
-  savedRecordNumber: number = 0;
-  weeklyHouseMeeting: string = '';
-  maxMeetingDate: string = '';
-  STAalert: string = '';
-  Alert: string = '';
-  pendingArrivals: any;
-  activeParticipants: any;
   announcements: any[] = [];
 
   // House KPI data
@@ -46,67 +30,20 @@ export class HomePage implements OnInit {
   houseLeaderRecordId: string = ''; // Now retrieved directly from login query field 9
  
   constructor(
-    public quickbaseService: QuickbaseService, 
-    private route: ActivatedRoute, 
+    public quickbaseService: QuickbaseService,
+    private route: ActivatedRoute,
     private router: Router,
-    private popoverCtrl: PopoverController,
     private formBuilder: FormBuilder,
     private userService: UserService,
     public themeService: ThemeService,
     private logger: LoggerService
   ) {
-    this.residentData = [];
-    this.pendingArrivals = [];
-
     // Initialize feedback form
     this.feedbackForm = this.formBuilder.group({
       requestType: ['', Validators.required],
       staff: ['', Validators.required],
       message: ['', [Validators.required, Validators.minLength(5)]] // Reduced from 10 to 5 characters
     });
-
-    this.quickbaseService.residentData.subscribe(data => {
-        this.residentData = data;
-        try {
-          const len = Array.isArray(data) ? data.length : (data ? 1 : 0);
-          this.logger.log('HomePage - residentData updated', { length: len });
-        } catch (e) {}
-    });
-    this.quickbaseService.pendingArrivals.subscribe(data => {
-      this.pendingArrivals = data;
-      this.logger.debug('Pending arrivals updated');
-    });
-    // Keep STAalert in sync with the service (service publishes changes via STAalert$)
-    this.quickbaseService.STAalert$.subscribe((val: string) => {
-      try {
-        this.STAalert = val || 'There are 0 Staff Task Assignments Overdue';
-      } catch (e) {
-        this.logger.warn('Failed to update STAalert from service', e);
-      }
-    });
-    
-    this.Alert = this.quickbaseService.Alert;
-  }
-
-  async presentResidentActions(resident: any, isPending: boolean = false) {
-    try {
-      const pop = await this.popoverCtrl.create({
-        component: ResidentActionsComponent,
-        componentProps: {
-          resident,
-          isPending,
-          theHouseName: this.theHouseName,
-          houseLeaderRecordId: this.houseLeaderRecordId,
-          houseLeaderName: this.HouseLeaderName,
-          HLphone: this.HLphone,
-          maxMeetingDate: this.maxMeetingDate
-        },
-        translucent: true
-      });
-      await pop.present();
-    } catch (e) {
-      this.logger.error('Error presenting resident actions popover', e);
-    }
   }
 
   payNow() {
@@ -117,46 +54,6 @@ export class HomePage implements OnInit {
     this.themeService.toggleTheme();
   }
   
-openStaffTasks() {
-  // Read current cached staff tasks once and navigate immediately (allow empty list)
-  this.quickbaseService.staffTasks.pipe(take(1)).subscribe(cachedTasks => {
-    let tasks: any[] = [];
-    try {
-      if (cachedTasks && cachedTasks.data && Array.isArray(cachedTasks.data)) {
-        tasks = cachedTasks.data.map((task: any) => ({
-          id: task[3].value,
-          taskName: task[8].value,
-          priority: task[15].value,
-          status: task[22].value,
-          role: task[32].value,
-          houseName: task[36].value,
-          frequency: task[47].value,
-          p1on1sDue: task[263].value
-        }));
-      }
-    } catch (e) {
-      this.logger.warn('openStaffTasks - failed to transform cached tasks', e);
-      tasks = [];
-    }
-
-    this.logger.debug('Tasks transformed for navigation', { count: tasks.length });
-    // Navigate even if tasks is empty so the House Leader can access the page
-    this.router.navigate(['/staff-tasks'], { state: {
-      tasks,
-      theHouseName: this.theHouseName,
-      HouseLeaderName: this.HouseLeaderName,
-      HLphone: this.HLphone,
-      maxMeetingDate: this.maxMeetingDate
-    }});
-  });
-
-  // Trigger API call (will use cache if fresh, or fetch new data) to refresh in background
-  this.quickbaseService.getStaffTasks().subscribe(
-    () => this.logger.debug('Staff tasks refreshed'),
-    (error) => this.logger.error('Error fetching staff tasks', error)
-  );
-}
-
     exitApp() {
       this.router.navigate(['/login']);
     }
@@ -198,8 +95,7 @@ openStaffTasks() {
       this.HouseLeaderName = value('HouseLeaderName');
       this.houseLeaderRecordId = value('HouseLeaderRecordId') || ''; // Get house leader record ID from login
       this.HLphone = value('HLphone');
-      this.maxMeetingDate = value('maxMeetingDate');
-      
+
       this.logger.debug('✅ House leader record ID loaded');
       
       // Load KPI data once we have the house name

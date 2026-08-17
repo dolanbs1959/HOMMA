@@ -1,0 +1,79 @@
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  margin: 0 0 16px;
+}
+
+ion-card {
+  margin: 0 0 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+ion-card-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+ion-card-subtitle {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.alert-format {
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0 0 12px;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: #fff;
+  }
+}
+
+.meeting-card {
+  ion-card-header {
+    padding-bottom: 0;
+  }
+
+  ion-card-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #010384;
+  }
+
+  ion-button {
+    margin: 8px 0 0;
+  }
+}
+
+.task-card {
+  ion-card-content {
+    padding-top: 0;
+  }
+
+  p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--ion-color-dark);
+  }
+
+  strong {
+    color: var(--ion-color-medium);
+  }
+}
+
+.status-overdue {
+  color: var(--ion-color-danger);
+  font-weight: 600;
+}
+
+.reviews-due {
+  color: var(--ion-color-warning);
+  font-weight: 600;
+}
