@@ -4,8 +4,108 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding ion-text-center">
-  <ion-icon name="people-outline" size="large" color="medium"></ion-icon>
-  <h2>Participants</h2>
-  <p>Participant selection will be added in a later phase.</p>
+<ion-content class="ion-padding">
+  <ion-list *ngIf="(quickbaseService.residentData | async) as residents; else loadingResidents">
+    <ion-list-header *ngIf="residents.length > 0">
+      <ion-label>Active Participants</ion-label>
+    </ion-list-header>
+
+    <ion-item *ngFor="let resident of residents"
+              button
+              (click)="selectResident(resident, false)"
+              [class.selected]="selectedResident === resident">
+      <ion-avatar slot="start" *ngIf="resident.residentPhoto">
+        <img [src]="resident.residentPhoto" alt="Resident Photo">
+      </ion-avatar>
+      <ion-label>
+        <h2>{{ resident.residentFullName.value }}</h2>
+      </ion-label>
+    </ion-item>
+
+    <ion-item *ngIf="residents.length === 0" lines="none" class="ion-text-center">
+      <ion-label>No active participants.</ion-label>
+    </ion-item>
+  </ion-list>
+  <ng-template #loadingResidents>
+    <div class="ion-text-center ion-padding">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading residents…</p>
+    </div>
+  </ng-template>
+
+  <ion-list *ngIf="(quickbaseService.pendingArrivals | async) as pending; else loadingPending">
+    <ion-list-header *ngIf="pending.length > 0">
+      <ion-label>Pending New Arrivals</ion-label>
+    </ion-list-header>
+
+    <ion-item *ngFor="let resident of pending"
+              button
+              (click)="selectResident(resident, true)"
+              [class.selected]="selectedResident === resident">
+      <ion-label>
+        <h2>{{ resident.residentFullName.value }}</h2>
+        <p>Age: {{ resident.residentAge.value }} — Level: {{ resident.SOLevel.value }} — PRD: {{ resident.PRD.value ? (resident.PRD.value | date:'MM-dd-yyyy') : 'TBD' }}</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item *ngIf="pending.length === 0" lines="none" class="ion-text-center">
+      <ion-label>No pending new arrivals.</ion-label>
+    </ion-item>
+  </ion-list>
+  <ng-template #loadingPending>
+    <div class="ion-text-center ion-padding">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading pending arrivals…</p>
+    </div>
+  </ng-template>
 </ion-content>
+
+<ion-footer *ngIf="selectedResident" class="participant-actions-footer" [class.is-open]="panelOpen">
+  <div class="action-panel">
+    <div class="selected-resident-summary">
+      <ng-container *ngIf="!selectedIsPending && selectedResident.residentPhoto; else genericAvatar">
+        <ion-avatar class="selected-avatar">
+          <img [src]="selectedResident.residentPhoto" alt="Resident Photo">
+        </ion-avatar>
+      </ng-container>
+      <ng-template #genericAvatar>
+        <ion-icon name="person-circle" class="generic-avatar" color="light"></ion-icon>
+      </ng-template>
+      <div class="selected-resident-info">
+        <h2>{{ selectedResident.residentFullName.value }}</h2>
+        <p>{{ theHouseName }}</p>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <div *ngIf="!selectedIsPending" class="action-tab" (click)="gotoVitals()">
+        <ion-icon name="fitness-outline"></ion-icon>
+        <ion-label>Vitals</ion-label>
+      </div>
+      <div *ngIf="!selectedIsPending" class="action-tab" (click)="addObservation()">
+        <ion-icon name="eye-outline"></ion-icon>
+        <ion-label>Observation</ion-label>
+      </div>
+      <div class="action-tab" (click)="addResidentUpdate()">
+        <ion-icon name="create-outline"></ion-icon>
+        <ion-label>Update</ion-label>
+      </div>
+      <div *ngIf="!selectedIsPending" class="action-tab" (click)="addParticipantOneOnOne()">
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <ion-label>1-on-1</ion-label>
+      </div>
+      <div *ngIf="!selectedIsPending && canShowStipulated" class="action-tab" (click)="openStipulatedAgreement()">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <ion-label>Agreement</ion-label>
+      </div>
+      <div *ngIf="!selectedIsPending" class="action-tab" (click)="registerForMeeting()">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <ion-label>Classes</ion-label>
+      </div>
+      <div class="action-tab" (click)="addTransportRequest()">
+        <ion-icon name="car-outline"></ion-icon>
+        <ion-label>Transport</ion-label>
+      </div>
+    </div>
+  </div>
+</ion-footer>
