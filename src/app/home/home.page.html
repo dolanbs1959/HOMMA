@@ -25,10 +25,9 @@
 
   <!-- House KPIs Section -->
   <ion-card *ngIf="houseKPIs || isLoadingKPIs" class="kpi-card">
-    <ion-card-header (click)="toggleKPIDetails()" class="kpi-header-clickable">
+    <ion-card-header>
       <ion-card-title class="ion-text-center kpi-title">
         House KPIs
-        <ion-icon [name]="showKPIDetails ? 'chevron-up' : 'chevron-down'" class="expand-icon"></ion-icon>
       </ion-card-title>
     </ion-card-header>
     <ion-card-content>
@@ -55,7 +54,7 @@
         </div>
         
         <!-- Expandable Rows -->
-        <div *ngIf="showKPIDetails" class="kpi-expandable-content">
+        <div class="kpi-expandable-content">
           <!-- Row 2: Client Status -->
           <div class="kpi-grid-row">
             <div class="kpi-grid-item">

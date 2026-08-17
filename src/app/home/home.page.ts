@@ -38,7 +38,6 @@ export class HomePage implements OnInit {
   // House KPI data
   houseKPIs: any = null;
   isLoadingKPIs: boolean = false;
-  showKPIDetails: boolean = false; // Controls expanded view
   // Transport report
   transportRequests: any[] = [];
   scheduledRequests: any[] = [];
@@ -200,11 +199,13 @@ openStaffTasks() {
 
     this.route.params.subscribe(params => {
       this.logger.debug('Route params loaded');
-      this.theHouseName = params['theHouseName'];
-      this.HouseLeaderName = params['HouseLeaderName'];
-      this.houseLeaderRecordId = params['HouseLeaderRecordId'] || ''; // Get house leader record ID from login
-      this.HLphone = params['HLphone'];
-      this.maxMeetingDate = params['maxMeetingDate'];
+      const qd = this.quickbaseService.queryData;
+      const value = (field: string) => qd?.[field]?.value ?? params[field];
+      this.theHouseName = value('theHouseName');
+      this.HouseLeaderName = value('HouseLeaderName');
+      this.houseLeaderRecordId = value('HouseLeaderRecordId') || ''; // Get house leader record ID from login
+      this.HLphone = value('HLphone');
+      this.maxMeetingDate = value('maxMeetingDate');
       
       this.logger.debug('✅ House leader record ID loaded');
       
@@ -275,10 +276,6 @@ openStaffTasks() {
       // a successful fresh response is available.
       this.isLoadingKPIs = false;
     }
-  }
-
-  toggleKPIDetails() {
-    this.showKPIDetails = !this.showKPIDetails;
   }
 
   loadActiveStaff() {
