@@ -38,13 +38,6 @@ export class HomePage implements OnInit {
   // House KPI data
   houseKPIs: any = null;
   isLoadingKPIs: boolean = false;
-  // Transport report
-  transportRequests: any[] = [];
-  scheduledRequests: any[] = [];
-  openRequests: any[] = [];
-  isLoadingTransportRequests: boolean = false;
-  showTransportReport: boolean = false; // Collapsible, collapsed by default
-
   // Feedback form properties
   feedbackForm: FormGroup;
   activeStaff: any[] = [];
@@ -214,46 +207,7 @@ openStaffTasks() {
         this.loadHouseKPIs();
       }
 
-      // Load transport requests for all houses (global Open/Scheduled)
-      this.loadTransportRequests();
       });
-  }
-
-  toggleTransportReport() {
-    this.showTransportReport = !this.showTransportReport;
-  }
-
-  loadTransportRequests() {
-    // Subscribe to cached transport requests first
-    this.quickbaseService.transportRequests.subscribe((cached: any) => {
-      if (cached && cached.data) {
-        this.transportRequests = cached.data || [];
-        this.splitTransportRequests();
-        this.logger.debug('Transport requests loaded from cache');
-      }
-    });
-
-    this.isLoadingTransportRequests = true;
-      this.quickbaseService.getTransportationRequests().subscribe(
-      (response: any) => {
-        this.transportRequests = response.data || [];
-        this.splitTransportRequests();
-        this.isLoadingTransportRequests = false;
-        this.logger.debug('Transport requests refreshed');
-      },
-      (error: HttpErrorResponse) => {
-        this.logger.error('Error fetching transport requests', error);
-        this.isLoadingTransportRequests = false;
-      }
-    );
-  }
-
-  private splitTransportRequests() {
-    const list = Array.isArray(this.transportRequests) ? this.transportRequests : [];
-    this.scheduledRequests = list.filter(r => (r.status || '').toString().toLowerCase() === 'scheduled')
-      .sort((a, b) => new Date(a.dateRequested).getTime() - new Date(b.dateRequested).getTime());
-    this.openRequests = list.filter(r => (r.status || '').toString().toLowerCase() === 'open')
-      .sort((a, b) => new Date(a.dateRequested).getTime() - new Date(b.dateRequested).getTime());
   }
 
   loadHouseKPIs() {

@@ -146,56 +146,6 @@
     </ion-card-content>
   </ion-card>
 
-      <!-- Transport Requests Report (collapsed by default) -->
-      <ion-card class="transport-report-card">
-        <ion-card-header (click)="toggleTransportReport()" class="kpi-header-clickable">
-          <ion-card-title class="ion-text-center kpi-title">
-            Transportation Requests
-            <ion-icon [name]="showTransportReport ? 'chevron-up' : 'chevron-down'" class="expand-icon"></ion-icon>
-          </ion-card-title>
-        </ion-card-header>
-        <ion-card-content *ngIf="showTransportReport">
-          <div *ngIf="isLoadingTransportRequests" class="ion-text-center">
-            <ion-spinner name="circular"></ion-spinner>
-            <p>Loading...</p>
-          </div>
-          <div *ngIf="!isLoadingTransportRequests && (!transportRequests || transportRequests.length === 0)">
-            <p>No open or scheduled transportation requests.</p>
-          </div>
-          <div *ngIf="!isLoadingTransportRequests && (scheduledRequests.length > 0 || openRequests.length > 0)">
-            <div *ngIf="scheduledRequests.length > 0" class="transport-group">
-              <div class="transport-group-title">Scheduled ({{ scheduledRequests.length }})</div>
-              <hr class="transport-separator" />
-              <ion-list>
-                <ion-item *ngFor="let t of scheduledRequests">
-                  <ion-label>
-                    <h3>Request #{{ t.id }}</h3>
-                    <p><strong>Purpose:</strong> {{ t.purpose }} — {{ t.dateRequested | date:'M/d/yy' }} &#64; {{ t.dateRequested | date:'h:mm a' }}</p>
-                    <p><strong>Pickup:</strong> {{ t.pickupName || (t.pickupId || 'N/A') }} → <strong>Destination:</strong> {{ t.destinationName || (t.destinationId || 'N/A') }}</p>
-                    <p *ngIf="t.notes"><strong>Notes:</strong> {{ t.notes }}</p>
-                  </ion-label>
-                </ion-item>
-              </ion-list>
-            </div>
-
-            <div *ngIf="openRequests.length > 0" class="transport-group">
-              <div class="transport-group-title">Open ({{ openRequests.length }})</div>
-              <hr class="transport-separator" />
-              <ion-list>
-                <ion-item *ngFor="let t of openRequests">
-                  <ion-label>
-                    <h3>Request #{{ t.id }}</h3>
-                    <p><strong>Purpose:</strong> {{ t.purpose }} — {{ t.dateRequested | date:'M/d/yy' }} &#64; {{ t.dateRequested | date:'h:mm a' }}</p>
-                    <p><strong>Pickup:</strong> {{ t.pickupName || (t.pickupId || 'N/A') }} → <strong>Destination:</strong> {{ t.destinationName || (t.destinationId || 'N/A') }}</p>
-                    <p *ngIf="t.notes"><strong>Notes:</strong> {{ t.notes }}</p>
-                  </ion-label>
-                </ion-item>
-              </ion-list>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
       <!-- House Leader Feedback Section -->
       <ion-card class="feedback-card">
         <ion-card-header>

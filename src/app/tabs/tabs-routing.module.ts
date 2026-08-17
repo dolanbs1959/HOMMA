@@ -22,8 +22,7 @@ const routes: Routes = [
       },
       {
         path: 'transportation',
-        loadChildren: () => import('../placeholder/placeholder.module').then(m => m.PlaceholderPageModule),
-        data: { title: 'Transportation' }
+        loadChildren: () => import('../transportation-schedule/transportation-schedule.module').then(m => m.TransportationSchedulePageModule)
       },
       {
         path: 'requests',

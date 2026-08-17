@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Transportation</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title class="ion-text-center">Transportation Requests</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div *ngIf="isLoading" class="ion-text-center ion-padding">
+        <ion-spinner name="circular"></ion-spinner>
+        <p>Loading transportation requests…</p>
+      </div>
+
+      <div *ngIf="!isLoading && (transportRequests.length === 0)">
+        <p class="ion-text-center">No open or scheduled transportation requests.</p>
+      </div>
+
+      <div *ngIf="!isLoading && (transportRequests.length > 0)">
+        <div *ngIf="scheduledRequests.length > 0" class="transport-group">
+          <div class="transport-group-title">Scheduled ({{ scheduledRequests.length }})</div>
+          <hr class="transport-separator" />
+          <ion-list>
+            <ion-item *ngFor="let t of scheduledRequests" lines="full">
+              <ion-label>
+                <h3>Request #{{ t.id }}</h3>
+                <p><strong>Purpose:</strong> {{ t.purpose }} — {{ t.dateRequested | date:'M/d/yy' }} &#64; {{ t.dateRequested | date:'h:mm a' }}</p>
+                <p><strong>Pickup:</strong> {{ t.pickupName || (t.pickupId || 'N/A') }} → <strong>Destination:</strong> {{ t.destinationName || (t.destinationId || 'N/A') }}</p>
+                <p *ngIf="t.notes"><strong>Notes:</strong> {{ t.notes }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+
+        <div *ngIf="openRequests.length > 0" class="transport-group">
+          <div class="transport-group-title">Open ({{ openRequests.length }})</div>
+          <hr class="transport-separator" />
+          <ion-list>
+            <ion-item *ngFor="let t of openRequests" lines="full">
+              <ion-label>
+                <h3>Request #{{ t.id }}</h3>
+                <p><strong>Purpose:</strong> {{ t.purpose }} — {{ t.dateRequested | date:'M/d/yy' }} &#64; {{ t.dateRequested | date:'h:mm a' }}</p>
+                <p><strong>Pickup:</strong> {{ t.pickupName || (t.pickupId || 'N/A') }} → <strong>Destination:</strong> {{ t.destinationName || (t.destinationId || 'N/A') }}</p>
+                <p *ngIf="t.notes"><strong>Notes:</strong> {{ t.notes }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
