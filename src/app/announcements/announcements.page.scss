@@ -1,0 +1,58 @@
+.announcements-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 20px;
+
+  .heading-icon {
+    color: #4194ab;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .announcements-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  color: var(--ion-color-medium);
+  margin: 40px 0;
+  font-size: 15px;
+}
+
+.announcement-card {
+  --background: #ffffff;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin: 0 0 12px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+}
+
+.announcement-body {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ion-color-dark);
+
+  ::ng-deep p {
+    margin: 0 0 12px;
+  }
+
+  ::ng-deep p:last-child {
+    margin-bottom: 0;
+  }
+}

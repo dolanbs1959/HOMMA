@@ -29,8 +29,7 @@ const routes: Routes = [
       },
       {
         path: 'announcements',
-        loadChildren: () => import('../placeholder/placeholder.module').then(m => m.PlaceholderPageModule),
-        data: { title: 'Announcements' }
+        loadChildren: () => import('../announcements/announcements.module').then(m => m.AnnouncementsPageModule),
       },
       {
         path: 'payments',

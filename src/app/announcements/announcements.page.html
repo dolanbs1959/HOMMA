@@ -1,0 +1,25 @@
+<ion-content class="ion-padding">
+  <div class="announcements-header">
+    <ion-icon name="megaphone-outline" class="heading-icon"></ion-icon>
+    <h1 class="announcements-title">HOM Bulletin Board</h1>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading announcements…</p>
+  </div>
+
+  <ng-container *ngIf="quickbaseService.announcements | async as response">
+    <div *ngIf="!isLoading && !(response?.data?.length)" class="empty-state">
+      <p>No announcements available.</p>
+    </div>
+
+    <ion-card
+      *ngFor="let announcement of (response?.data || []).slice().reverse()"
+      class="announcement-card">
+      <ion-card-content>
+        <div [innerHTML]="announcement[6]?.value || ''" class="announcement-body"></div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+</ion-content>
