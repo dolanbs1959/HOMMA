@@ -25,8 +25,7 @@ const routes: Routes = [
       },
       {
         path: 'requests',
-        loadChildren: () => import('../placeholder/placeholder.module').then(m => m.PlaceholderPageModule),
-        data: { title: 'Requests' }
+        loadChildren: () => import('../requests/requests.module').then(m => m.RequestsPageModule),
       },
       {
         path: 'announcements',

@@ -1,6 +1,6 @@
 <ion-header class="app-header" [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title color="light">HOM Mobile Assistant - Participants</ion-title>
+  <ion-toolbar>
+    <ion-title color="light">{{ pageTitle }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="toggleTheme()" fill="clear" color="light">
         <ion-icon [name]="(themeService.isDarkMode$ | async) ? 'sunny' : 'moon'" slot="icon-only"></ion-icon>
@@ -20,7 +20,7 @@
   </ion-card-header>
 </ion-card>
 
-<ion-tabs>
+<ion-tabs (ionTabsDidChange)="onTabChange($event)">
   <ion-tab-bar slot="bottom">
     <ion-tab-button tab="kpis">
       <ion-icon name="stats-chart-outline"></ion-icon>
@@ -32,14 +32,14 @@
       <ion-label>Tasks</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button tab="participants">
-      <ion-icon name="people-outline"></ion-icon>
-      <ion-label>Participants</ion-label>
-    </ion-tab-button>
-
     <ion-tab-button tab="transportation">
       <ion-icon name="car-outline"></ion-icon>
       <ion-label>Transport</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="participants" class="participants-tab">
+      <ion-icon name="people-outline"></ion-icon>
+      <ion-label>Participants</ion-label>
     </ion-tab-button>
 
     <ion-tab-button tab="requests">

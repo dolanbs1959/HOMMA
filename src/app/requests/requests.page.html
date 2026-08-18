@@ -1,0 +1,102 @@
+<ion-content class="ion-padding">
+  <ion-card class="request-card">
+    <ion-card-header class="ion-no-padding">
+      <div class="request-heading">
+        <ion-icon name="chatbubbles-outline" class="heading-icon"></ion-icon>
+        <h1 class="request-title">Submit Prayer Request or Feedback</h1>
+      </div>
+
+      <ion-card-subtitle>
+        Send feedback, requests, or communicate with HOM staff. Select the staff member you'd like to contact, choose your request type, enter your message and hit Submit.
+      </ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content class="ion-no-padding">
+
+      <div
+        *ngIf="feedbackMessage"
+        class="feedback-message"
+        [ngClass]="{
+          'success-message': feedbackMessage.includes('successfully'),
+          'error-message': feedbackMessage.includes('Error')
+        }">
+        {{ feedbackMessage }}
+      </div>
+
+      <form
+        [formGroup]="feedbackForm"
+        (ngSubmit)="submitFeedback()"
+        class="request-form">
+
+        <ion-item lines="none" class="form-field">
+          <ion-select
+            formControlName="staff"
+            label="Staff Member"
+            labelPlacement="stacked"
+            placeholder="Select staff member"
+            interface="action-sheet">
+
+            <ion-select-option
+              *ngFor="let staff of activeStaff"
+              [value]="staff.sendValue || staff.email || staff.userId">
+              <span [innerHTML]="staff.nameHtml || staff.name"></span>
+            </ion-select-option>
+
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" class="form-field">
+          <ion-select
+            formControlName="requestType"
+            label="Request Type"
+            labelPlacement="stacked"
+            placeholder="Select request type"
+            interface="action-sheet">
+
+            <ion-select-option value="request">Prayer Request</ion-select-option>
+            <ion-select-option value="feedback">Feedback</ion-select-option>
+            <ion-select-option value="maintenance">Maintenance Request</ion-select-option>
+            <ion-select-option value="support">Support Needed</ion-select-option>
+            <ion-select-option value="suggestion">Suggestion</ion-select-option>
+            <ion-select-option value="concern">Concern/Issue</ion-select-option>
+
+          </ion-select>
+        </ion-item>
+
+        <div class="message-field">
+          <ion-textarea
+            formControlName="message"
+            label="Enter Your Feedback or Request"
+            labelPlacement="stacked"
+            placeholder="Please describe your feedback, request, or concern in detail..."
+            [autoGrow]="true"
+            rows="5"
+            maxlength="2000">
+          </ion-textarea>
+
+          <div class="char-counter">
+            {{ (feedbackForm.value.message || '').length }} / 2000
+          </div>
+        </div>
+
+        <div class="minimum-message">
+          Minimum 10 characters
+        </div>
+
+        <div class="submit-wrapper">
+          <ion-button
+            class="submit-request-btn"
+            expand="block"
+            type="submit"
+            [disabled]="!feedbackForm.valid || isSubmittingFeedback">
+
+            <ion-icon name="send" slot="start"></ion-icon>
+            {{ isSubmittingFeedback ? 'Sending...' : 'Submit Request' }}
+
+          </ion-button>
+        </div>
+
+      </form>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

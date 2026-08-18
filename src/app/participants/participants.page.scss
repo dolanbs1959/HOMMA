@@ -24,25 +24,21 @@ ion-item {
   }
 }
 
-::ng-deep .participant-actions-footer {
+.participant-actions-footer {
   --background: transparent;
   --border: none;
   box-shadow: none;
+  background: transparent;
+  border: none;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease-in, opacity 0.4s ease-in;
 
-  &::part(footer) {
-    background: transparent;
-    box-shadow: none;
-    border: none;
-    bottom: var(--ion-tab-bar-height, 56px);
-    transform: translateY(20px);
-    opacity: 0;
-    transition: transform 0.4s ease-in, opacity 0.4s ease-in;
-  }
-
-  &.is-open::part(footer) {
-    transform: translateY(0);
+  &.is-open {
+    max-height: 240px;
     opacity: 1;
-    transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+    transition: max-height 0.4s ease-out, opacity 0.4s ease-out;
   }
 }
 

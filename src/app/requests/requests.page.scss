@@ -1,0 +1,131 @@
+.request-card {
+  --background: #ffffff;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin: 0;
+
+  ion-card-header {
+    padding: 16px 16px 8px;
+  }
+
+  ion-card-content {
+    padding: 0 16px 16px;
+  }
+}
+
+.request-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+
+  .heading-icon {
+    color: #4194ab;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .request-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+ion-card-subtitle {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.request-form {
+  margin-top: 12px;
+}
+
+.form-field {
+  --background: #ffffff;
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-start: 12px;
+  --inner-padding-end: 12px;
+  --min-height: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 12px;
+
+  ion-select,
+  ion-textarea {
+    --placeholder-color: var(--ion-color-medium);
+    --placeholder-opacity: 0.8;
+    width: 100%;
+  }
+
+  ion-label,
+  ::ng-deep .select-label,
+  ::ng-deep .textarea-label {
+    color: var(--ion-color-dark);
+    font-weight: 600;
+    font-size: 14px;
+  }
+}
+
+.submit-wrapper {
+  margin-top: 8px;
+}
+
+.submit-request-btn {
+  --background: #4194ab;
+  --background-activated: #357b8f;
+  --color: #ffffff;
+  --border-radius: 8px;
+  --box-shadow: none;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  height: 48px;
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &::part(native) {
+    background: #4194ab;
+    color: #ffffff;
+    box-shadow: none;
+    border-radius: 8px;
+  }
+
+  ion-icon {
+    color: #ffffff;
+    font-size: 20px;
+  }
+}
+
+.char-counter {
+  text-align: right;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin: 4px 0 12px;
+}
+
+.feedback-message {
+  padding: 12px;
+  margin: 0 0 16px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.success-message {
+  background: #d4edda;
+  color: #155724;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+}

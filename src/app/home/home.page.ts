@@ -1,8 +1,6 @@
 // home.page.ts
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { QuickbaseService } from '../services/quickbase.service';
-import { UserService } from '../services/user.service';
 import { ThemeService } from '../services/theme.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '../services/logger.service';
@@ -22,29 +20,15 @@ export class HomePage implements OnInit {
   // House KPI data
   houseKPIs: any = null;
   isLoadingKPIs: boolean = false;
-  // Feedback form properties
-  feedbackForm: FormGroup;
-  activeStaff: any[] = [];
-  isSubmittingFeedback: boolean = false;
-  feedbackMessage: string = '';
   houseLeaderRecordId: string = ''; // Now retrieved directly from login query field 9
- 
+
   constructor(
     public quickbaseService: QuickbaseService,
     private route: ActivatedRoute,
     private router: Router,
-    private formBuilder: FormBuilder,
-    private userService: UserService,
     public themeService: ThemeService,
     private logger: LoggerService
-  ) {
-    // Initialize feedback form
-    this.feedbackForm = this.formBuilder.group({
-      requestType: ['', Validators.required],
-      staff: ['', Validators.required],
-      message: ['', [Validators.required, Validators.minLength(5)]] // Reduced from 10 to 5 characters
-    });
-  }
+  ) {}
 
   payNow() {
     window.location.href = 'https://houseofmercyministries.net/payments/';
@@ -53,39 +37,36 @@ export class HomePage implements OnInit {
   toggleTheme() {
     this.themeService.toggleTheme();
   }
-  
-    exitApp() {
-      this.router.navigate(['/login']);
-    }
-    
-    ngOnInit() {
-        // Subscribe to cached announcements - will fetch if cache is stale
-        this.quickbaseService.refreshAnnouncements().subscribe(
-          (response) => {
-            this.logger.debug('Announcements loaded');
-            this.announcements = response.data || [];
-          },
-          (error) => {
-            this.logger.error('Error fetching announcements', error);
-          }
-        );
 
-        // Use cached BehaviorSubject for announcements updates
-        this.quickbaseService.announcements.subscribe(
-          (announcementsData) => {
-            if (announcementsData) {
-              this.announcements = announcementsData.data || [];
-            }
-          }
-        );
+  exitApp() {
+    this.router.navigate(['/login']);
+  }
 
-        // Load active staff for feedback form - will use cache if fresh
-        this.loadActiveStaff();
+  ngOnInit() {
+    // Subscribe to cached announcements - will fetch if cache is stale
+    this.quickbaseService.refreshAnnouncements().subscribe(
+      (response) => {
+        this.logger.debug('Announcements loaded');
+        this.announcements = response.data || [];
+      },
+      (error) => {
+        this.logger.error('Error fetching announcements', error);
+      }
+    );
 
-        // `residentData` and `pendingArrivals` are updated via subscriptions
-        // set up in the constructor — do not overwrite them with the
-        // BehaviorSubject objects here (causes the UI to receive the
-        // wrong shape and briefly flash then disappear).
+    // Use cached BehaviorSubject for announcements updates
+    this.quickbaseService.announcements.subscribe(
+      (announcementsData) => {
+        if (announcementsData) {
+          this.announcements = announcementsData.data || [];
+        }
+      }
+    );
+
+    // `residentData` and `pendingArrivals` are updated via subscriptions
+    // set up in the constructor — do not overwrite them with the
+    // BehaviorSubject objects here (causes the UI to receive the
+    // wrong shape and briefly flash then disappear).
 
     this.route.params.subscribe(params => {
       this.logger.debug('Route params loaded');
@@ -97,13 +78,12 @@ export class HomePage implements OnInit {
       this.HLphone = value('HLphone');
 
       this.logger.debug('✅ House leader record ID loaded');
-      
+
       // Load KPI data once we have the house name
       if (this.theHouseName) {
         this.loadHouseKPIs();
       }
-
-      });
+    });
   }
 
   loadHouseKPIs() {
@@ -128,227 +108,6 @@ export class HomePage implements OnInit {
     }
   }
 
-  loadActiveStaff() {
-    // First subscribe to cached data
-    this.quickbaseService.activeStaff.subscribe(
-      (cachedStaff) => {
-        if (cachedStaff) {
-          this.activeStaff = cachedStaff.map((staffMember: any) => {
-            // If the service earlier remapped the current user to "Database Administrator",
-            // show the real name "Barry Dolan" in the UI but send the mapped value when selected.
-            const isDbAdminLabel = staffMember.displayName === 'Database Administrator';
-            // baseName used for special-case checks
-            let baseName = isDbAdminLabel ? 'Barry Dolan' : staffMember.displayName;
-            // Append feedbackRole in parentheses (HTML-italicized for template) but keep a plain-text fallback
-            const fid = staffMember.feedbackRole ? String(staffMember.feedbackRole).trim() : null;
-            const displayNamePlain = fid ? `${baseName} (${fid})` : baseName;
-            const displayNameHtml = fid ? `${baseName} (<em>${fid}</em>)` : baseName;
-            return {
-              userId: staffMember.userId,
-              // Plain text name (used as a fallback) and HTML-safe name for rendering
-              name: displayNamePlain,
-              nameHtml: displayNameHtml,
-              email: staffMember.email,
-              sendValue: isDbAdminLabel ? 'Database Administrator' : (staffMember.email || staffMember.userId)
-            };
-          });
-          this.logger.debug('Active staff loaded from cache');
-        }
-      }
-    );
-
-    // Trigger API call (will use cache if fresh, or fetch new data)
-    this.quickbaseService.getActiveStaff().subscribe(
-      (staff) => {
-        // Data is already cached by the service, so this just ensures fresh data if needed
-        this.logger.debug('Active staff data refreshed');
-      },
-      (error) => {
-        this.logger.error('Error loading active staff', error);
-      }
-    );
-  }
-
-  submitFeedback() {
-    if (this.feedbackForm.valid && !this.isSubmittingFeedback) {
-      this.isSubmittingFeedback = true;
-
-      const userInfo = this.userService.getUserInfo();
-      const currentDate = new Date().toISOString();
-      
-      // Get form values
-      const selectedStaffUserId = this.feedbackForm.value.staff;
-      const requestType = this.feedbackForm.value.requestType;
-      const message = this.feedbackForm.value.message;
-      
-      // Concatenate request type at the beginning of message
-      // Also read the native textarea value as a fallback because in some WebView/input cases
-      // the FormControl value may not include the very latest keystroke. Prefer the DOM value
-      // when it's longer to avoid accidental truncation.
-      let rawDomMessage = (document.querySelector('textarea[formControlName="message"]') as HTMLTextAreaElement)?.value || '';
-      if (!rawDomMessage) {
-        // Try Ionic ion-textarea element value as fallback
-        rawDomMessage = (document.querySelector('ion-textarea[formControlName="message"]') as any)?.value || '';
-      }
-      const finalMessageBody = rawDomMessage && rawDomMessage.length > (message || '').length ? rawDomMessage : message || '';
-      // Map short requestType codes to full display labels so the inserted record
-      // shows the complete request type (e.g. "Maintenance Request") instead of just "Maintenance".
-      const requestTypeMap: any = {
-        request: 'Prayer Request',
-        feedback: 'Feedback',
-        maintenance: 'Maintenance Request',
-        support: 'Support Needed',
-        suggestion: 'Suggestion',
-        concern: 'Concern/Issue'
-      };
-      const requestTypeLabel = requestTypeMap[requestType] || requestType || '';
-      const messageWithType = `${requestTypeLabel.toUpperCase()}: ${finalMessageBody}`;
-
-      // Diagnostic: log the exact string and character codes to help diagnose truncation
-      try {
-        this.logger.log('Home - messageWithType length:', (messageWithType || '').length, 'content:', messageWithType);
-        const codes = Array.from(messageWithType || '').map((c) => c.charCodeAt(0));
-        this.logger.log('Home - messageWithType charCodes (first 200):', codes.slice(0, 200).join(','));
-      } catch (e) {
-        this.logger.warn('Home - failed to log messageWithType diagnostics', e);
-      }
-      
-      // If user selected the visible name 'Barry Dolan', translate that to the
-      // actual Quickbase assignment value by looking up the 'Database Administrator'
-      // entry in the active staff list and using its email (preferred) or id.
-      let staffValueToSend = selectedStaffUserId;
-      try {
-        const selLower = (String(selectedStaffUserId || '')).toLowerCase();
-        const selectedIsBarry = selLower.includes('barry dolan');
-        const selectedIsDbAdmin = selLower.includes('database administrator');
-        if (selectedIsBarry || selectedIsDbAdmin) {
-          // Try service cache first
-          const svcList: any = (this.quickbaseService as any).activeStaff?.value || null;
-          let adminEntry: any = null;
-          if (Array.isArray(svcList)) {
-            adminEntry = svcList.find((s: any) => {
-              const dn = (s.displayName || s.name || '').toString().toLowerCase();
-              return dn === 'database administrator';
-            });
-          }
-          // Fallback to the HomePage-local `activeStaff` mapping
-          if (!adminEntry && Array.isArray(this.activeStaff)) {
-            adminEntry = this.activeStaff.find((s: any) => {
-              const n = (s.name || '').toString().toLowerCase();
-              const sv = (s.sendValue || '').toString().toLowerCase();
-              return n.includes('barry dolan') || n.includes('database administrator') || sv.includes('database administrator');
-            });
-          }
-          if (adminEntry) {
-            staffValueToSend = adminEntry.email || adminEntry.userId || adminEntry.sendValue || staffValueToSend;
-            this.logger.debug('Replaced selected staff with Database Administrator value for send:', staffValueToSend);
-          } else {
-            this.logger.warn('Could not find Database Administrator entry in active staff cache; sending original selection:', selectedStaffUserId);
-          }
-        }
-      } catch (e) {
-        this.logger.warn('Error while resolving Database Administrator email', e);
-      }
-
-        // Attempt to resolve the House Leader's Staff Record ID (FID3) from the cached active staff list
-        let houseLeaderStaffId: any = '';
-
-        try {
-          const svcList: any = (this.quickbaseService as any).activeStaff?.value || null;
-
-          if (Array.isArray(svcList)) {
-            const match = svcList.find((s: any) => {
-              const rel = (s.relatedParticipantId || '')?.toString();
-              return rel === (this.houseLeaderRecordId || '').toString();
-            });
-
-            if (match) {
-              // FID36 expects the Staff Record ID (FID3)
-              houseLeaderStaffId = match.userId || '';
-              this.logger.debug('Resolved House Leader Staff Record ID from cache', houseLeaderStaffId);
-            }
-          }
-        } catch (e) {
-          this.logger.warn('Error resolving House Leader Staff Record ID', e);
-        }
-      // Prepare the communication data for house leader feedback (include fid36)
-      const communicationData = {
-        6: { value: staffValueToSend }, // Staff Member field
-        8: { value: messageWithType }, // Feedback/Request content with type prefix
-        22: { value: currentDate }, // Date/Time sent
-        26: { value: this.houseLeaderRecordId || 'Unknown House Leader' }, // House Leader's record ID (participant)
-        36: { value: houseLeaderStaffId || '' }, // Staff ID (fid36) for the house leader
-        35: { value: 'HOMMA' }, // Source/Type - hard-coded as "HOMMA"
-        9: { value: 'Open' } // Status
-      };
-
-      // Debug: log message lengths and serialized payload size to detect client-side truncation
-      try {
-        this.logger.log('Home - raw feedback message length (form):', (message || '').length, 'content:', message);
-        this.logger.log('Home - raw feedback message length (dom):', (rawDomMessage || '').length, 'content:', rawDomMessage);
-        this.logger.log('Home - finalMessageBody length:', (finalMessageBody || '').length, 'content:', finalMessageBody);
-        const serialized = JSON.stringify(communicationData);
-        this.logger.log('Home - communicationData serialized length:', serialized.length);
-        Object.keys(communicationData).forEach(k => {
-          const v: any = (communicationData as any)[k];
-          const str = v && typeof v.value === 'string' ? v.value : JSON.stringify(v);
-          this.logger.log('Home - field ' + k + ' length:', (str || '').length);
-        });
-      } catch (e) {
-        this.logger.warn('Home - failed to serialize communicationData for logging', e);
-      }
-
-      this.logger.debug('Submitting house leader feedback/request');
-
-      this.quickbaseService.insertCommunication(communicationData).subscribe(
-        (response) => {
-          this.logger.debug('Feedback/Request sent successfully');
-          this.feedbackForm.reset();
-          this.isSubmittingFeedback = false;
-          
-          // Show success message above submit button
-          const messageType = requestType === 'feedback' ? 'feedback' : 'request';
-          this.feedbackMessage = `${messageType.charAt(0).toUpperCase() + messageType.slice(1)} sent successfully! The staff member will be notified and you will receive an email when they respond.`;
-          
-          // Clear message after 5 seconds
-          setTimeout(() => {
-            this.feedbackMessage = '';
-          }, 5000);
-        },
-        (error) => {
-          this.logger.error('Error sending feedback/request', error);
-          this.isSubmittingFeedback = false;
-          this.feedbackMessage = 'Error sending your submission. Please try again.';
-          
-          // Clear error message after 5 seconds
-          setTimeout(() => {
-            this.feedbackMessage = '';
-          }, 5000);
-        }
-      );
-    } else {
-      // Mark all fields as touched to show validation errors
-      Object.keys(this.feedbackForm.controls).forEach(key => {
-        this.feedbackForm.get(key)?.markAsTouched();
-      });
-      
-      if (this.feedbackForm.get('message')?.hasError('minlength')) {
-        this.feedbackMessage = 'Please enter a message with at least 5 characters.';
-      } else if (this.feedbackForm.get('staff')?.hasError('required')) {
-        this.feedbackMessage = 'Please select a staff member.';
-      } else if (this.feedbackForm.get('requestType')?.hasError('required')) {
-        this.feedbackMessage = 'Please select a request type.';
-      } else if (this.feedbackForm.get('message')?.hasError('required')) {
-        this.feedbackMessage = 'Please enter your feedback or request.';
-      }
-      
-      // Clear error message after 5 seconds
-      setTimeout(() => {
-        this.feedbackMessage = '';
-      }, 5000);
-    }
-  }
-
   navigateToDetail(id: string, ispendingArrival: boolean, residentName: string) {
     // Do NOT include large/base64 `residentPhoto` data in query params (causes huge analytics payloads and network errors).
     // The resident photo is cached in `PhotoStorageService`; pass only the record id and other small fields.
@@ -362,7 +121,7 @@ export class HomePage implements OnInit {
       }
     };
     this.logger.debug('Navigating to resident detail');
-  
+
     if (ispendingArrival) {
       this.router.navigate(['/resident-update', id], navigationExtras);
       this.logger.debug('Navigating to Resident Update');

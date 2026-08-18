@@ -8,8 +8,14 @@ ion-header.app-header {
   flex: 0 0 auto;
 }
 
+ion-header.app-header ion-toolbar {
+  --background: #4194ab;
+  --min-height: 56px;
+}
+
 ion-header.app-header ion-title {
   color: #fff;
+  font-weight: 600;
 }
 
 .house-header-card {
@@ -56,4 +62,31 @@ ion-tab-bar {
 ion-tab-button {
   --color: #fff;
   --color-selected: #fff;
+}
+
+ion-tab-button[selected]::part(native),
+ion-tab-button.tab-selected::part(native) {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.22), 0 0 10px rgba(255, 255, 255, 0.18);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 0;
+  color: #fff;
+}
+
+ion-tab-button.participants-tab {
+  transform: scale(1.12) translateY(-6px);
+  z-index: 2;
+}
+
+ion-tab-button.participants-tab ion-icon {
+  font-size: 26px;
+}
+
+ion-tab-button.participants-tab ion-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+ion-tab-bar {
+  overflow: visible;
 }

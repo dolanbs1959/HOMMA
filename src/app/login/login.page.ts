@@ -239,7 +239,7 @@ ngOnInit() {
               });
               
               this.loadingService.hide();
-              this.router.navigate(['/tabs', 'kpis', { theHouseName, HouseLeaderName, HouseLeaderRecordId, HLphone, maxMeetingDate: this.maxMeetingDate }]);
+              this.router.navigate(['/tabs', 'participants', { theHouseName, HouseLeaderName, HouseLeaderRecordId, HLphone, maxMeetingDate: this.maxMeetingDate }]);
             });
           }
         } else {
