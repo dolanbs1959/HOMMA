@@ -51,19 +51,9 @@ ion-header.app-header ion-title {
 ion-tab-bar {
   --background: #4194ab;
   --color: #fff;
-  --color-selected: #fff;
-  padding: 4px 0;
 }
 
 ion-tab-button {
   --color: #fff;
   --color-selected: #fff;
-}
-
-ion-tab-button[selected]::part(native),
-ion-tab-button.tab-selected::part(native) {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 10px;
-  color: #fff;
 }
