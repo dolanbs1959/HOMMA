@@ -43,6 +43,7 @@ export const environment = {
   vendorTableID: 'bpqx5i336', // Vendor table
   expenseReceiptTableID: 'bvnkq2hnd', // Expense Receipt table
   expenseReceiptPhotoFieldID: 10, // Receipt file attachment field ID
+  invoicePaymentsTableID: 'bpsqbqm9z', // Invoice Payments table
 
 };
 

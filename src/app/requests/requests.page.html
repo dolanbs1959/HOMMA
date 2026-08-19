@@ -84,16 +84,15 @@
         </div>
 
         <div class="submit-wrapper">
-          <ion-button
-            class="submit-request-btn"
-            expand="block"
-            type="submit"
-            [disabled]="!feedbackForm.valid || isSubmittingFeedback">
+        <button
+          type="submit"
+          class="submit-request-btn"
+          [disabled]="!feedbackForm.valid || isSubmittingFeedback">
 
-            <ion-icon name="send" slot="start"></ion-icon>
-            {{ isSubmittingFeedback ? 'Sending...' : 'Submit Request' }}
+          <ion-icon name="send"></ion-icon>
+          <span>{{ isSubmittingFeedback ? 'Sending...' : 'Submit Request' }}</span>
 
-          </ion-button>
+        </button>
         </div>
 
       </form>

@@ -1,5 +1,79 @@
-<ion-content class="ion-padding ion-text-center">
-  <ion-icon name="construct-outline" size="large" color="medium"></ion-icon>
-  <h2>{{ title }}</h2>
-  <p>Coming soon in a later modernization phase.</p>
+<ion-content class="ion-padding">
+  <div class="instruction-text">
+    Select a resident to view their financial status and recent payment history.
+  </div>
+
+  <ion-item class="resident-select" lines="full">
+    <ion-select
+      [(ngModel)]="selectedResident"
+      (ionChange)="onResidentSelected()"
+      [compareWith]="compareResidents"
+      label="Select Resident"
+      label-placement="stacked"
+      placeholder="Select Resident">
+      <ion-select-option *ngFor="let resident of (residents$ | async) || []" [value]="resident">
+        {{ resident.residentFullName?.value }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ng-container *ngIf="selectedResident">
+    <ion-card class="status-card">
+      <ion-card-header>
+        <ion-card-title>Financial Status</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="status-row">
+          <div class="status-item">
+            <span class="status-label">Fees Due First of Month</span>
+            <div [innerHTML]="getSafeHtml(selectedResident.FeesDueFirstofMonth?.value)"></div>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Past Due Fees</span>
+            <div>{{ selectedResident.PastDueFees?.value | currency:'USD':'symbol' }}</div>
+          </div>
+        </div>
+        <div class="status-row">
+          <div class="status-item">
+            <span class="status-label">Financial Status</span>
+            <div [innerHTML]="getSafeHtml(selectedResident.FinancialStatus?.value)"></div>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Active Payplans</span>
+            <div>{{ selectedResident.ActivePayplans?.value }}</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="history-card">
+      <ion-card-header>
+        <ion-card-title>Payment History</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="payment-list">
+          <div class="payment-row header">
+            <span>Payment Date</span>
+            <span>Payment Method</span>
+            <span class="amount-col">Amount</span>
+          </div>
+          <ng-container *ngIf="filteredPayments.length > 0; else noPayments">
+            <div class="payment-row" *ngFor="let p of filteredPayments">
+              <span>{{ p['6']?.value | date:'mediumDate' }}</span>
+              <span>{{ p['19']?.value || '—' }}</span>
+              <span class="amount-col">{{ p['7']?.value | currency:'USD':'symbol' }}</span>
+            </div>
+          </ng-container>
+          <ng-template #noPayments>
+            <div class="empty-state">No payments recorded in the last 90 days.</div>
+          </ng-template>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <button type="button" class="pay-button" (click)="payNow()">
+    <ion-icon name="card-outline"></ion-icon>
+    <span>PAY PROGRAM FEES or TITHES/OFFERING</span>
+  </button>
 </ion-content>

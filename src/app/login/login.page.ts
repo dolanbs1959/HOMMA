@@ -222,6 +222,10 @@ ngOnInit() {
             },
           );
           if (theHouseName && HouseLeaderName && HLphone) {
+            this.quickbaseService.getInvoicePayments(theHouseName).subscribe(
+              () => this.logger.log('Invoice payments loaded'),
+              (error: any) => this.logger.error('Error loading invoice payments', error)
+            );
             this.quickbaseService.getMaxMeetingDate(theHouseName).subscribe(response => {
               this.maxMeetingDate = response.data[0]?.['40'].value;
               this.logger.log('Meeting date loaded');

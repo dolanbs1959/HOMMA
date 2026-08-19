@@ -33,6 +33,7 @@ export class QuickbaseService {
   private registrationTableId = environment.registrationTableID;
   private communicationTableId = environment.communicationTableID;
   private announcementsTableId = environment.announcementsTableID;
+  private invoicePaymentsTableId = environment.invoicePaymentsTableID;
   
   private errorMessage: BehaviorSubject<string> = new BehaviorSubject<string>('');
   errorMessage$: Observable<string> = this.errorMessage.asObservable();
@@ -59,6 +60,7 @@ export class QuickbaseService {
   houseKPIs = new BehaviorSubject<any>(null); // Used to store all house data with KPIs
   transportRequests = new BehaviorSubject<any>(null); // Cached transport requests for house leaders
   locations = new BehaviorSubject<any>(null); // Cached locations (pickup/destination)
+  invoicePayments = new BehaviorSubject<any>(null); // Cached invoice payment records for the current house
   
   // Simple session-based caching - no timers needed
   
@@ -464,6 +466,7 @@ export class QuickbaseService {
       this.publishCache('houseKPIs', this.houseKPIs, null);
       this.transportRequests.next(null);
       this.locations.next(null);
+      this.invoicePayments.next(null);
     } catch (e) {
       this.logger.warn('clearAllCaches failed', e);
     }
@@ -1457,6 +1460,32 @@ getMaxMeetingDate(houseName: string): Observable<any> {
         try { this.logger.debug('getMaxMeetingDate - proxy response', resp); } catch (e) {}
       })
     );
+}
+
+getInvoicePayments(houseName: string): Observable<any> {
+  const escapedHouse = this.escapeForQuickbase(houseName);
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  const body = {
+    from: this.invoicePaymentsTableId,
+    select: [3, 6, 7, 15, 19, 28, 42],
+    where: `{42.EX.'${escapedHouse}'}AND{6.OAF.${cutoff}}`,
+    options: {
+      skip: 0,
+      top: 0,
+      compareWithAppLocalTime: false
+    }
+  };
+
+  try { this.logger.debug('getInvoicePayments - query body', body); } catch (e) {}
+
+  return this.callQuickbaseProxy('POST', 'query', body).pipe(
+    tap((response: any) => {
+      try { this.logger.debug('getInvoicePayments - proxy response', response); } catch (e) {}
+      const data = response?.data || [];
+      this.invoicePayments.next(data);
+    })
+  );
 }
 
 
