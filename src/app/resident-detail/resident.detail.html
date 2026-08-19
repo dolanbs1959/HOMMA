@@ -108,47 +108,63 @@
   </ion-card-content>
 </ion-card>
 
-<!-- Regular participant/resident buttons card -->
-<ion-card *ngIf="!isStaff && residentData">
-  <ion-card-content class="scrollable-content">
-    <div class="wrapper">
-      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="addObservationReport()">
-        Add Observation Report
-          <ion-ripple-effect></ion-ripple-effect>
-          </div>
-      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="addResidentUpdate()">
-        Add Resident Update
-          <ion-ripple-effect></ion-ripple-effect>
-          </div>
-      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="addParticipantReviews()">
-        Add Participant 1-on-1
-          <ion-ripple-effect></ion-ripple-effect>
-          </div>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="navigateToTransportation()">
-        Add Transport Request
-          <ion-ripple-effect></ion-ripple-effect>
-          </div>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="navigateToTraining()">
-        Register for a Meeting/Class
-          <ion-ripple-effect></ion-ripple-effect>
-          </div>
-      <div *ngIf="isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="payNow()">
-        Pay Program Fees or Give/Tithe
-       <ion-ripple-effect></ion-ripple-effect>
-      </div>
-      <div *ngIf="isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="goToMessageCenter()">
-        Go to Message Center
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>          
-      <div *ngIf="!isResident" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
-        Return to Participant List
-          <ion-ripple-effect></ion-ripple-effect>
-          </div>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
-        Return to Login Page
-          <ion-ripple-effect></ion-ripple-effect>
-          </div>
-  </div>
-  </ion-card-content>
-</ion-card>
+<!-- Phase 1: House Leader secondary tab navigation -->
+<nav class="resident-tab-nav" *ngIf="!isStaff && residentData && !isResident" aria-label="Participant actions">
+  <button type="button" class="tab-item" (click)="addObservationReport()">
+    <ion-icon name="eye-outline"></ion-icon>
+    <span>Observations</span>
+  </button>
+  <button type="button" class="tab-item" (click)="addResidentUpdate()">
+    <ion-icon name="create-outline"></ion-icon>
+    <span>Updates</span>
+  </button>
+  <button type="button" class="tab-item" (click)="addParticipantReviews()">
+    <ion-icon name="chatbubbles-outline"></ion-icon>
+    <span>1-on-1</span>
+  </button>
+  <button type="button" class="tab-item" (click)="navigateToTransportation()">
+    <ion-icon name="car-outline"></ion-icon>
+    <span>Transport</span>
+  </button>
+  <button type="button" class="tab-item" (click)="navigateToTraining()">
+    <ion-icon name="calendar-outline"></ion-icon>
+    <span>Classes</span>
+  </button>
+  <button type="button" class="tab-item" (click)="payNow()">
+    <ion-icon name="card-outline"></ion-icon>
+    <span>Payments</span>
+  </button>
+  <button type="button" class="tab-item" (click)="goBack()">
+    <ion-icon name="arrow-back-outline"></ion-icon>
+    <span>Back</span>
+  </button>
+  <button type="button" class="tab-item" (click)="exitApp()">
+    <ion-icon name="log-out-outline"></ion-icon>
+    <span>Exit</span>
+  </button>
+</nav>
+
+<!-- Phase 2: participant-login secondary tab navigation -->
+<nav class="resident-tab-nav phase-2" *ngIf="!isStaff && residentData && isResident" aria-label="Participant actions">
+  <button type="button" class="tab-item" (click)="navigateToTransportation()">
+    <ion-icon name="car-outline"></ion-icon>
+    <span>Transport</span>
+  </button>
+  <button type="button" class="tab-item" (click)="navigateToTraining()">
+    <ion-icon name="calendar-outline"></ion-icon>
+    <span>Classes</span>
+  </button>
+  <button type="button" class="tab-item" (click)="payNow()">
+    <ion-icon name="card-outline"></ion-icon>
+    <span>Payments</span>
+  </button>
+  <button type="button" class="tab-item" (click)="goToMessageCenter()">
+    <ion-icon name="mail-outline"></ion-icon>
+    <span>Messages</span>
+  </button>
+  <button type="button" class="tab-item" (click)="exitApp()">
+    <ion-icon name="log-out-outline"></ion-icon>
+    <span>Exit</span>
+  </button>
+</nav>
 
