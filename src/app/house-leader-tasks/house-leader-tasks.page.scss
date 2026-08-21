@@ -54,7 +54,7 @@ ion-card-subtitle {
   margin-top: 8px;
   border: 2px solid #4194ab;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--ion-color-step-150, #ffffff);
   color: #4194ab;
   font-size: 14px;
   font-weight: 600;

@@ -302,8 +302,7 @@ export class RegistrationsComponent implements OnInit {
   }
 
   exitApp() {
-    // navigate back to login (same as goBack for now)
-    this.router.navigate(['/home']);
+    this.router.navigate(['/tabs', 'participants']);
   }
 
   goBack() {

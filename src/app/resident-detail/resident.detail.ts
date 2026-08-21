@@ -304,7 +304,11 @@ exitApp() {
 }
 
 payNow() {
-  window.location.href = 'https://houseofmercyministries.net/payments/';
+  const selectedResident = this.residentData ? { ...this.residentData } : null;
+  if (selectedResident) {
+    delete selectedResident.residentPhoto;
+  }
+  this.router.navigate(['/tabs', 'payments'], { state: { selectedResident } });
 }
 
 addObservationReport() {

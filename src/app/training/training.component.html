@@ -53,14 +53,9 @@
           Select a Meeting/Class
           <ion-ripple-effect></ion-ripple-effect>
         </div>
-        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
-          Return to Participant Details
-          <ion-ripple-effect></ion-ripple-effect>
-        </div>
-        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
-          Return to Login Page
-          <ion-ripple-effect></ion-ripple-effect>
-        </div>
+        <button type="button" class="action-button" (click)="goBack()">
+          Back/Start Over
+        </button>
       </div>
     </ion-card-content>
   </ion-card>

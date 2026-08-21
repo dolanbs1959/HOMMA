@@ -5,12 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { ParticipantsPage } from './participants.page';
 import { ParticipantDetailPage } from './participant-detail/participant-detail.page';
 import { ParticipantsPageRoutingModule } from './participants-routing.module';
+import { ReformatPipeModule } from '../reformat-pipe/reformat-pipe.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
+    ReformatPipeModule,
     ParticipantsPageRoutingModule
   ],
   declarations: [ParticipantsPage, ParticipantDetailPage]

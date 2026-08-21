@@ -139,22 +139,17 @@
   <ion-card-content class="scrollable-content">
 <div class="wrapper">
   <p *ngIf="NewResidentUpdateId">Record Number: {{ NewResidentUpdateId }}</p>
-  <div *ngIf="!NewResidentUpdateId" 
-        class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" 
-        [class.disabled-button]="!reportForm.valid"
-        (click)="reportForm.valid && insertNewResidentUpdate()">
+  <button type="button" class="action-button" *ngIf="!NewResidentUpdateId" [class.disabled]="!reportForm.valid" (click)="reportForm.valid && insertNewResidentUpdate()">
     Add Resident Update
-    <ion-ripple-effect></ion-ripple-effect>
-  </div>
+  </button>
   <div *ngIf="NewResidentUpdateId" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="resetForm()">
     Reset Form
     <ion-ripple-effect></ion-ripple-effect>
   </div>
   <br>
-  <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="goBack()">
+  <button type="button" class="action-button" (click)="goBack()">
     Back/Start Over
-    <ion-ripple-effect></ion-ripple-effect>
-  </div>
+  </button>
   </div>
 </ion-card-content>
 </ion-card>

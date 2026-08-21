@@ -1,13 +1,6 @@
 <ion-content class="ion-padding">
   <h1 class="page-title ion-text-center">House Leader Tasks</h1>
 
-  <div class="alert-format" [ngStyle]="{'background-color': STAalert === 'No Alerts' ? 'green' : 'red', 'color': 'white'}">
-    <p class="ion-text-center">{{ STAalert | extractText }}</p>
-  </div>
-  <div class="alert-format" [ngStyle]="{'background-color': Alert.includes('No Alerts') ? 'green' : 'red', 'color': 'white'}">
-    <p class="ion-text-center">{{ Alert | extractText }}</p>
-  </div>
-
   <ion-card class="meeting-card ion-text-center">
     <ion-card-header>
       <ion-card-subtitle>Your last weekly house meeting was on: {{ maxMeetingDate | date: 'MMM-dd-yyyy' }}</ion-card-subtitle>

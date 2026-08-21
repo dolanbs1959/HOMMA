@@ -190,7 +190,9 @@ export class WeeklyMeetingsPage implements OnInit {
 
   confirmAndNavigate() {
     this.showConfirmation = false;
-    this.router.navigate(['/home', { theHouseName: this.theHouseName, HouseLeaderName: this.HouseLeaderName, HLphone: this.HLphone, maxMeetingDate: this.quickbaseService.maxMeetingDate }]);
+    // Return to the Tasks tab so the user lands back where the workflow originated.
+    // The persisted house is kept in QuickbaseService and localStorage, so no state needs to be passed.
+    this.router.navigate(['/tabs', 'house-leader-tasks']);
   }
 
 updateAttendanceRecords(newActivityId?: any): Observable<any> {

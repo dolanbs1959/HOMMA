@@ -1,4 +1,8 @@
 <ion-content class="ion-padding">
+  <div class="alert-format" [ngStyle]="{'background-color': STAalert === 'No Alerts' ? 'green' : 'red', 'color': 'white'}">
+    <p class="ion-text-center">{{ STAalert | extractText }}</p>
+  </div>
+
   <ion-list *ngIf="(quickbaseService.residentData | async) as residents; else loadingResidents">
     <ion-list-header *ngIf="residents.length > 0">
       <ion-label>Active Participants</ion-label>

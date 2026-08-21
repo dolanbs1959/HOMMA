@@ -1,3 +1,18 @@
+.alert-format {
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0 0 12px;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: #fff;
+  }
+}
+
 ion-avatar img {
   object-fit: cover;
 }

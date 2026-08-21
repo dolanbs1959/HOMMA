@@ -154,44 +154,6 @@ ion-select-option { color: var(#1231e1); }
   }
 }
 
-// Disabled submit button styles - Higher specificity to override existing styles
-.ripple-parent.ripple-effect-disabled {
-  background: linear-gradient(135deg, #dc3545, #c82333) !important;
-  color: #ffffff !important;
-  cursor: not-allowed !important;
-  border: 2px solid #dc3545 !important;
-  font-weight: 600 !important;
-  font-size: 14px !important;
-  opacity: 1 !important;
-  pointer-events: none !important;
-  
-  &:hover {
-    transform: none !important;
-    box-shadow: none !important;
-    background: linear-gradient(135deg, #dc3545, #c82333) !important;
-  }
-  
-  span {
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    line-height: 1.2;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    white-space: nowrap;
-    width: 100%;
-  }
-}
-
-// Icon spacing for submit button
-.submit-icon {
-  margin-right: 8px;
-  font-size: 16px;
-  color: #ffffff !important;
-}
-
 // Enhanced button states - More specific selectors
 .ripple-parent.rounded-rectangle {
   transition: all 0.3s ease;
@@ -201,27 +163,47 @@ ion-select-option { color: var(#1231e1); }
   text-align: center;
   padding: 0 16px;
   box-sizing: border-box;
-  
-  &.ripple-effect-disabled {
-    opacity: 1 !important;
-    pointer-events: none !important;
-    background: linear-gradient(135deg, #dc3545, #c82333) !important;
-    color: #ffffff !important;
-    border: 2px solid #dc3545 !important;
-    
-    span {
-      color: #ffffff !important;
-      font-weight: 600 !important;
-      font-size: 13px !important;
-      line-height: 1.2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  max-width: 360px;
+  min-height: 48px;
+  padding: 0 16px;
+
+  background: var(--ion-color-step-150, #ffffff);
+  color: #4194ab;
+
+  border: 2px solid #4194ab;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:active:not(:disabled) {
+    background: #4194ab;
+    color: #ffffff;
   }
+
+  &:disabled,
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
+body.dark .action-button {
+  background: var(--ion-card-background, #1e1e1e);
+  color: #4194ab;
+  border-color: #4194ab;
 }

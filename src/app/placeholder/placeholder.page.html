@@ -72,8 +72,9 @@
     </ion-card>
   </ng-container>
 
-  <button type="button" class="pay-button" (click)="payNow()">
-    <ion-icon name="card-outline"></ion-icon>
-    <span>PAY PROGRAM FEES or TITHES/OFFERING</span>
+  <button type="button" class="pay-button" (click)="payNow()" [disabled]="isPaying">
+    <ion-icon *ngIf="!isPaying" name="card-outline"></ion-icon>
+    <ion-spinner *ngIf="isPaying" name="crescent" class="pay-spinner"></ion-spinner>
+    <span>{{ isPaying ? 'One moment please...' : 'PAY PROGRAM FEES or TITHES/OFFERING' }}</span>
   </button>
 </ion-content>

@@ -74,9 +74,9 @@
 
 <br>
 <div class="center-div" *ngIf="reportForm.get('observationType')?.value?.includes('Dirty UA')">
-  <ion-button (click)="openSelectPhotoDialog()">
+  <button type="button" class="action-button" (click)="openSelectPhotoDialog()">
     Tap here to take photo of the UA specimen
-</ion-button>
+  </button>
 </div>
 <br>
 
@@ -215,22 +215,17 @@
     <div class="wrapper">
       <p *ngIf="NewObservationRecordId">Record Number: {{ NewObservationRecordId }}</p>
       <p *ngIf="submissionMessage">{{ submissionMessage }}</p>
-      <div *ngIf="!NewObservationRecordId" 
-        class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" 
-        [class.disabled-button]="isLoading || !reportForm.valid"
-        (click)="!isLoading && reportForm.valid && insertObservationReport()">
+      <button type="button" class="action-button" *ngIf="!NewObservationRecordId" [class.disabled]="isLoading || !reportForm.valid" (click)="!isLoading && reportForm.valid && insertObservationReport()">
         {{ isLoading ? 'Submitting...' : 'Add Observation Report' }}
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
+      </button>
       <div *ngIf="NewObservationRecordId" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="resetForm()">
         Reset Form
         <ion-ripple-effect></ion-ripple-effect>
       </div>
       <br>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="goBack()">
+      <button type="button" class="action-button" (click)="goBack()">
         Back/Start Over
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
+      </button>
       </div>
   </ion-card-content>
 </ion-card>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { QuickbaseService } from '../services/quickbase.service';
 import { UserService } from '../services/user.service';
@@ -9,18 +9,20 @@ import { PhotoStorageService } from '../services/photoProcessing.service';
   templateUrl: './participants.page.html',
   styleUrls: ['./participants.page.scss'],
 })
-export class ParticipantsPage implements OnInit {
+export class ParticipantsPage implements OnInit, OnDestroy {
   theHouseName = '';
   houseLeaderRecordId = '';
   houseLeaderName = '';
   HLphone = '';
   maxMeetingDate = '';
   canShowStipulated = false;
+  STAalert = '';
 
   selectedResident: any = null;
   selectedIsPending = false;
   panelOpen = false;
   private readonly panelTransitionMs = 400;
+  private subs: any[] = [];
 
   constructor(
     public quickbaseService: QuickbaseService,
@@ -40,10 +42,19 @@ export class ParticipantsPage implements OnInit {
     const isParticipantStaff = this.userService.isStaffUser();
     const isHouseLeaderLoginStaff = !!this.quickbaseService.currentStaffRole && this.quickbaseService.currentStaffRole !== 'House Leader';
     this.canShowStipulated = isParticipantStaff || isHouseLeaderLoginStaff;
+
+    const staSub = this.quickbaseService.STAalert$.subscribe((val: string) => {
+      this.STAalert = val || 'There are 0 Staff Task Assignments Overdue';
+    });
+    this.subs.push(staSub);
   }
 
   ionViewWillLeave() {
     this.deselect();
+  }
+
+  ngOnDestroy() {
+    this.subs.forEach(s => s && s.unsubscribe && s.unsubscribe());
   }
 
   selectResident(resident: any, isPending: boolean = false) {

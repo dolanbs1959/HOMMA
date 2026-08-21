@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 import { QuickbaseService } from '../services/quickbase.service';
 
 @Component({
@@ -12,19 +13,31 @@ export class PlaceholderPage implements OnInit {
   selectedResident: any = null;
   filteredPayments: any[] = [];
   title = 'Payments';
+  isPaying = false;
 
   constructor(
     private quickbaseService: QuickbaseService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router: Router
   ) {}
 
   ngOnInit() {
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state as any;
+    if (state?.selectedResident) {
+      this.selectedResident = state.selectedResident;
+      this.filterPayments();
+    }
+
     this.quickbaseService.invoicePayments.asObservable().subscribe(() => {
       this.filterPayments();
     });
   }
 
   payNow() {
+    if (this.isPaying) { return; }
+    this.isPaying = true;
+    window.setTimeout(() => { this.isPaying = false; }, 5000);
     window.location.href = 'https://www.eprocessingnetwork.com/cgi-bin/epn/secure/pfg/payment.fpl?a=1215684&f=BB7B9257-7152-1014-A022-83C928D5EAB0';
   }
 

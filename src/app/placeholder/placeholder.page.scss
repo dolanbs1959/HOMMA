@@ -4,7 +4,7 @@
   margin-top: 8px;
   border: 2px solid #4194ab;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--ion-color-step-150, #ffffff);
   color: #4194ab;
   font-size: 14px;
   font-weight: 600;
@@ -15,14 +15,25 @@
   justify-content: center;
   gap: 8px;
 
-  &:active {
+  &:active:not(:disabled) {
     background: #4194ab;
     color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   ion-icon {
     font-size: 18px;
     color: inherit;
+  }
+
+  .pay-spinner {
+    width: 18px;
+    height: 18px;
+    color: #4194ab;
   }
 }
 
@@ -35,12 +46,12 @@
 }
 
 .resident-select {
-  --background: #ffffff;
+  --background: var(--ion-item-background, #ffffff);
   --padding-start: 0;
   --padding-end: 0;
   --inner-padding-start: 12px;
   --inner-padding-end: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--ion-border-color, #e0e0e0);
   border-radius: 8px;
   margin-top: 0;
 
@@ -53,8 +64,8 @@
 
 .status-card,
 .history-card {
-  --background: #ffffff;
-  background: #ffffff;
+  --background: var(--ion-card-background, #ffffff);
+  background: var(--ion-card-background, #ffffff);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   margin: 16px 0 0;
@@ -111,14 +122,14 @@
   grid-template-columns: 1.2fr 1.5fr 0.9fr;
   gap: 8px;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--ion-border-color, #f0f0f0);
   align-items: center;
   font-size: 14px;
 
   &.header {
     font-weight: 700;
     color: var(--ion-color-medium);
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--ion-border-color, #e0e0e0);
     padding-bottom: 8px;
   }
 
@@ -139,3 +150,4 @@
   padding: 24px 0;
   font-size: 14px;
 }
+

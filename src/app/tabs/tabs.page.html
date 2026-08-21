@@ -3,7 +3,20 @@
     <ion-title color="light">{{ pageTitle }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="toggleTheme()" fill="clear" color="light">
-        <ion-icon [name]="(themeService.isDarkMode$ | async) ? 'sunny' : 'moon'" slot="icon-only"></ion-icon>
+        <img
+          src="assets/icons/hom-theme-icon.png"
+          class="header-icon"
+          alt="Toggle dark mode"
+        />
+        <!-- <ion-icon [name]="(themeService.isDarkMode$ | async) ? 'sunny' : 'moon'" slot="icon-only"></ion-icon> -->
+      </ion-button>
+      <ion-button (click)="exitApp()" fill="clear" color="light" aria-label="Exit">
+        <img
+          src="assets/icons/hom-exit-icon.png"
+          class="header-icon"
+          alt="Exit"
+        />
+        <!-- <ion-icon name="log-out-outline" slot="icon-only"></ion-icon> -->
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -22,24 +35,9 @@
 
 <ion-tabs (ionTabsDidChange)="onTabChange($event)">
   <ion-tab-bar slot="bottom">
-    <ion-tab-button tab="kpis">
-      <ion-icon name="stats-chart-outline"></ion-icon>
-      <ion-label>KPIs</ion-label>
-    </ion-tab-button>
-
     <ion-tab-button tab="house-leader-tasks">
       <ion-icon name="checkbox-outline"></ion-icon>
       <ion-label>Tasks</ion-label>
-    </ion-tab-button>
-
-    <ion-tab-button tab="transportation">
-      <ion-icon name="car-outline"></ion-icon>
-      <ion-label>Transport</ion-label>
-    </ion-tab-button>
-
-    <ion-tab-button tab="participants" class="participants-tab">
-      <ion-icon name="people-outline"></ion-icon>
-      <ion-label>Participants</ion-label>
     </ion-tab-button>
 
     <ion-tab-button tab="requests">
@@ -47,14 +45,29 @@
       <ion-label>Requests</ion-label>
     </ion-tab-button>
 
+    <ion-tab-button tab="payments">
+      <ion-icon name="cash-outline"></ion-icon>
+      <ion-label>Payments</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="participants" class="participants-tab">
+      <ion-icon name="people-outline"></ion-icon>
+      <ion-label>Participants</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="transportation">
+      <ion-icon name="car-outline"></ion-icon>
+      <ion-label>Transport</ion-label>
+    </ion-tab-button>
+
     <ion-tab-button tab="announcements">
       <ion-icon name="megaphone-outline"></ion-icon>
       <ion-label>Announcements</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button tab="payments">
-      <ion-icon name="cash-outline"></ion-icon>
-      <ion-label>Payments</ion-label>
+    <ion-tab-button tab="kpis">
+      <ion-icon name="stats-chart-outline"></ion-icon>
+      <ion-label>KPIs</ion-label>
     </ion-tab-button>
   </ion-tab-bar>
 </ion-tabs>

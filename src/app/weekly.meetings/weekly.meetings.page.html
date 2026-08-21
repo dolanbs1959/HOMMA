@@ -83,14 +83,12 @@
   <ion-card>
     <ion-card-content scrollable-content>    
       <div class="wrapper">
-        <div *ngIf="!isActivityAdded && !quickbaseService.isActivityAddedOnce" [class.disabled]="residentCount===0" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue" (click)="residentCount>0 && addWeeklyHouseMeeting()">
-        Add Weekly House Meeting
-        <ion-ripple-effect></ion-ripple-effect>
-        </div>
-      <div *ngIf="isActivityAdded && !attendanceUpdated" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue" (click)="updateAttendanceRecords()">
+        <button type="button" class="action-button" *ngIf="!isActivityAdded && !quickbaseService.isActivityAddedOnce" [class.disabled]="residentCount===0" (click)="residentCount>0 && addWeeklyHouseMeeting()">
+          Add Weekly House Meeting
+        </button>
+      <button type="button" class="action-button" *ngIf="isActivityAdded && !attendanceUpdated" (click)="updateAttendanceRecords()">
         Update Attendance Records
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
+      </button>
       <div *ngIf="!allResidentsSelected" class="message">{{ message }}</div>
       <!-- Success message removed; confirmation popup handles success feedback -->
 
@@ -99,10 +97,9 @@
     <ion-ripple-effect></ion-ripple-effect>
   </div>
   <br> -->
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="goBack()">
+      <button type="button" class="action-button" (click)="goBack()">
         Go Back
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
+      </button>
     </div>  
     </ion-card-content>
   </ion-card>

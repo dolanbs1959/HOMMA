@@ -64,18 +64,15 @@
     <ion-card>
       <ion-card-content class="scrollable-content">
         <div class="wrapper">
-          <div *ngIf="!isRegistered" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="confirmRegistration()">
+          <button type="button" class="action-button" *ngIf="!isRegistered" (click)="confirmRegistration()">
             Confirm Registration
-            <ion-ripple-effect></ion-ripple-effect>
-          </div>
-          <div *ngIf="!isRegistered" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-lightblue" (click)="goBack()">
+          </button>
+          <button type="button" class="action-button" *ngIf="!isRegistered" (click)="goBack()">
             Change Class Selection
-            <ion-ripple-effect></ion-ripple-effect>
-          </div>
-          <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
-            Return to Participant List
-            <ion-ripple-effect></ion-ripple-effect>
-          </div>
+          </button>
+          <button type="button" class="action-button" (click)="exitApp()">
+            Back/Start Over
+          </button>
         </div>
       </ion-card-content>
     </ion-card>

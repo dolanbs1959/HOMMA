@@ -17,7 +17,17 @@ ion-header.app-header ion-title {
   color: #fff;
   font-weight: 600;
 }
-
+ion-header.app-header ion-buttons ion-button {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin: 0;
+}
+.header-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
 .house-header-card {
   flex: 0 0 auto;
   margin: 0;
@@ -57,6 +67,7 @@ ion-header.app-header ion-title {
 ion-tab-bar {
   --background: #4194ab;
   --color: #fff;
+  overflow: visible;
 }
 
 ion-tab-button {
@@ -67,7 +78,9 @@ ion-tab-button {
 ion-tab-button[selected]::part(native),
 ion-tab-button.tab-selected::part(native) {
   background: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.22), 0 0 10px rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 0 10px rgba(255, 255, 255, 0.22),
+    0 0 10px rgba(255, 255, 255, 0.18);
   border-bottom: 2px solid rgba(255, 255, 255, 0.9);
   border-radius: 0;
   color: #fff;
@@ -86,7 +99,23 @@ ion-tab-button.participants-tab ion-label {
   font-size: 13px;
   font-weight: 700;
 }
+.theme-symbol,
+.exit-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 400;
+  width: 32px;
+  height: 32px;
+}
 
-ion-tab-bar {
-  overflow: visible;
+.theme-symbol {
+  font-size: 26px;
+}
+
+.exit-symbol {
+  font-size: 24px;
 }

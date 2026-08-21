@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { addIcons } from 'ionicons';
+import { logOutOutline, moon, sunny } from 'ionicons/icons';
 import { QuickbaseService } from '../services/quickbase.service';
 import { ThemeService } from '../services/theme.service';
 
@@ -25,8 +28,13 @@ export class TabsPage implements OnInit {
 
   constructor(
     public quickbaseService: QuickbaseService,
-    public themeService: ThemeService
-  ) {}
+    public themeService: ThemeService,
+    private router: Router
+  ) {
+    // Register the header icons before the view (and ion-icon elements) are created,
+    // so the icon map is populated when <ion-icon> first tries to resolve the SVG.
+    addIcons({ logOutOutline, moon, sunny });
+  }
 
   ngOnInit() {
     const qd = this.quickbaseService.queryData;
@@ -49,5 +57,9 @@ export class TabsPage implements OnInit {
 
   toggleTheme() {
     this.themeService.toggleTheme();
+  }
+
+  exitApp() {
+    this.router.navigate(['/login']);
   }
 }

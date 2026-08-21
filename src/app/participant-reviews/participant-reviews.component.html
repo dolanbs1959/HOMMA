@@ -622,19 +622,14 @@
         Cannot submit form: {{ getValidationIssuesSummary() }}
       </div>
       
-      <!-- Submit Button - No visual changes, just disabled functionality -->
-      <div 
-        class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue"
-        [style.pointer-events]="hasValidationBlockers() ? 'none' : 'auto'"
-        (click)="onSubmit()">
-        <span>Submit Review</span>
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>       
+      <!-- Submit Button -->
+      <button type="button" class="action-button" [class.disabled]="hasValidationBlockers()" (click)="onSubmit()">
+        Submit Review
+      </button>
       <br>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
-        Return to Participant Details
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
+      <button type="button" class="action-button" (click)="goBack()">
+        Back/Start Over
+      </button>
       <p></p>
     </div>
     </ion-card-content>
