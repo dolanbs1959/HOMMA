@@ -303,12 +303,31 @@ exitApp() {
   this.router.navigate(['/login']);
 }
 
+isPaymentsActive(): boolean {
+  return this.router.url.includes('/payments');
+}
+
 payNow() {
   const selectedResident = this.residentData ? { ...this.residentData } : null;
   if (selectedResident) {
     delete selectedResident.residentPhoto;
   }
+
+  if (this.isResident) {
+    this.router.navigate(['payments'], {
+      relativeTo: this.route,
+      state: { selectedResident, isParticipant: true, theHouseName: this.theHouseName }
+    });
+    return;
+  }
+
   this.router.navigate(['/tabs', 'payments'], { state: { selectedResident } });
+}
+
+goToVitals() {
+  if (this.isPaymentsActive()) {
+    this.location.back();
+  }
 }
 
 addObservationReport() {
@@ -349,7 +368,11 @@ addObservationReport() {
   }
 
   goBack() {
-    this.location.back();
+    if (this.searchSessionExists) {
+      this.goBackToSearch();
+    } else {
+      this.location.back();
+    }
   }
 
   ngOnInit(): void {
@@ -541,19 +564,31 @@ addObservationReport() {
   }
 
   async goBackToSearch() {
-    if (!this.searchSessionExists) return;
+    const last = this.quickbaseService.getLastResidentSearch();
+    const initialSelected = this.residentData || last?.selectedResident;
+    const initialResults = this.searchResults && this.searchResults.length ? this.searchResults : (last?.results || []);
     try {
       const modal = await this.modalCtrl.create({
         component: ResidentSearchComponent,
         componentProps: {
-          initialQuery: this.searchQuery || this.quickbaseService.getLastResidentSearch()?.query || '',
-          initialResults: this.searchResults && this.searchResults.length ? this.searchResults : (this.quickbaseService.getLastResidentSearch()?.results || [])
+          initialQuery: this.searchQuery || last?.query || '',
+          initialResults: initialResults,
+          initialSelectedResident: initialSelected,
+          initialPanelOpen: !!initialSelected
         },
         cssClass: 'resident-search-modal'
       });
       await modal.present();
     } catch (e) {
       console.error('Failed to reopen resident search', e);
+    }
+  }
+
+  async ionViewWillEnter() {
+    const last = this.quickbaseService.getLastResidentSearch();
+    if (last?.openOnReturn) {
+      last.openOnReturn = false;
+      this.goBackToSearch();
     }
   }
   

@@ -25,6 +25,7 @@ export class ObservationReportComponent  implements OnInit {
   @Output() photoCaptured = new EventEmitter<string>();
   private apiKey = environment.apiKey;
   residentData: any;
+  fromSearch = false;
 //  dropdownChoices: any;
   reportForm: FormGroup;
   NewObservationRecordId: number = 0;
@@ -211,6 +212,10 @@ resetForm() {
 }
 
   goBack() {
+    if (this.fromSearch) {
+      const last = this.quickbaseService.getLastResidentSearch();
+      this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
+    }
     this.location.back();
   }
 
@@ -251,6 +256,7 @@ resetForm() {
     const navigation = this.router.getCurrentNavigation();
     if (navigation && navigation.extras.state) {
       this.residentData = navigation.extras.state['residentData'];
+      this.fromSearch = !!navigation.extras.state['fromSearch'];
       // console.log('Resident Data:', this.residentData);
       if (this.residentData) {
         const id = this.residentData.recordNumber2?.value || this.residentData.recordNumber || this.residentData.id || '';

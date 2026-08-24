@@ -11,7 +11,8 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<div class="content-area">
+<ion-content [fullscreen]="true" *ngIf="!isPaymentsActive()">
   <ion-card class="ion-text-center">
     <img src="assets/logo/HOM3.png" alt="Logo" />
     <br>
@@ -87,22 +88,18 @@
 <ion-card *ngIf="isStaff">
   <ion-card-content class="scrollable-content">
     <div class="wrapper">
-      <div *ngIf="searchSessionExists && isStaff" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-yellow" (click)="goBackToSearch()">
+      <div *ngIf="searchSessionExists && isStaff" class="action-button" (click)="goBackToSearch()">
         Back to Search Results
-        <ion-ripple-effect></ion-ripple-effect>
       </div>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="openResidentSearch()">
+      <div class="action-button" (click)="openResidentSearch()">
         Resident Search
-        <ion-ripple-effect></ion-ripple-effect>
       </div>
-      <!-- Commnented out until Expense Receipt feature goes live: -->
-      <!-- <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-green" (click)="navigateToExpenseReceipt()">
+      <!-- Commented out the Submit Expense Receipt button for now -->
+      <!-- <div class="action-button" (click)="navigateToExpenseReceipt()">
         Submit Expense Receipt
-        <ion-ripple-effect></ion-ripple-effect>
       </div> -->
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
+      <div class="action-button" (click)="exitApp()">
         Return to Login Page
-        <ion-ripple-effect></ion-ripple-effect>
       </div>
     </div>
   </ion-card-content>
@@ -143,28 +140,38 @@
     <span>Exit</span>
   </button>
 </nav>
+</ion-content>
 
+<router-outlet></router-outlet>
+</div>
+
+<ion-footer *ngIf="!isStaff && residentData && isResident" class="ion-no-border">
 <!-- Phase 2: participant-login secondary tab navigation -->
 <nav class="resident-tab-nav phase-2" *ngIf="!isStaff && residentData && isResident" aria-label="Participant actions">
   <button type="button" class="tab-item" (click)="navigateToTransportation()">
     <ion-icon name="car-outline"></ion-icon>
     <span>Transport</span>
   </button>
-  <button type="button" class="tab-item" (click)="navigateToTraining()">
-    <ion-icon name="calendar-outline"></ion-icon>
-    <span>Classes</span>
-  </button>
   <button type="button" class="tab-item" (click)="payNow()">
     <ion-icon name="card-outline"></ion-icon>
     <span>Payments</span>
   </button>
+  <button type="button" class="tab-item" (click)="goToVitals()">
+    <ion-icon name="pulse-outline"></ion-icon>
+    <span>Vitals</span>
+  </button>
   <button type="button" class="tab-item" (click)="goToMessageCenter()">
     <ion-icon name="mail-outline"></ion-icon>
     <span>Messages</span>
+  </button>
+  <button type="button" class="tab-item" (click)="navigateToTraining()">
+    <ion-icon name="calendar-outline"></ion-icon>
+    <span>Classes</span>
   </button>
   <button type="button" class="tab-item" (click)="exitApp()">
     <ion-icon name="log-out-outline"></ion-icon>
     <span>Exit</span>
   </button>
 </nav>
+</ion-footer>
 

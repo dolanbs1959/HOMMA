@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { QuickbaseService } from 'src/app/services/quickbase.service';
 import { UserService } from 'src/app/services/user.service';
@@ -23,6 +23,8 @@ export class TransportationComponent implements OnInit {
   participantName: string = '';
   participantPhoto: string | undefined;
   residentPhoto: string | undefined;
+  residentData: any;
+  fromSearch = false;
   houseLeaderName: string = '';
   houseName: string = '';
   participantId: string = '';
@@ -34,6 +36,7 @@ export class TransportationComponent implements OnInit {
     private fb: FormBuilder,
     private location: Location,
     private route: ActivatedRoute,
+    private router: Router,
     private photoStorageService: PhotoStorageService,
     private userService: UserService,
     private quickbaseService: QuickbaseService
@@ -42,6 +45,11 @@ export class TransportationComponent implements OnInit {
   ngOnInit() {
     // console.log('ngOnInit called');
     const userInfo = this.userService.getUserInfo();
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation && navigation.extras && navigation.extras.state) {
+      this.residentData = navigation.extras.state['residentData'];
+      this.fromSearch = !!navigation.extras.state['fromSearch'];
+    }
     // console.log('User Info:', userInfo);
 
     this.route.queryParams.subscribe(params => {
@@ -300,6 +308,10 @@ export class TransportationComponent implements OnInit {
   }
 
   goBack() {
+    if (this.fromSearch && this.residentData) {
+      const last = this.quickbaseService.getLastResidentSearch();
+      this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
+    }
     this.location.back();
   }
 }

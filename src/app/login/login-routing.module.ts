@@ -11,7 +11,13 @@ const routes: Routes = [
   },
   {
     path: 'resident-detail',
-    component: ResidentDetailComponent
+    component: ResidentDetailComponent,
+    children: [
+      {
+        path: 'payments',
+        loadChildren: () => import('../placeholder/placeholder.module').then(m => m.PlaceholderPageModule)
+      }
+    ]
   }
 ];
 

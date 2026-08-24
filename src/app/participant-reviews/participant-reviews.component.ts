@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { QuickbaseService } from 'src/app/services/quickbase.service';
 import { UserService } from 'src/app/services/user.service';
@@ -38,6 +38,8 @@ export class ParticipantReviewsComponent implements OnInit {
   submissionErrorMessage: string = ''; // Add this property to store the submission error message
   participantId!: string;
   residentPhoto: string | undefined;
+  residentData: any;
+  fromSearch = false;
   last1on1Date!: Date;
   // track if a review was already submitted in this page instance
   submittedReviewRecordId: string | null = null;
@@ -48,6 +50,7 @@ export class ParticipantReviewsComponent implements OnInit {
     private http: HttpClient,
     private location: Location,
     private route: ActivatedRoute,
+    private router: Router,
     private userService: UserService,
     private quickbaseService: QuickbaseService,
     private sanitizer: DomSanitizer,
@@ -171,6 +174,11 @@ export class ParticipantReviewsComponent implements OnInit {
 
   ngOnInit() {
     // console.log('ngOnInit called');
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation && navigation.extras.state) {
+      this.residentData = navigation.extras.state['residentData'];
+      this.fromSearch = !!navigation.extras.state['fromSearch'];
+    }
     this.route.queryParams.subscribe(params => {
       this.participantName = params['participantName'];
       const workStatus = params['workStatus']; // Retrieve workStatus from query parameters
@@ -1406,6 +1414,10 @@ export class ParticipantReviewsComponent implements OnInit {
   }
 
   goBack() {
+    if (this.fromSearch && this.residentData) {
+      const last = this.quickbaseService.getLastResidentSearch();
+      this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
+    }
     this.location.back();
   }
 

@@ -11,6 +11,8 @@ import { QuickbaseService } from '../services/quickbase.service';
 export class PlaceholderPage implements OnInit {
   residents$ = this.quickbaseService.residentData.asObservable();
   selectedResident: any = null;
+  isParticipant = false;
+  theHouseName = '';
   filteredPayments: any[] = [];
   title = 'Payments';
   isPaying = false;
@@ -23,11 +25,22 @@ export class PlaceholderPage implements OnInit {
 
   ngOnInit() {
     const navigation = this.router.getCurrentNavigation();
-    const state = navigation?.extras?.state as any;
+    let state = navigation?.extras?.state as any;
+    if (!state && typeof window !== 'undefined' && window.history?.state) {
+      const hs = window.history.state;
+      state = hs.selectedResident ? hs : null;
+    }
     if (state?.selectedResident) {
       this.selectedResident = state.selectedResident;
-      this.filterPayments();
     }
+    this.isParticipant = !!state?.isParticipant;
+    this.theHouseName = state?.theHouseName || '';
+
+    if (this.isParticipant && this.theHouseName && !this.quickbaseService.invoicePayments.value) {
+      this.quickbaseService.getInvoicePayments(this.theHouseName).subscribe();
+    }
+
+    this.filterPayments();
 
     this.quickbaseService.invoicePayments.asObservable().subscribe(() => {
       this.filterPayments();

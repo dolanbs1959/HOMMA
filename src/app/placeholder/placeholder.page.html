@@ -1,21 +1,33 @@
 <ion-content class="ion-padding">
-  <div class="instruction-text">
-    Select a resident to view their financial status and recent payment history.
-  </div>
+  <ng-container *ngIf="!isParticipant; else participantInfo">
+    <div class="instruction-text">
+      Select a resident to view their financial status and recent payment history.
+    </div>
 
-  <ion-item class="resident-select" lines="full">
-    <ion-select
-      [(ngModel)]="selectedResident"
-      (ionChange)="onResidentSelected()"
-      [compareWith]="compareResidents"
-      label="Select Resident"
-      label-placement="stacked"
-      placeholder="Select Resident">
-      <ion-select-option *ngFor="let resident of (residents$ | async) || []" [value]="resident">
-        {{ resident.residentFullName?.value }}
-      </ion-select-option>
-    </ion-select>
-  </ion-item>
+    <ion-item class="resident-select" lines="full">
+      <ion-select
+        [(ngModel)]="selectedResident"
+        (ionChange)="onResidentSelected()"
+        [compareWith]="compareResidents"
+        label="Select Resident"
+        label-placement="stacked"
+        placeholder="Select Resident">
+        <ion-select-option *ngFor="let resident of (residents$ | async) || []" [value]="resident">
+          {{ resident.residentFullName?.value }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+  </ng-container>
+
+  <ng-template #participantInfo>
+    <div class="instruction-text">
+      Viewing your payment information.
+    </div>
+    <ion-item class="resident-select" lines="full">
+      <ion-label position="stacked">Participant</ion-label>
+      <ion-input [readonly]="true" [value]="selectedResident?.residentFullName?.value"></ion-input>
+    </ion-item>
+  </ng-template>
 
   <ng-container *ngIf="selectedResident">
     <ion-card class="status-card">

@@ -13,6 +13,7 @@ import { PhotoStorageService } from 'src/app/services/photoProcessing.service';
 export class ResidentUpdateComponent {
 currentDate: string = new Date().toISOString().split('T')[0];
 residentData: any;
+fromSearch = false;
 NewResidentUpdateId: number = 0;
 reportForm: FormGroup;
 dropdownChoices: any;
@@ -106,6 +107,10 @@ resetForm() {
   this.NewResidentUpdateId = 0
 }
   goBack() {
+    if (this.fromSearch) {
+      const last = this.quickbaseService.getLastResidentSearch();
+      this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
+    }
     this.location.back();
   }
   
@@ -154,7 +159,8 @@ resetForm() {
   // Check for navigation extras (for resident detail updates)
   const navigation = this.router.getCurrentNavigation();
   if (navigation && navigation.extras && navigation.extras.state) {
-    const state = navigation.extras.state as {residentData: any};
+    const state = navigation.extras.state as {residentData: any, fromSearch?: boolean};
+    this.fromSearch = !!state.fromSearch;
     if (state.residentData) {
       this.residentData = state.residentData;
       // console.log('Resident Update Data:', this.residentData);

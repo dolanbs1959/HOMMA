@@ -163,21 +163,13 @@ export class StipulatedAgreementComponent implements OnInit {
 
   goBack(): void {
     // Preserve the originating navigation context. If the agreement was opened
-    // from the participant search modal, reopen that modal with the cached query/results.
-    // Otherwise, go back to the previous page (house resident listing).
+    // from the participant search modal, flag the search session to reopen and
+    // go back to the previous page (ResidentDetail / staff participant login).
     if (this.fromSearch) {
       const last = this.quickbaseService.getLastResidentSearch();
-      this.modalCtrl.create({
-        component: ResidentSearchComponent,
-        componentProps: {
-          initialQuery: last?.query || '',
-          initialResults: last?.results || []
-        },
-        cssClass: 'resident-search-modal'
-      }).then(modal => modal.present());
-    } else {
-      this.location.back();
+      this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
     }
+    this.location.back();
   }
 
   backToSearch(): void {

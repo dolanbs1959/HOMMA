@@ -16,6 +16,7 @@ export class RegistrationsComponent implements OnInit {
   classRecord: any = null;
   trainingRecord: any = null;
   residentData: any = null;
+  fromSearch = false;
   transportationRequested: string = 'No';
   registering = false;
   registrationResponse: any = null;
@@ -68,11 +69,13 @@ export class RegistrationsComponent implements OnInit {
       this.classRecord = s.classRecord || null;
       this.trainingRecord = s.trainingRecord || null;
       this.residentData = s.residentData || null;
+      this.fromSearch = !!s.fromSearch;
     } else if (history && history.state) {
       const s = history.state as any;
       this.classRecord = s.classRecord || null;
       this.trainingRecord = s.trainingRecord || null;
       this.residentData = s.residentData || null;
+      this.fromSearch = !!s.fromSearch;
     }
     // repopulate template convenience props
     if (this.classRecord) {
@@ -306,6 +309,10 @@ export class RegistrationsComponent implements OnInit {
   }
 
   goBack() {
+    if (this.fromSearch && this.residentData) {
+      const last = this.qb.getLastResidentSearch();
+      this.qb.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
+    }
     this.location.back();
   }
 }

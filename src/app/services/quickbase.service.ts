@@ -71,7 +71,7 @@ export class QuickbaseService {
   private apiCallCount = 0;
   private cacheHitCount = 0;
   // Temporary in-memory cache for last resident search (to support back-navigation)
-  private _lastResidentSearch: { query: string; results: any[] } | null = null;
+  private _lastResidentSearch: { query: string; results: any[]; selectedResident?: any; openOnReturn?: boolean } | null = null;
 
   private functions = getFunctions();
   private quickbaseProxy = httpsCallable(this.functions, 'quickbaseProxy');
@@ -439,11 +439,11 @@ export class QuickbaseService {
   }
 
   // Last resident search helpers (support back-navigation UX)
-  setLastResidentSearch(query: string, results: any[]): void {
-    this._lastResidentSearch = { query, results };
+  setLastResidentSearch(query: string, results: any[], selectedResident?: any, openOnReturn?: boolean): void {
+    this._lastResidentSearch = { query, results, selectedResident, openOnReturn };
   }
 
-  getLastResidentSearch(): { query: string; results: any[] } | null {
+  getLastResidentSearch(): { query: string; results: any[]; selectedResident?: any; openOnReturn?: boolean } | null {
     return this._lastResidentSearch;
   }
 

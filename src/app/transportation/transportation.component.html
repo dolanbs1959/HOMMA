@@ -106,16 +106,8 @@
   <ion-card>
     <ion-card-content scrollable-content>
       <div class="wrapper">
-        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue submit-button" (click)="onSubmit()">
-          Submit Request
-          <ion-ripple-effect></ion-ripple-effect>
-        </div>      
-        <br>
-        <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
-          Return to Participant Details
-          <ion-ripple-effect></ion-ripple-effect>
-        </div>
-        <p></p>
+        <div class="action-button" (click)="onSubmit()">Submit Request</div>
+        <div class="action-button" (click)="goBack()">Return to Participant Details</div>
       </div>
     </ion-card-content>
   </ion-card>

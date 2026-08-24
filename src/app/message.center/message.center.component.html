@@ -42,21 +42,9 @@
         <ion-card>
           <ion-card-content class="scrollable-content">
             <div class="wrapper">
-              <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="submitMessage()">
-              <!-- <div class="btn-submit" (click)="submitMessage()"> -->
-                Submit Message
-                <ion-ripple-effect></ion-ripple-effect>
-              </div>      
-              <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
-                <!-- <div class="btn-submit" (click)="goBack()"> -->
-                Return to Participant Details
-                  <ion-ripple-effect></ion-ripple-effect>
-                  </div>
-              <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
-                <!-- <div class="btn-submit" (click)="exitApp()"> -->
-                Sign Out/Exit App
-                  <ion-ripple-effect></ion-ripple-effect>
-                  </div>
-          </div>
+              <div class="action-button" (click)="submitMessage()">Submit Message</div>
+              <div class="action-button" (click)="goBack()">Return to Participant Details</div>
+              <div class="action-button" (click)="exitApp()">Sign Out/Exit App</div>
+            </div>
           </ion-card-content>
         </ion-card>
