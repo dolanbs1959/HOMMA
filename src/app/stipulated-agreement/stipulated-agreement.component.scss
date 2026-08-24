@@ -84,10 +84,9 @@ ion-label {
 }
 
 .action-button-grid {
-   background: transparent !important;
+  background: transparent !important;
   box-shadow: none !important;
   border: none !important;
-  --background: transparent;
   --ion-grid-column-padding: 6px;
   padding-left: 8px;
   padding-right: 8px;
@@ -99,32 +98,40 @@ ion-label {
   ion-col {
     display: flex;
   }
-
-  ion-button {
-    width: 100%;
-    height: 54px;
-    margin: 0;
-
-    /* IMPORTANT: no background on the ion-button host */
-    background: transparent !important;
-    padding: 0;
-
-    --border-radius: 10px;
-    --color: #fff;
-    --box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
-  }
-
-  .save-btn {
-    --background: #3d82f6;
-  }
-
-.back-btn {
-  --background: #ef4056 !important;
-  --background-hover: #ef4056 !important;
-  --background-activated: #ef4056 !important;
-  --background-focused: #ef4056 !important;
-  --color: #fff !important;
 }
+
+.pay-button {
+  width: 100%;
+  height: 48px;
+  margin: 0;
+  border: 2px solid #4194ab;
+  border-radius: 8px;
+  background: var(--ion-color-step-150, #ffffff);
+  color: #4194ab;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:active:not(:disabled) {
+    background: #4194ab;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+body.dark .pay-button {
+  background: var(--ion-card-background, #1e1e1e);
+  color: #4194ab;
+  border-color: #4194ab;
 }
 
 @media (max-width: 575px) {

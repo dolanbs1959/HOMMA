@@ -8,7 +8,16 @@ const routes: Routes = [
     path: '',
     component: HomePage,
     },
-    {path: 'resident-detail/:id', component: ResidentDetailComponent},
+    {
+      path: 'resident-detail/:id',
+      component: ResidentDetailComponent,
+      children: [
+        {
+          path: 'payments',
+          loadChildren: () => import('../placeholder/placeholder.module').then(m => m.PlaceholderPageModule)
+        }
+      ]
+    },
 ];
 
 @NgModule({

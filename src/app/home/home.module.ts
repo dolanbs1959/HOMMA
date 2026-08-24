@@ -6,6 +6,7 @@ import { HomePage } from './home.page';
 import { ResidentDetailComponent } from '../resident-detail/resident.detail';
 import { ResidentUpdateComponent } from '../residentupdate/residentupdate.component';
 import { ObservationReportComponent } from '../observationreport/observationreport.component';
+import { ResidentSearchComponent } from '../resident-search/resident-search.component';
 import { StripHtmlPipe } from '../pipes/strip-html.pipe';
 
 import { HomePageRoutingModule } from './home-routing.module';
@@ -24,6 +25,7 @@ import { ReformatPipeModule } from '../reformat-pipe/reformat-pipe.module';
   declarations: [
     HomePage, 
     ResidentDetailComponent,
+    ResidentSearchComponent,
     StripHtmlPipe,
 //    ResidentUpdateComponent,
 //    ObservationReportComponent,

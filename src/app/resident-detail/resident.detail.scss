@@ -1,10 +1,9 @@
-// File: resident.detail.scss
 ion-header {
-    --ion-background-color: #4194ab !important; /* Header background color */
-    --ion-color-base: #fff !important; /* Text color */
+    --ion-background-color: #4194ab !important;
+    --ion-color-base: #fff !important;
   }
   ion-title {
-    --ion-color-base: #fff !important; /* Text color */
+    --ion-color-base: #fff !important;
     font-size: 16px;
   }
   ion-card-header {
@@ -21,9 +20,8 @@ ion-header {
   }
   
   ion-card-subtitle {
-    --ion-color-base: #fff !important; /* Text color */
+    --ion-color-base: #fff !important;
     font-size: 10px;
-    padding-top: 10;
     margin-top: 5px;
   }
   ion-card-title {
@@ -65,27 +63,8 @@ ion-header {
       }
     }
   
-    .ion-activatable {
-      margin-bottom: 10px;
-    }
     .phone-link {
       margin-bottom: 10px;
-    }
-  
-    // Ripple effect styles
-      .ripple-effect-blue {
-      color: #010384;
-    }
-    .ripple-effect-green {
-      color: #08782a;
-    }
-    
-    .ripple-effect-lightblue {
-      color: #00c8ff;
-    }
-    
-    .ripple-effect-red {
-      color: #980707;
     }
 
     .wrapper {
@@ -94,7 +73,8 @@ ion-header {
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 20px;
+      gap: 12px;
+      padding: 16px 20px;
       box-sizing: border-box;
     }
         
@@ -102,42 +82,12 @@ ion-header {
       width: 100%;
     }
     
-    .ripple-parent {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #4194ab;
-      width: 100%;
-      border-radius: 8px;
-    }
-    
-    
-    .rounded-rectangle {
-      width: 80%;
-      max-width: 300px;
-      height: auto;
-      min-height: 50px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 10px;
-      box-sizing: border-box;
-    }
+
     
 
     .scrollable-content {
-      max-height: 80vh; /* Adjust as needed */
+      max-height: 80vh;
       overflow-y: auto;
-    }
-
-    .wrapper {
-      gap: 12px;
-      padding: 16px 20px;
     }
 
     .action-button {
@@ -181,7 +131,6 @@ ion-header {
       color: #4194ab;
       border-color: #4194ab;
     }
-    /* Style for HOM Bulletin Board title */
 .bulletin-title {
   text-align: center; /* Center the title */
   font-size: 1.5rem; /* Adjust font size */
@@ -190,7 +139,6 @@ ion-header {
   padding: 10px; /* Add some padding */
 }
 
-/* Style for announcement card */
 .announcement-card {
   border: 2px solid #3498db; /* Add a blue border */
   border-radius: 10px; /* Round the corners */
@@ -199,10 +147,6 @@ ion-header {
   overflow-y: auto;
 }
 
-/*
- * Dark Mode Support
- * -----------------
- */
 body.dark {
   // Grid and column text visibility
   ion-grid.main {
@@ -300,12 +244,10 @@ body.dark {
     color: #ff6b6b !important; // Red that works in dark mode
   }
 
-  // Thumbnail borders
   .thumbnail {
     border: 1px solid var(--ion-color-step-200);
   }
   
-  // Comprehensive button overrides for resident detail page
   ion-button, .button, button {
     color: var(--ion-text-color) !important;
     --color: var(--ion-text-color) !important;
@@ -528,4 +470,34 @@ ion-footer .resident-tab-nav {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.staff-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.staff-avatar {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.staff-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hom-logo {
+  max-height: 80px;
+  margin: 10px 0 0;
+}
+
+.header-icon {
+  width: 28px;
+  height: 28px;
 }

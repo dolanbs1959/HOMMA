@@ -1,5 +1,4 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { ModalController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import { QuickbaseService } from '../services/quickbase.service';
@@ -35,7 +34,6 @@ export class ResidentSearchComponent implements OnInit {
 
   constructor(
     private quickbaseService: QuickbaseService,
-    private modalCtrl: ModalController,
     private logger: LoggerService,
     private router: Router,
     private userService: UserService,
@@ -43,24 +41,6 @@ export class ResidentSearchComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (this.initialQuery) this.query = this.initialQuery;
-    if (this.initialResults && this.initialResults.length) {
-      this.results = this.initialResults;
-    } else {
-      const last = this.quickbaseService.getLastResidentSearch();
-      if (last && last.results && last.results.length) {
-        this.query = this.query || last.query || '';
-        this.results = last.results;
-      }
-    }
-
-    const last = this.quickbaseService.getLastResidentSearch();
-    const preSelected = this.initialSelectedResident || (last?.openOnReturn ? last.selectedResident : undefined);
-    if (preSelected) {
-      this.selectedResident = preSelected;
-      this.panelOpen = true;
-    }
-
     this.search$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -76,10 +56,54 @@ export class ResidentSearchComponent implements OnInit {
     const isParticipantStaff = this.userService.isStaffUser();
     const isHouseLeaderLoginStaff = !!this.quickbaseService.currentStaffRole && this.quickbaseService.currentStaffRole !== 'House Leader';
     this.canShowStipulated = isParticipantStaff || isHouseLeaderLoginStaff;
+
+    this.restoreFromCache();
   }
 
-  async close() {
-    try { await this.modalCtrl.dismiss(); } catch (e) {}
+  restoreFromCache(): void {
+    const last = this.quickbaseService.getLastResidentSearch();
+    const staff = this.userService.getParticipantInfo();
+    console.log('[ResidentSearch] restoreFromCache', {
+      staffId: staff?.recordId,
+      staffName: staff?.fullName,
+      initialSelectedId: this.initialSelectedResident?.recordNumber2?.value || this.initialSelectedResident?.recordNumber || 'none',
+      initialSelectedName: this.initialSelectedResident?.residentFullName?.value || this.initialSelectedResident?.residentFullName || this.initialSelectedResident?.residentName || 'none',
+      lastOpenOnReturn: last?.openOnReturn,
+      lastSelectedId: last?.selectedResident?.recordNumber2?.value || last?.selectedResident?.recordNumber || 'none',
+      lastSelectedName: last?.selectedResident?.residentFullName?.value || last?.selectedResident?.residentFullName || last?.selectedResident?.residentName || 'none'
+    });
+    if (this.initialQuery) {
+      this.query = this.initialQuery;
+    } else if (last?.query) {
+      this.query = last.query;
+    }
+    if (this.initialResults && this.initialResults.length) {
+      this.results = this.initialResults;
+    } else if (last?.results && last.results.length) {
+      this.results = last.results;
+    }
+    const preSelected = this.initialSelectedResident || last?.selectedResident;
+    if (preSelected) {
+      this.selectedResident = preSelected;
+      this.panelOpen = this.initialPanelOpen || true;
+      console.log('[ResidentSearch] restoreFromCache preSelected set', {
+        preSelectedId: this.selectedResident?.recordNumber2?.value || this.selectedResident?.recordNumber || 'none',
+        preSelectedName: this.selectedResident?.residentFullName?.value || this.selectedResident?.residentFullName || this.selectedResident?.residentName || 'none'
+      });
+    }
+    if (last?.openOnReturn) {
+      last.openOnReturn = false;
+    }
+  }
+
+  resetSearch(): void {
+    this.query = '';
+    this.results = [];
+    this.selectedResident = null;
+    this.selectedIsPending = false;
+    this.panelOpen = false;
+    this.quickbaseService.clearLastResidentSearch();
+    console.log('[ResidentSearch] resetSearch - cleared');
   }
 
   onInput(ev: any) {
@@ -124,6 +148,13 @@ export class ResidentSearchComponent implements OnInit {
   }
 
   selectResident(resident: any, isPending: boolean = false) {
+    const staff = this.userService.getParticipantInfo();
+    console.log('[ResidentSearch] selectResident called', {
+      staffId: staff?.recordId,
+      staffName: staff?.fullName,
+      residentId: resident?.recordNumber2?.value || resident?.recordNumber || 'none',
+      residentName: resident?.residentFullName?.value || resident?.residentFullName || resident?.residentName || 'none'
+    });
     if (this.selectedResident === resident && this.selectedIsPending === isPending) {
       this.deselect();
       return;
@@ -136,6 +167,10 @@ export class ResidentSearchComponent implements OnInit {
         this.selectedIsPending = isPending;
         this.panelOpen = true;
         this.quickbaseService.setLastResidentSearch(this.query, this.results, this.selectedResident, false);
+        console.log('[ResidentSearch] selectResident set', {
+          residentId: this.selectedResident?.recordNumber2?.value || this.selectedResident?.recordNumber || 'none',
+          residentName: this.selectedResident?.residentFullName?.value || this.selectedResident?.residentFullName || this.selectedResident?.residentName || 'none'
+        });
       }, this.panelTransitionMs);
       return;
     }
@@ -145,6 +180,10 @@ export class ResidentSearchComponent implements OnInit {
     setTimeout(() => {
       this.panelOpen = true;
       this.quickbaseService.setLastResidentSearch(this.query, this.results, this.selectedResident, false);
+      console.log('[ResidentSearch] selectResident set', {
+        residentId: this.selectedResident?.recordNumber2?.value || this.selectedResident?.recordNumber || 'none',
+        residentName: this.selectedResident?.residentFullName?.value || this.selectedResident?.residentFullName || this.selectedResident?.residentName || 'none'
+      });
     }, 0);
   }
 
@@ -200,32 +239,40 @@ export class ResidentSearchComponent implements OnInit {
 
   async addObservation() {
     if (!this.selectedResident) { return; }
-    try { await this.modalCtrl.dismiss(); } catch (e) {}
-    this.router.navigate(['/observation-report'], { state: { residentData: this.selectedResident, fromSearch: true } }).catch(err => console.error('ResidentSearch.addObservation - navigation error', err));
+    try {
+      await this.router.navigate(['/observation-report'], { state: { residentData: this.selectedResident, fromSearch: true } });
+    } catch (err) {
+      console.error('ResidentSearch.addObservation - navigation error', err);
+    }
   }
 
   async addResidentUpdate() {
     if (!this.selectedResident) { return; }
-    try { await this.modalCtrl.dismiss(); } catch (e) {}
-    this.router.navigate(['/resident-update', this.normalizedId], { state: { residentData: this.selectedResident, fromSearch: true } }).catch(err => console.error('ResidentSearch.addResidentUpdate - navigation error', err));
+    try {
+      await this.router.navigate(['/resident-update', this.normalizedId], { state: { residentData: this.selectedResident, fromSearch: true } });
+    } catch (err) {
+      console.error('ResidentSearch.addResidentUpdate - navigation error', err);
+    }
   }
 
   async openStipulatedAgreement() {
     if (!this.selectedResident) { return; }
-    try { await this.modalCtrl.dismiss(); } catch (e) {}
     const r = this.selectedResident || {};
     const participantName = (r.residentFullName && (r.residentFullName.value || r.residentFullName)) || r.residentName || r.name || 'Unknown Participant';
     const participantId = r.recordNumber2?.value || r.recordNumber2 || r.recordNumber || this.normalizedId || '';
     const theHouseName = this.theHouseName || r.houseName?.value || r.houseName || '';
-    this.router.navigate(['/stipulated-agreement'], {
-      queryParams: { participantName, participantId, theHouseName, houseLeaderName: this.houseLeaderName || '' },
-      state: { residentData: this.selectedResident, fromSearch: true }
-    }).catch(err => console.error('ResidentSearch.openStipulatedAgreement - navigation error', err));
+    try {
+      await this.router.navigate(['/stipulated-agreement'], {
+        queryParams: { participantName, participantId, theHouseName, houseLeaderName: this.houseLeaderName || '' },
+        state: { residentData: this.selectedResident, fromSearch: true }
+      });
+    } catch (err) {
+      console.error('ResidentSearch.openStipulatedAgreement - navigation error', err);
+    }
   }
 
   async addParticipantOneOnOne() {
     if (!this.selectedResident) { return; }
-    try { await this.modalCtrl.dismiss(); } catch (e) {}
     const r = this.selectedResident;
     const participantName = r.residentFullName && (r.residentFullName.value || r.residentFullName) || r.residentName || r.name || 'Unknown Participant';
     const residentPhoto = r.residentPhoto || null;
@@ -265,13 +312,16 @@ export class ResidentSearchComponent implements OnInit {
       houseLeaderName: this.houseLeaderName
     };
 
-    this.router.navigate(['/participant-reviews'], { queryParams, state: { residentData: this.selectedResident, fromSearch: true } }).catch(err => console.error('ResidentSearch.addParticipantOneOnOne - navigation error', err));
+    try {
+      await this.router.navigate(['/participant-reviews'], { queryParams, state: { residentData: this.selectedResident, fromSearch: true } });
+    } catch (err) {
+      console.error('ResidentSearch.addParticipantOneOnOne - navigation error', err);
+    }
   }
 
   async addTransportRequest() {
     if (!this.selectedResident) { return; }
     const resolvedHouseLeaderRecordId = this.resolveHouseLeaderRecordId();
-    try { await this.modalCtrl.dismiss(); } catch (e) {}
     const queryParams: any = {
       participantName: this.normalizedName,
       participantId: this.normalizedId,
@@ -279,22 +329,29 @@ export class ResidentSearchComponent implements OnInit {
       houseLeaderName: this.houseLeaderName || '',
       houseLeaderRecordId: resolvedHouseLeaderRecordId || ''
     };
-    this.router.navigate(['/transportation'], {
-      queryParams,
-      state: {
-        residentData: this.selectedResident,
-        fromSearch: true,
-        houseLeaderRecordId: resolvedHouseLeaderRecordId || '',
-        houseLeaderName: this.houseLeaderName || '',
-        theHouseName: this.theHouseName
-      }
-    }).catch(err => console.error('ResidentSearch.addTransportRequest - navigation error', err));
+    try {
+      await this.router.navigate(['/transportation'], {
+        queryParams,
+        state: {
+          residentData: this.selectedResident,
+          fromSearch: true,
+          houseLeaderRecordId: resolvedHouseLeaderRecordId || '',
+          houseLeaderName: this.houseLeaderName || '',
+          theHouseName: this.theHouseName
+        }
+      });
+    } catch (err) {
+      console.error('ResidentSearch.addTransportRequest - navigation error', err);
+    }
   }
 
   async registerForMeeting() {
     if (!this.selectedResident) { return; }
-    try { await this.modalCtrl.dismiss(); } catch (e) {}
-    this.router.navigate(['/registrations'], { state: { residentData: this.selectedResident, fromSearch: true } }).catch(err => console.error('ResidentSearch.registerForMeeting - navigation error', err));
+    try {
+      await this.router.navigate(['/registrations'], { state: { residentData: this.selectedResident, fromSearch: true } });
+    } catch (err) {
+      console.error('ResidentSearch.registerForMeeting - navigation error', err);
+    }
   }
 
   async viewResident(resident: any) {
@@ -317,10 +374,6 @@ export class ResidentSearchComponent implements OnInit {
       const keysToNormalize = ['residentFullName','residentPhone','residentDOB','residentAge','Room','Bed','ParticipantStatus','houseName','houseLeaderName','houseLeaderPhone','recordNumber2','recordNumber','residentCCOfirst','residentCCOlast','residentCCOphone','residentCCOmobile','CareMgrName','ProgMgrName','ProgDirName'];
       keysToNormalize.forEach(k => ensureObjectValue(residentClone, k));
 
-      await this.modalCtrl.dismiss();
-      // Small delay to allow Ionic overlay dismissal and focus restoration
-      await new Promise(r => setTimeout(r, 50));
-
       const navState: any = {
         residentData: residentClone,
         fromSearch: true,
@@ -334,9 +387,8 @@ export class ResidentSearchComponent implements OnInit {
 
       // Determine normalized ID value
       const idVal = (residentClone.recordNumber2 && (residentClone.recordNumber2.value || residentClone.recordNumber2)) || residentClone.recordNumber || '';
-      this.router.navigate(['/home/resident-detail', idVal], { state: navState }).then(() => {
-        console.log('ResidentSearch.viewResident - navigation initiated', { state: navState.theHouseName, id: idVal });
-      }).catch(err => console.error('ResidentSearch.viewResident - navigation error', err));
+      await this.router.navigate(['/home/resident-detail', idVal], { state: navState });
+      console.log('ResidentSearch.viewResident - navigation initiated', { state: navState.theHouseName, id: idVal });
     } catch (e) {
       this.logger.error('Error navigating to resident detail from search', e);
     }

@@ -165,6 +165,11 @@ export class StipulatedAgreementComponent implements OnInit {
     // Preserve the originating navigation context. If the agreement was opened
     // from the participant search modal, flag the search session to reopen and
     // go back to the previous page (ResidentDetail / staff participant login).
+    console.log('[StipulatedAgreement] goBack called', {
+      fromSearch: this.fromSearch,
+      residentId: this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || 'none',
+      residentName: this.residentData?.residentFullName?.value || this.residentData?.residentFullName || this.residentData?.residentName || 'none'
+    });
     if (this.fromSearch) {
       const last = this.quickbaseService.getLastResidentSearch();
       this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);

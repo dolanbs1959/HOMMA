@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { QuickbaseService } from '../services/quickbase.service';
 
 @Component({
@@ -12,6 +13,7 @@ export class PlaceholderPage implements OnInit {
   residents$ = this.quickbaseService.residentData.asObservable();
   selectedResident: any = null;
   isParticipant = false;
+  fromSearch = false;
   theHouseName = '';
   filteredPayments: any[] = [];
   title = 'Payments';
@@ -20,7 +22,8 @@ export class PlaceholderPage implements OnInit {
   constructor(
     private quickbaseService: QuickbaseService,
     private sanitizer: DomSanitizer,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) {}
 
   ngOnInit() {
@@ -34,6 +37,7 @@ export class PlaceholderPage implements OnInit {
       this.selectedResident = state.selectedResident;
     }
     this.isParticipant = !!state?.isParticipant;
+    this.fromSearch = !!state?.fromSearch;
     this.theHouseName = state?.theHouseName || '';
 
     if (this.isParticipant && this.theHouseName && !this.quickbaseService.invoicePayments.value) {
@@ -45,6 +49,10 @@ export class PlaceholderPage implements OnInit {
     this.quickbaseService.invoicePayments.asObservable().subscribe(() => {
       this.filterPayments();
     });
+  }
+
+  goBack() {
+    this.location.back();
   }
 
   payNow() {

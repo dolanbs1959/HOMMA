@@ -1,17 +1,5 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Active Participant Search</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="close()">Close</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content>
-  <ion-searchbar placeholder="Search by full name" [(ngModel)]="query" (ionInput)="onInput($event)" animated></ion-searchbar>
-  <div class="search-actions">
-    <div class="action-button" (click)="search()">Search</div>
-  </div>
+<div class="resident-search-in-page" [class.has-open-panel]="panelOpen">
+  <ion-searchbar placeholder="Begin typing a name and the results will display below." [(ngModel)]="query" (ionInput)="onInput($event)" (ionClear)="resetSearch()" animated></ion-searchbar>
   <ion-list *ngIf="results && results.length > 0">
     <ion-card *ngFor="let r of results" [class.selected]="selectedResident === r" (click)="selectResident(r, false)">
       <ion-item>
@@ -25,7 +13,6 @@
             <span *ngIf="(r.ParticipantStatus?.value || r.ParticipantStatus)"> • {{ r.ParticipantStatus?.value || r.ParticipantStatus }}</span>
           </p>
         </ion-label>
-        <!-- View Vitals removed: tapping the card now opens the resident actions popover -->
       </ion-item>
     </ion-card>
   </ion-list>
@@ -37,54 +24,54 @@
   <div *ngIf="!isLoading && results && results.length === 0 && query.length >= 2" class="no-results">
     No residents found
   </div>
-</ion-content>
 
-<ion-footer *ngIf="selectedResident" class="participant-actions-footer" [class.is-open]="panelOpen">
-  <div class="action-panel">
-    <div class="selected-resident-summary">
-      <ng-container *ngIf="!selectedIsPending && selectedResident.residentPhoto; else genericAvatar">
-        <ion-avatar class="selected-avatar">
-          <img [src]="selectedResident.residentPhoto" alt="Resident Photo">
-        </ion-avatar>
-      </ng-container>
-      <ng-template #genericAvatar>
-        <ion-icon name="person-circle" class="generic-avatar" color="light"></ion-icon>
-      </ng-template>
-      <div class="selected-resident-info">
-        <h2>{{ selectedResident.residentFullName?.value || selectedResident.residentFullName }}</h2>
-        <p>{{ theHouseName || (selectedResident.houseName?.value || selectedResident.houseName) }}</p>
+  <div *ngIf="selectedResident" class="participant-actions-footer" [class.is-open]="panelOpen">
+    <div class="action-panel">
+      <div class="selected-resident-summary">
+        <ng-container *ngIf="!selectedIsPending && selectedResident.residentPhoto; else genericAvatar">
+          <ion-avatar class="selected-avatar">
+            <img [src]="selectedResident.residentPhoto" alt="Resident Photo">
+          </ion-avatar>
+        </ng-container>
+        <ng-template #genericAvatar>
+          <ion-icon name="person-circle" class="generic-avatar" color="light"></ion-icon>
+        </ng-template>
+        <div class="selected-resident-info">
+          <h2>{{ selectedResident.residentFullName?.value || selectedResident.residentFullName }}</h2>
+          <p>{{ theHouseName || (selectedResident.houseName?.value || selectedResident.houseName) }}</p>
+        </div>
       </div>
-    </div>
 
-    <div class="action-bar">
-      <div *ngIf="!selectedIsPending" class="action-tab" (click)="gotoVitals()">
-        <ion-icon name="fitness-outline"></ion-icon>
-        <ion-label>Vitals</ion-label>
-      </div>
-      <div *ngIf="!selectedIsPending" class="action-tab" (click)="addObservation()">
-        <ion-icon name="eye-outline"></ion-icon>
-        <ion-label>Observation</ion-label>
-      </div>
-      <div class="action-tab" (click)="addResidentUpdate()">
-        <ion-icon name="create-outline"></ion-icon>
-        <ion-label>Update</ion-label>
-      </div>
-      <div *ngIf="!selectedIsPending" class="action-tab" (click)="addParticipantOneOnOne()">
-        <ion-icon name="chatbubbles-outline"></ion-icon>
-        <ion-label>1-on-1</ion-label>
-      </div>
-      <div *ngIf="!selectedIsPending && canShowStipulated" class="action-tab" (click)="openStipulatedAgreement()">
-        <ion-icon name="document-text-outline"></ion-icon>
-        <ion-label>Agreement</ion-label>
-      </div>
-      <div *ngIf="!selectedIsPending" class="action-tab" (click)="registerForMeeting()">
-        <ion-icon name="calendar-outline"></ion-icon>
-        <ion-label>Classes</ion-label>
-      </div>
-      <div class="action-tab" (click)="addTransportRequest()">
-        <ion-icon name="car-outline"></ion-icon>
-        <ion-label>Transport</ion-label>
+      <div class="action-bar">
+        <div *ngIf="!selectedIsPending" class="action-tab" (click)="gotoVitals()">
+          <ion-icon name="fitness-outline"></ion-icon>
+          <ion-label>Vitals</ion-label>
+        </div>
+        <div *ngIf="!selectedIsPending" class="action-tab" (click)="addObservation()">
+          <ion-icon name="eye-outline"></ion-icon>
+          <ion-label>Observation</ion-label>
+        </div>
+        <div class="action-tab" (click)="addResidentUpdate()">
+          <ion-icon name="create-outline"></ion-icon>
+          <ion-label>Update</ion-label>
+        </div>
+        <div *ngIf="!selectedIsPending" class="action-tab" (click)="addParticipantOneOnOne()">
+          <ion-icon name="chatbubbles-outline"></ion-icon>
+          <ion-label>1-on-1</ion-label>
+        </div>
+        <div *ngIf="!selectedIsPending && canShowStipulated" class="action-tab" (click)="openStipulatedAgreement()">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <ion-label>Agreement</ion-label>
+        </div>
+        <div *ngIf="!selectedIsPending" class="action-tab" (click)="registerForMeeting()">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <ion-label>Classes</ion-label>
+        </div>
+        <div class="action-tab" (click)="addTransportRequest()">
+          <ion-icon name="car-outline"></ion-icon>
+          <ion-label>Transport</ion-label>
+        </div>
       </div>
     </div>
   </div>
-</ion-footer>
+</div>

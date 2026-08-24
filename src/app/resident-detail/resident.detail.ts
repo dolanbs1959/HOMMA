@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QuickbaseService } from '../services/quickbase.service';
 import { ThemeService } from '../services/theme.service';
@@ -11,7 +11,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PhotoStorageService } from '../services/photoProcessing.service';
 import { PopoverController } from '@ionic/angular';
 import { ResidentActionsComponent } from '../resident-actions/resident-actions.component';
-import { ModalController } from '@ionic/angular';
 import { ResidentSearchComponent } from '../resident-search/resident-search.component';
 
 @Component({
@@ -21,6 +20,7 @@ import { ResidentSearchComponent } from '../resident-search/resident-search.comp
 })
 
 export class ResidentDetailComponent  implements OnInit {
+  @ViewChild('residentSearch', { static: false }) residentSearch!: ResidentSearchComponent;
   residentData: any;
   theHouseName: string = '';
   houseLeaderName: string = '';
@@ -45,8 +45,7 @@ export class ResidentDetailComponent  implements OnInit {
     private quickbaseService: QuickbaseService,
     private userService: UserService,
     public themeService: ThemeService,
-    private popoverCtrl: PopoverController,
-    private modalCtrl: ModalController
+    private popoverCtrl: PopoverController
   ) { 
   }
 
@@ -313,10 +312,11 @@ payNow() {
     delete selectedResident.residentPhoto;
   }
 
-  if (this.isResident) {
+  const isParticipantView = this.isResident || this.searchSessionExists;
+  if (isParticipantView) {
     this.router.navigate(['payments'], {
       relativeTo: this.route,
-      state: { selectedResident, isParticipant: true, theHouseName: this.theHouseName }
+      state: { selectedResident, isParticipant: true, theHouseName: this.theHouseName, fromSearch: this.searchSessionExists }
     });
     return;
   }
@@ -368,11 +368,7 @@ addObservationReport() {
   }
 
   goBack() {
-    if (this.searchSessionExists) {
-      this.goBackToSearch();
-    } else {
-      this.location.back();
-    }
+    this.location.back();
   }
 
   ngOnInit(): void {
@@ -547,49 +543,20 @@ addObservationReport() {
     this.router.navigate(['/expense-receipt']);
   }
 
-  async openResidentSearch() {
-    try {
-      const modal = await this.modalCtrl.create({
-        component: ResidentSearchComponent,
-        componentProps: {
-          initialQuery: this.searchQuery || '',
-          initialResults: this.searchResults || []
-        },
-        cssClass: 'resident-search-modal'
-      });
-      await modal.present();
-    } catch (e) {
-      console.error('Failed to open resident search', e);
-    }
-  }
-
-  async goBackToSearch() {
-    const last = this.quickbaseService.getLastResidentSearch();
-    const initialSelected = this.residentData || last?.selectedResident;
-    const initialResults = this.searchResults && this.searchResults.length ? this.searchResults : (last?.results || []);
-    try {
-      const modal = await this.modalCtrl.create({
-        component: ResidentSearchComponent,
-        componentProps: {
-          initialQuery: this.searchQuery || last?.query || '',
-          initialResults: initialResults,
-          initialSelectedResident: initialSelected,
-          initialPanelOpen: !!initialSelected
-        },
-        cssClass: 'resident-search-modal'
-      });
-      await modal.present();
-    } catch (e) {
-      console.error('Failed to reopen resident search', e);
-    }
-  }
-
   async ionViewWillEnter() {
     const last = this.quickbaseService.getLastResidentSearch();
-    if (last?.openOnReturn) {
-      last.openOnReturn = false;
-      this.goBackToSearch();
-    }
+    const staff = this.userService.getParticipantInfo();
+    console.log('[ResidentDetail] ionViewWillEnter', {
+      currentUrl: this.router.url,
+      staffId: staff?.recordId,
+      staffName: staff?.fullName,
+      residentDataId: this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || 'none',
+      residentDataName: this.residentData?.residentFullName?.value || this.residentData?.residentFullName || this.residentData?.residentName || 'none',
+      lastOpenOnReturn: last?.openOnReturn,
+      lastSelectedId: last?.selectedResident?.recordNumber2?.value || last?.selectedResident?.recordNumber || 'none',
+      lastSelectedName: last?.selectedResident?.residentFullName?.value || last?.selectedResident?.residentFullName || last?.selectedResident?.residentName || 'none'
+    });
+    this.residentSearch?.restoreFromCache();
   }
   
   clearCache() {

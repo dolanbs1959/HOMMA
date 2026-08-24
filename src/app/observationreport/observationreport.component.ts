@@ -212,8 +212,17 @@ resetForm() {
 }
 
   goBack() {
+    console.log('[ObservationReport] goBack called', {
+      fromSearch: this.fromSearch,
+      residentId: this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || 'none',
+      residentName: this.residentData?.residentFullName?.value || this.residentData?.residentFullName || this.residentData?.residentName || 'none'
+    });
     if (this.fromSearch) {
       const last = this.quickbaseService.getLastResidentSearch();
+      console.log('[ObservationReport] goBack storing resident', {
+        lastSelectedId: last?.selectedResident?.recordNumber2?.value || last?.selectedResident?.recordNumber || 'none',
+        storingResidentId: this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || 'none'
+      });
       this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
     }
     this.location.back();

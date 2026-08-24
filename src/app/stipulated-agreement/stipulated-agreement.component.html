@@ -164,27 +164,20 @@
   </ion-card>
 
   <ion-grid class="action-button-grid ion-no-padding">
-  <ion-row>
-    <ion-col size="12" size-sm="6">
-      <ion-button
-        class="save-btn"
-        expand="block"
-        [disabled]="!isSaveEnabled"
-        (click)="generateAndSend()">
-        Save Stipulated Agreement
-      </ion-button>
-    </ion-col>
+    <ion-row>
+      <ion-col size="12" size-sm="6">
+        <button type="button" class="pay-button" [disabled]="!isSaveEnabled" (click)="generateAndSend()">
+          Save Stipulated Agreement
+        </button>
+      </ion-col>
 
-    <ion-col size="12" size-sm="6">
-      <ion-button
-        class="back-btn"
-        expand="block"
-        (click)="backToSearch()">
-        {{ fromSearch ? 'Back to Search Results' : 'Back to Participants' }}
-      </ion-button>
-    </ion-col>
-  </ion-row>
-</ion-grid>
+      <ion-col size="12" size-sm="6">
+        <button type="button" class="pay-button" (click)="backToSearch()">
+          {{ fromSearch ? 'Back to Search Results' : 'Back to Participants' }}
+        </button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 
   <div class="form-note">
     This will generate the agreement as a PDF and email it to the participant.

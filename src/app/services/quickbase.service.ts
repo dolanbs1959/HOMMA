@@ -440,6 +440,9 @@ export class QuickbaseService {
 
   // Last resident search helpers (support back-navigation UX)
   setLastResidentSearch(query: string, results: any[], selectedResident?: any, openOnReturn?: boolean): void {
+    const selectedId = selectedResident?.recordNumber2?.value || selectedResident?.recordNumber || 'none';
+    const selectedName = selectedResident?.residentFullName?.value || selectedResident?.residentFullName || selectedResident?.residentName || 'none';
+    console.log('[Quickbase] setLastResidentSearch', { query, resultsCount: results?.length || 0, selectedId, selectedName, openOnReturn });
     this._lastResidentSearch = { query, results, selectedResident, openOnReturn };
   }
 

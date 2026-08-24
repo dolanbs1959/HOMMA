@@ -190,3 +190,19 @@ ion-card.selected ion-item {
     white-space: nowrap;
   }
 }
+
+.resident-search-in-page {
+  padding-bottom: 0;
+
+  &.has-open-panel {
+    padding-bottom: 140px;
+  }
+}
+
+.participant-actions-footer.is-open {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}

@@ -89,4 +89,8 @@
     <ion-spinner *ngIf="isPaying" name="crescent" class="pay-spinner"></ion-spinner>
     <span>{{ isPaying ? 'One moment please...' : 'PAY PROGRAM FEES or TITHES/OFFERING' }}</span>
   </button>
+
+  <button type="button" class="pay-button back-search-button" *ngIf="fromSearch" (click)="goBack()">
+    Back to Resident Details
+  </button>
 </ion-content>
