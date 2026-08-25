@@ -329,17 +329,22 @@ export class ResidentSearchComponent implements OnInit {
       houseLeaderName: this.houseLeaderName || '',
       houseLeaderRecordId: resolvedHouseLeaderRecordId || ''
     };
+
+    const navigationExtras: any = {
+      queryParams,
+      state: {
+        residentData: this.selectedResident,
+        fromSearch: true,
+        houseLeaderRecordId: resolvedHouseLeaderRecordId || '',
+        houseLeaderName: this.houseLeaderName || '',
+        theHouseName: this.theHouseName
+      }
+    };
+
+    const destination = this.userService.isStaffUser() ? '/transportation-history' : '/transportation';
+
     try {
-      await this.router.navigate(['/transportation'], {
-        queryParams,
-        state: {
-          residentData: this.selectedResident,
-          fromSearch: true,
-          houseLeaderRecordId: resolvedHouseLeaderRecordId || '',
-          houseLeaderName: this.houseLeaderName || '',
-          theHouseName: this.theHouseName
-        }
-      });
+      await this.router.navigate([destination], navigationExtras);
     } catch (err) {
       console.error('ResidentSearch.addTransportRequest - navigation error', err);
     }

@@ -201,11 +201,16 @@ export class ResidentDetailComponent  implements OnInit {
   }
 
   navigateToTransportation() {
-    const participantName = this.residentData.residentFullName.value;
-    const participantPhoto = this.residentData.residentPhoto;
-    const participantId = this.residentData.recordNumber2.value;
+    const participantName = this.residentData?.residentFullName?.value || '';
+    const participantPhoto = this.residentData?.residentPhoto;
+    const participantId = this.residentData?.recordNumber2?.value || this.residentData?.recordNumber;
     const resolvedHouseLeaderRecordId = this.resolveHouseLeaderRecordIdFromContext();
+    const isStaff = this.userService.isStaffUser();
+    const destination = isStaff ? '/transportation-history' : '/transportation';
+
     console.debug('ResidentDetail.navigateToTransportation', {
+      isStaff,
+      destination,
       participantName,
       participantId,
       theHouseName: this.theHouseName,
@@ -222,9 +227,17 @@ export class ResidentDetailComponent  implements OnInit {
       }
     } catch (e) {}
 
-    this.router.navigate(['/transportation'], {
+    this.router.navigate([destination], {
       queryParams: { participantName, participantId, theHouseName: this.theHouseName, houseLeaderName: this.houseLeaderName, houseLeaderRecordId: resolvedHouseLeaderRecordId },
-      state: { houseLeaderRecordId: resolvedHouseLeaderRecordId, houseLeaderName: this.houseLeaderName, theHouseName: this.theHouseName }
+      state: {
+        residentData: this.residentData,
+        fromSearch: this.searchSessionExists,
+        searchResults: this.searchResults,
+        searchQuery: this.searchQuery,
+        houseLeaderRecordId: resolvedHouseLeaderRecordId,
+        houseLeaderName: this.houseLeaderName,
+        theHouseName: this.theHouseName
+      }
     });
   }
 
@@ -367,6 +380,14 @@ addObservationReport() {
   }
 
   goBack() {
+    if (this.userService.isStaffUser() && this.searchSessionExists && this.residentData) {
+      this.quickbaseService.setLastResidentSearch(
+        this.searchQuery,
+        this.searchResults,
+        this.residentData,
+        true
+      );
+    }
     this.location.back();
   }
 

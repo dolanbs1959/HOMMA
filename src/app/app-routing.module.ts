@@ -63,6 +63,14 @@ const routes: Routes = [
     component: TransportationComponent
   },
   {
+    path: 'transportation-history',
+    loadChildren: () => import('./transportation-history/transportation-history.module').then(m => m.TransportationHistoryPageModule)
+  },
+  {
+    path: 'transportation-update',
+    loadChildren: () => import('./transportation-update/transportation-update.module').then(m => m.TransportationUpdatePageModule)
+  },
+  {
     path: 'participant-reviews',
     component: ParticipantReviewsComponent
   },

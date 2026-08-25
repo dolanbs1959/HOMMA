@@ -242,7 +242,9 @@ export class ResidentActionsComponent implements OnInit {
 
   async addTransportRequest() {
     const resolvedHouseLeaderRecordId = this.resolveHouseLeaderRecordId();
-    console.log('ResidentActions.addTransportRequest - navigating to transportation', {
+    const isStaff = this.userService.isStaffUser();
+    const destination = isStaff ? '/transportation-history' : '/transportation';
+    console.log(`ResidentActions.addTransportRequest - navigating to ${destination}`, {
       id: this.normalizedId,
       houseLeaderRecordId: resolvedHouseLeaderRecordId,
       houseLeaderName: this.houseLeaderName,
@@ -251,7 +253,6 @@ export class ResidentActionsComponent implements OnInit {
     await this.close();
     try { (document.activeElement as HTMLElement)?.blur(); } catch (e) {}
     await this.clearOverlays();
-    // Navigation uses query params so TransportationComponent can read them in ngOnInit
     const queryParams: any = {
       participantName: this.normalizedName,
       participantId: this.normalizedId,
@@ -260,9 +261,10 @@ export class ResidentActionsComponent implements OnInit {
       houseLeaderRecordId: resolvedHouseLeaderRecordId || ''
     };
     this.ngZone.run(() => {
-      this.router.navigate(['/transportation'], {
+      this.router.navigate([destination], {
         queryParams,
         state: {
+          residentData: this.residentOriginal || this.resident,
           fromSearch: this.fromSearchModal || false,
           houseLeaderRecordId: resolvedHouseLeaderRecordId || '',
           houseLeaderName: this.houseLeaderName || '',

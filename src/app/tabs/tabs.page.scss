@@ -119,3 +119,45 @@ ion-tab-button.participants-tab ion-label {
 .exit-symbol {
   font-size: 24px;
 }
+
+/* Responsive primary tab row: fit all tabs on wider mobile, scroll on very narrow */
+@media (max-width: 600px) {
+  ion-tab-bar {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  ion-tab-button {
+    flex: 1 0 0;
+    min-width: clamp(48px, calc(100% / 7), 168px);
+    --padding-start: 2px;
+    --padding-end: 2px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+
+    ion-label {
+      font-size: clamp(8px, 2vw, 12px);
+    }
+  }
+
+  ion-tab-button.participants-tab {
+    ion-icon {
+      font-size: clamp(20px, 5vw, 26px);
+    }
+
+    ion-label {
+      font-size: clamp(8px, 2vw, 13px);
+    }
+  }
+}

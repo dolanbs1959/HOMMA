@@ -892,6 +892,156 @@ insertActivity(activityData: any): Observable<any> {
     );
   }
 
+  /**
+   * Get all transportation records for a single resident.
+   */
+  getTransportationRecordsForResident(participantId: string): Observable<{ data: any[] }> {
+    this.trackApiCall('getTransportationRecordsForResident');
+    const escapedParticipantId = this.escapeForQuickbase(String(participantId));
+
+    const body = {
+      from: this.transportationTableId,
+      select: [3, 6, 7, 8, 9, 23, 31, 35, 42, 50, 51, 62, 63, 64, 65],
+      where: `{9.EX.'${escapedParticipantId}'}`,
+      sortBy: [
+        {
+          fieldId: 6,
+          order: 'DESC'
+        }
+      ],
+      options: {
+        skip: 0,
+        top: 0,
+        compareWithAppLocalTime: false
+      }
+    };
+
+    return this.getLocations().pipe(
+      switchMap((locations: any[]) =>
+        this.callQuickbaseProxy('POST', 'query', body).pipe(
+          map((response: any) => {
+            const dataArray = response?.data || [];
+            const mapped = dataArray.map((r: any) => {
+              const pickupId = this.parseNumberOrNull(r['31']);
+              const destinationId = this.parseNumberOrNull(r['35']);
+              const pickup = (locations || []).find((l: any) => l.id === pickupId || l.id == pickupId);
+              const destination = (locations || []).find((l: any) => l.id === destinationId || l.id == destinationId);
+              const startTime = this.normalizeFieldToString(r['62']);
+              const endTime = this.normalizeFieldToString(r['63']);
+              const beginningMileage = this.parseNumberOrNull(r['64']);
+              const endingMileage = this.parseNumberOrNull(r['65']);
+
+              return {
+                id: this.normalizeFieldToString(r['3']),
+                dateRequested: this.normalizeFieldToString(r['6']),
+                status: this.normalizeFieldToString(r['7']),
+                purpose: this.normalizeFieldToString(r['8']),
+                participantId: this.normalizeFieldToString(r['9']),
+                notes: this.normalizeFieldToString(r['23']),
+                pickupId,
+                pickupName: pickup ? pickup.name : (pickupId !== null ? String(pickupId) : ''),
+                destinationId,
+                destinationName: destination ? destination.name : (destinationId !== null ? String(destinationId) : ''),
+                requestedBy: this.parseNumberOrNull(r['42']),
+                houseName: this.normalizeFieldToString(r['50']),
+                houseLeaderName: this.normalizeFieldToString(r['51']),
+                startTime,
+                endTime,
+                beginningMileage,
+                endingMileage,
+                travelTime: this.calculateTravelTime(startTime, endTime),
+                distance: this.calculateMileageDistance(beginningMileage, endingMileage)
+              };
+            });
+            return { data: mapped };
+          }),
+          catchError(error => {
+            this.logger.error('Error fetching transportation records for resident', error);
+            return of({ data: [] });
+          })
+        )
+      )
+    );
+  }
+
+  /**
+   * Convert a Quickbase numeric field to a number, or null if empty.
+   */
+  private parseNumberOrNull(field: any): number | null {
+    const str = this.normalizeFieldToString(field);
+    if (str === '' || str === null || str === undefined) { return null; }
+    const n = Number(str);
+    return Number.isNaN(n) ? null : n;
+  }
+
+  /**
+   * Parse a Quickbase time-of-day value to total minutes from midnight.
+   */
+  private parseTimeOfDayToMinutes(value: any): number | null {
+    const str = this.normalizeFieldToString(value);
+    if (!str) { return null; }
+    const match = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+    if (!match) { return null; }
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[4] ? match[4].toUpperCase() : '';
+    if (ampm) {
+      if (ampm === 'PM' && hours !== 12) { hours += 12; }
+      if (ampm === 'AM' && hours === 12) { hours = 0; }
+    }
+    return (hours * 60) + minutes;
+  }
+
+  /**
+   * Calculate travel time display string from two time-of-day values.
+   */
+  private calculateTravelTime(start: string, end: string): string {
+    if (!start || !end) { return ''; }
+    const startMinutes = this.parseTimeOfDayToMinutes(start);
+    const endMinutes = this.parseTimeOfDayToMinutes(end);
+    if (startMinutes === null || endMinutes === null) { return ''; }
+    let duration = endMinutes - startMinutes;
+    if (duration < 0) { duration += 24 * 60; }
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
+    return `${hours} hrs ${minutes} mins`;
+  }
+
+  /**
+   * Calculate mileage distance display string from two numeric values.
+   */
+  private calculateMileageDistance(begin: number | null, end: number | null): string {
+    if (begin === null || end === null) { return ''; }
+    const distance = end - begin;
+    return `${distance < 0 ? 0 : distance} miles`;
+  }
+
+  /**
+   * Update an existing transportation record (FID 3 identifies the record).
+   */
+  updateTransportationRecord(recordId: number, data: any): Observable<any> {
+    this.logger.debug('Updating transportation record', { recordId, data });
+    const body = {
+      to: this.transportationTableId,
+      data: [
+        {
+          3: { value: recordId },
+          ...data
+        }
+      ],
+      fieldsToReturn: [3, 6, 7, 8, 9, 23, 31, 35, 42, 50, 51, 62, 63, 64, 65]
+    };
+    return this.callQuickbaseProxy('POST', 'records', body).pipe(
+      tap(response => {
+        this.logger.debug('Transportation record updated', response);
+      }),
+      catchError(error => {
+        this.logger.error('Error updating transportation record', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   // Fetch and cache locations table (pickup/destination names)
   getLocations(): Observable<any[]> {
     if (this.isCacheAvailable('locations')) {

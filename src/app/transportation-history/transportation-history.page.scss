@@ -1,0 +1,98 @@
+.small {
+  color: var(--ion-color-medium);
+  margin: 0;
+}
+
+.status {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
+  background: #e0e0e0;
+  color: #333;
+}
+
+.status-open {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-scheduled {
+  background: #d4edda;
+  color: #155724;
+}
+
+.indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  background: var(--ion-color-light);
+  color: var(--ion-color-dark);
+}
+
+.not-entered {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+
+  background: var(--ion-color-step-150, #ffffff);
+  color: #4194ab;
+
+  border: 2px solid #4194ab;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:active:not(.disabled) {
+    background: #4194ab;
+    color: #ffffff;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+body.dark .action-button {
+  background: var(--ion-card-background, #1e1e1e);
+  color: #4194ab;
+  border-color: #4194ab;
+}
+
+.calculated {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--ion-color-dark);
+
+  span {
+    display: inline-block;
+    margin-right: 0.75rem;
+  }
+}
+
+body.dark .calculated {
+  color: var(--ion-color-light);
+}

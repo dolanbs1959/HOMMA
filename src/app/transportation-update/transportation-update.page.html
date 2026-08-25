@@ -1,0 +1,158 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Update Transportation Request</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">Back</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" *ngIf="record; else noRecord">
+  <ion-card class="ion-text-center">
+    <ion-card-header>
+      <ion-card-subtitle *ngIf="residentName">Selected Resident</ion-card-subtitle>
+      <ion-card-title *ngIf="residentName">{{ residentName }}</ion-card-title>
+      <p *ngIf="theHouseName" class="small">{{ theHouseName }}</p>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header class="ion-text-center">
+      <ion-card-subtitle>Editing Existing Request</ion-card-subtitle>
+      <ion-card-title>Request #{{ record.id }}</ion-card-title>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card *ngIf="travelTimeDisplay || distanceDisplay">
+    <ion-card-content class="ion-text-center calculated">
+      <p *ngIf="travelTimeDisplay"><strong>Travel Time:</strong> {{ travelTimeDisplay }}</p>
+      <p *ngIf="distanceDisplay"><strong>Distance:</strong> {{ distanceDisplay }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-list [formGroup]="updateForm" *ngIf="updateForm">
+
+      <ion-item>
+        <ion-select label="Purpose:" formControlName="purpose" interface="action-sheet" placeholder="Select a purpose">
+          <ion-select-option value="Prison Pick-up">Prison Pick-up</ion-select-option>
+          <ion-select-option value="Dept Of Corrections CCO">Dept Of Corrections CCO</ion-select-option>
+          <ion-select-option value="DSHS Dept">DSHS Dept</ion-select-option>
+          <ion-select-option value="Medical">Medical</ion-select-option>
+          <ion-select-option value="Work">Work</ion-select-option>
+          <ion-select-option value="Class">Class</ion-select-option>
+          <ion-select-option value="Other (describe below)">Other (describe below)</ion-select-option>
+        </ion-select>
+        <div class="error-message-text" *ngIf="updateForm.controls['purpose'].invalid && updateForm.controls['purpose'].touched">
+          Invalid input: Please select a purpose
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Date Requested" type="date" formControlName="dateRequested" name="date-picker"></ion-input>
+        <div class="error-message-text" *ngIf="updateForm.controls['dateRequested'].invalid && updateForm.controls['dateRequested'].touched">
+          Invalid input: Please select a date
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Time Requested" type="time" formControlName="timeRequested" name="timePicker"></ion-input>
+        <div class="error-message-text" *ngIf="updateForm.controls['timeRequested'].invalid && updateForm.controls['timeRequested'].touched">
+          Invalid input: Please select a time
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-select label="Status:" formControlName="status" interface="action-sheet" placeholder="Select a status">
+          <ion-select-option value="Open">Open</ion-select-option>
+          <ion-select-option value="Scheduled">Scheduled</ion-select-option>
+          <ion-select-option value="Complete">Complete</ion-select-option>
+        </ion-select>
+        <div class="error-message-text" *ngIf="updateForm.controls['status'].invalid && updateForm.controls['status'].touched">
+          Invalid input: Please select a status
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-select label="Pick-up Location:" formControlName="pickupLocation" interface="action-sheet" placeholder="Select a pick-up location" (ionChange)="onPickupLocationChange($event)">
+          <ion-select-option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</ion-select-option>
+        </ion-select>
+        <div class="error-message-text" *ngIf="updateForm.controls['pickupLocation'].invalid && updateForm.controls['pickupLocation'].touched">
+          Invalid input: Please select a pick-up location
+        </div>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Pick-up Address:" [value]="selectedPickupLocation?.address" readonly></ion-input>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Location Type:" [value]="selectedPickupLocation?.type" readonly></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-select label="Destination Location:" formControlName="destinationLocation" interface="action-sheet" placeholder="Select a destination location" (ionChange)="onDestinationLocationChange($event)">
+          <ion-select-option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</ion-select-option>
+        </ion-select>
+        <div class="error-message-text" *ngIf="updateForm.controls['destinationLocation'].invalid && updateForm.controls['destinationLocation'].touched">
+          Invalid input: Please select a destination location
+        </div>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Destination Address:" [value]="selectedDestinationLocation?.address" readonly></ion-input>
+      </ion-item>
+
+      <ion-item class="small-input">
+        <ion-input label="Location Type:" [value]="selectedDestinationLocation?.type" readonly></ion-input>
+      </ion-item>
+
+      <ion-item class="notes-input">
+        <ion-textarea label="Transportation Notes:" formControlName="transportationNotes"></ion-textarea>
+        <div class="error-message-text" *ngIf="updateForm.controls['transportationNotes'].invalid && updateForm.controls['transportationNotes'].touched">
+          Invalid input: Please enter transportation notes
+        </div>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Start Time" type="time" formControlName="startTime"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="End Time" type="time" formControlName="endTime"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Beginning Mileage" type="number" formControlName="beginningMileage"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Ending Mileage" type="number" formControlName="endingMileage"></ion-input>
+      </ion-item>
+
+    </ion-list>
+  </ion-card>
+
+  <div *ngIf="submissionMessage" class="submission-message">
+    {{ submissionMessage }}
+  </div>
+
+  <div *ngIf="submissionErrorMessage" class="submission-error-message">
+    {{ submissionErrorMessage }}
+  </div>
+
+  <div class="wrapper">
+    <div class="action-button" [class.disabled]="isSaving" (click)="onSubmit()">
+      Save Changes
+    </div>
+    <div class="action-button" (click)="goBack()">
+      BACK TO TRANSPORTATION HISTORY
+    </div>
+  </div>
+</ion-content>
+
+<ng-template #noRecord>
+  <div class="ion-text-center ion-padding">
+    <p *ngIf="!isSaving">No transportation record selected.</p>
+  </div>
+</ng-template>

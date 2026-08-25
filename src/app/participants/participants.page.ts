@@ -214,6 +214,8 @@ export class ParticipantsPage implements OnInit, OnDestroy {
   addTransportRequest() {
     if (!this.selectedResident) { return; }
     const resolvedHouseLeaderRecordId = this.resolveHouseLeaderRecordId();
+    const isStaff = this.userService.isStaffUser();
+    const destination = isStaff ? '/transportation-history' : '/transportation';
     const queryParams: any = {
       participantName: this.normalizedName,
       participantId: this.normalizedId,
@@ -221,9 +223,10 @@ export class ParticipantsPage implements OnInit, OnDestroy {
       houseLeaderName: this.houseLeaderName || '',
       houseLeaderRecordId: resolvedHouseLeaderRecordId || ''
     };
-    this.router.navigate(['/transportation'], {
+    this.router.navigate([destination], {
       queryParams,
       state: {
+        residentData: this.selectedResident,
         fromSearch: false,
         houseLeaderRecordId: resolvedHouseLeaderRecordId || '',
         houseLeaderName: this.houseLeaderName || '',

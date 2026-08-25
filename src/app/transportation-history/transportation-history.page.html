@@ -1,0 +1,68 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Transportation History</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">Back</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card class="ion-text-center">
+    <ion-card-header>
+      <ion-card-subtitle *ngIf="residentName">Selected Resident</ion-card-subtitle>
+      <ion-card-title *ngIf="residentName">{{ residentName }}</ion-card-title>
+      <p *ngIf="theHouseName" class="small">{{ theHouseName }}</p>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-content>
+      <div class="action-button" (click)="startNewRequest()">
+        Start New Request
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="circular"></ion-spinner>
+    <p>Loading transportation history…</p>
+  </div>
+
+  <div *ngIf="!isLoading && records.length === 0" class="ion-text-center ion-padding">
+    <p>No transportation requests found for this resident.</p>
+  </div>
+
+  <ion-card *ngIf="!isLoading && records.length > 0">
+    <ion-card-header>
+      <ion-card-title>Previous Requests</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let record of records" button (click)="openRecord(record)" detail="true">
+          <ion-label>
+            <h3>
+              Request #{{ record.id }}
+              <span class="status" [class.status-open]="(record.status || '').toLowerCase() === 'open'" [class.status-scheduled]="(record.status || '').toLowerCase() === 'scheduled'">
+                {{ record.status }}
+              </span>
+            </h3>
+            <p><strong>{{ record.purpose }}</strong> — {{ record.dateRequested | date:'M/d/yy h:mm a' }}</p>
+            <p><strong>Pickup:</strong> {{ record.pickupName || record.pickupId || 'N/A' }} → <strong>Destination:</strong> {{ record.destinationName || record.destinationId || 'N/A' }}</p>
+            <p class="indicators">
+              <span class="badge" *ngIf="record.startTime">Start {{ record.startTime }}</span>
+              <span class="badge" *ngIf="record.endTime">End {{ record.endTime }}</span>
+              <span class="badge" *ngIf="record.beginningMileage != null">Begin {{ record.beginningMileage }}</span>
+              <span class="badge" *ngIf="record.endingMileage != null">End {{ record.endingMileage }}</span>
+              <span class="badge not-entered" *ngIf="!record.startTime && !record.endTime && record.beginningMileage == null && record.endingMileage == null">No trip details entered</span>
+            </p>
+            <p class="calculated" *ngIf="record.travelTime || record.distance">
+              <span *ngIf="record.travelTime"><strong>Travel Time:</strong> {{ record.travelTime }}</span>
+              <span *ngIf="record.distance"><strong>Distance:</strong> {{ record.distance }}</span>
+            </p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
