@@ -312,11 +312,10 @@ payNow() {
     delete selectedResident.residentPhoto;
   }
 
-  const isParticipantView = this.isResident || this.searchSessionExists;
-  if (isParticipantView) {
+  if (selectedResident) {
     this.router.navigate(['payments'], {
       relativeTo: this.route,
-      state: { selectedResident, isParticipant: true, theHouseName: this.theHouseName, fromSearch: this.searchSessionExists }
+      state: { selectedResident, isParticipant: true, theHouseName: this.theHouseName, fromResidentDetails: true, fromSearch: this.searchSessionExists }
     });
     return;
   }

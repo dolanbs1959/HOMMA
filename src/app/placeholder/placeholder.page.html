@@ -64,20 +64,25 @@
       </ion-card-header>
       <ion-card-content>
         <div class="payment-list">
-          <div class="payment-row header">
-            <span>Payment Date</span>
-            <span>Payment Method</span>
-            <span class="amount-col">Amount</span>
-          </div>
-          <ng-container *ngIf="filteredPayments.length > 0; else noPayments">
-            <div class="payment-row" *ngFor="let p of filteredPayments">
-              <span>{{ p['6']?.value | date:'mediumDate' }}</span>
-              <span>{{ p['19']?.value || '—' }}</span>
-              <span class="amount-col">{{ p['7']?.value | currency:'USD':'symbol' }}</span>
+          <ng-container *ngIf="!isLoadingPayments; else loadingPayments">
+            <div class="payment-row header">
+              <span>Payment Date</span>
+              <span>Payment Method</span>
+              <span class="amount-col">Amount</span>
             </div>
+            <ng-container *ngIf="filteredPayments.length > 0; else noPayments">
+              <div class="payment-row" *ngFor="let p of filteredPayments">
+                <span>{{ p['6']?.value | date:'mediumDate' }}</span>
+                <span>{{ p['19']?.value || '—' }}</span>
+                <span class="amount-col">{{ p['7']?.value | currency:'USD':'symbol' }}</span>
+              </div>
+            </ng-container>
+            <ng-template #noPayments>
+              <div class="empty-state">No payments recorded in the last 90 days.</div>
+            </ng-template>
           </ng-container>
-          <ng-template #noPayments>
-            <div class="empty-state">No payments recorded in the last 90 days.</div>
+          <ng-template #loadingPayments>
+            <div class="loading-state"><ion-spinner name="crescent"></ion-spinner> Loading payment history...</div>
           </ng-template>
         </div>
       </ion-card-content>
@@ -90,7 +95,7 @@
     <span>{{ isPaying ? 'One moment please...' : 'PAY PROGRAM FEES or TITHES/OFFERING' }}</span>
   </button>
 
-  <button type="button" class="pay-button back-search-button" *ngIf="fromSearch" (click)="goBack()">
+  <button type="button" class="pay-button back-search-button" *ngIf="fromSearch || fromResidentDetails" (click)="goBack()">
     Back to Resident Details
   </button>
 </ion-content>

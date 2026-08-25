@@ -1491,6 +1491,35 @@ getInvoicePayments(houseName: string): Observable<any> {
   );
 }
 
+getInvoicePaymentsForResident(residentId: string | number): Observable<any> {
+  const id = String(residentId || '');
+  if (!id) {
+    return of([]);
+  }
+  const escapedId = this.escapeForQuickbase(id);
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  const body = {
+    from: this.invoicePaymentsTableId,
+    select: [3, 6, 7, 15, 19, 28, 42],
+    where: `{28.EX.'${escapedId}'}AND{6.OAF.${cutoff}}`,
+    options: {
+      skip: 0,
+      top: 0,
+      compareWithAppLocalTime: false
+    }
+  };
+
+  try { this.logger.debug('getInvoicePaymentsForResident - query body', body); } catch (e) {}
+
+  return this.callQuickbaseProxy('POST', 'query', body).pipe(
+    tap((response: any) => {
+      try { this.logger.debug('getInvoicePaymentsForResident - proxy response', response); } catch (e) {}
+    }),
+    map((response: any) => response?.data || [])
+  );
+}
+
 
 getDropdownChoices(): Observable<any> {
   const endpoint = `fields?tableId=${this.qryObservationTableID}`;
