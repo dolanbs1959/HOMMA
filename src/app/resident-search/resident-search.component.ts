@@ -350,12 +350,35 @@ export class ResidentSearchComponent implements OnInit {
     }
   }
 
-  async registerForMeeting() {
+  async navigateToClassroom() {
     if (!this.selectedResident) { return; }
+    const r = this.selectedResident;
+    const participantId = r.recordNumber2?.value || r.recordNumber2 || r.recordNumber || '';
+    const participantPhoto = r.residentPhoto || null;
+
+    if (participantPhoto && participantId) {
+      try { this.photoStorageService.setPhoto(String(participantId), participantPhoto); } catch (e) {}
+      try { sessionStorage.setItem(`residentPhoto_${participantId}`, participantPhoto); } catch (e) {}
+    }
+
+    const residentClone: any = Object.assign({}, r);
+    if (residentClone) residentClone.residentPhoto = undefined;
+
+    const navState: any = {
+      residentData: residentClone,
+      theHouseName: this.theHouseName,
+      houseLeaderName: this.houseLeaderName || '',
+      houseLeaderRecordId: this.houseLeaderRecordId || '',
+      fromSearch: true,
+      returnUrl: this.router.url
+    };
+
+    const queryParams: any = { participantId: String(participantId) };
+
     try {
-      await this.router.navigate(['/registrations'], { state: { residentData: this.selectedResident, fromSearch: true } });
+      await this.router.navigate(['/classroom'], { state: navState, queryParams });
     } catch (err) {
-      console.error('ResidentSearch.registerForMeeting - navigation error', err);
+      console.error('ResidentSearch.navigateToClassroom - navigation error', err);
     }
   }
 

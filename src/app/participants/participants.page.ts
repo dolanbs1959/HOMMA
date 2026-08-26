@@ -235,8 +235,32 @@ export class ParticipantsPage implements OnInit, OnDestroy {
     }).catch(err => console.error('ParticipantsPage.addTransportRequest - navigation error', err));
   }
 
-  registerForMeeting() {
+  navigateToClassroom() {
     if (!this.selectedResident) { return; }
-    this.router.navigate(['/registrations'], { state: { residentData: this.selectedResident, fromSearch: false } }).catch(err => console.error('ParticipantsPage.registerForMeeting - navigation error', err));
+    const r = this.selectedResident;
+    const participantId = r.recordNumber2?.value || r.recordNumber2 || r.recordNumber || '';
+    const participantPhoto = r.residentPhoto || null;
+
+    if (participantPhoto && participantId) {
+      try { this.photoStorageService.setPhoto(String(participantId), participantPhoto); } catch (e) {}
+      try { sessionStorage.setItem(`residentPhoto_${participantId}`, participantPhoto); } catch (e) {}
+    }
+
+    const residentClone: any = Object.assign({}, r);
+    if (residentClone) residentClone.residentPhoto = undefined;
+
+    const navState: any = {
+      residentData: residentClone,
+      theHouseName: this.theHouseName,
+      houseLeaderName: this.houseLeaderName || '',
+      houseLeaderRecordId: this.houseLeaderRecordId || '',
+      fromSearch: false,
+      returnUrl: this.router.url
+    };
+
+    const queryParams: any = { participantId: String(participantId) };
+
+    this.router.navigate(['/classroom'], { state: navState, queryParams })
+      .catch(err => console.error('ParticipantsPage.navigateToClassroom - navigation error', err));
   }
 }

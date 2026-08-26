@@ -49,10 +49,9 @@
   <ion-card>
     <ion-card-content class="scrollable-content">
       <div class="wrapper">
-        <div *ngIf="!isLoading && trainingRecords.length > 0" class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="viewMeetingClass()">
+        <button *ngIf="!isLoading && trainingRecords.length > 0" type="button" class="action-button" (click)="viewMeetingClass()">
           Select a Meeting/Class
-          <ion-ripple-effect></ion-ripple-effect>
-        </div>
+        </button>
         <button type="button" class="action-button" (click)="goBack()">
           Back/Start Over
         </button>

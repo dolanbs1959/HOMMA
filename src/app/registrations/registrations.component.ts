@@ -16,6 +16,7 @@ export class RegistrationsComponent implements OnInit {
   classRecord: any = null;
   trainingRecord: any = null;
   residentData: any = null;
+  returnUrl = '';
   fromSearch = false;
   transportationRequested: string = 'No';
   registering = false;
@@ -69,12 +70,14 @@ export class RegistrationsComponent implements OnInit {
       this.classRecord = s.classRecord || null;
       this.trainingRecord = s.trainingRecord || null;
       this.residentData = s.residentData || null;
+      this.returnUrl = s.returnUrl || '';
       this.fromSearch = !!s.fromSearch;
     } else if (history && history.state) {
       const s = history.state as any;
       this.classRecord = s.classRecord || null;
       this.trainingRecord = s.trainingRecord || null;
       this.residentData = s.residentData || null;
+      this.returnUrl = s.returnUrl || '';
       this.fromSearch = !!s.fromSearch;
     }
     // repopulate template convenience props
@@ -305,7 +308,12 @@ export class RegistrationsComponent implements OnInit {
   }
 
   exitApp() {
-    this.router.navigate(['/tabs', 'participants']);
+    if (this.returnUrl) {
+      this.router.navigateByUrl(this.returnUrl, { replaceUrl: false })
+        .catch(err => console.error('RegistrationsComponent.exitApp - navigation error', err));
+    } else {
+      this.router.navigate(['/tabs', 'participants']);
+    }
   }
 
   goBack() {

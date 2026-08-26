@@ -33,18 +33,15 @@
   <ion-card>
   <ion-card-content class="scrollable-content">
     <div class="wrapper">
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-blue" (click)="toRegister()">
+      <button type="button" class="action-button" (click)="toRegister()">
         Register for Class
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="goBack()">
+      </button>
+      <button type="button" class="action-button" (click)="goBack()">
         Change Training Module Selection
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
-      <div class="ion-activatable ripple-parent rounded-rectangle ripple-effect-red" (click)="exitApp()">
+      </button>
+      <button type="button" class="action-button" (click)="exitApp()">
         Return to Login Page
-        <ion-ripple-effect></ion-ripple-effect>
-      </div>
+      </button>
     </div>
   </ion-card-content>
 </ion-card>

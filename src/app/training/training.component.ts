@@ -15,6 +15,7 @@ export class TrainingComponent implements OnInit {
   isLoading = true;
   residentData: any = null;
   participantId: string | null = null;
+  returnUrl = '';
   errorMessage = '';
   // Track resident image load state so the UI can wait for it
   residentImageLoading = false;
@@ -30,13 +31,17 @@ export class TrainingComponent implements OnInit {
 
   ngOnInit(): void {
     const nav = this.router.getCurrentNavigation();
-    if (nav && nav.extras && nav.extras.state && nav.extras.state['residentData']) {
-      this.residentData = nav.extras.state['residentData'];
-      // remember participant id from nav state so we can match updates from QuickbaseService
-      this.participantId = String(this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || this.participantId || '');
-      if (this.residentData?.residentPhoto) {
-        this.preloadResidentPhoto(this.residentData.residentPhoto);
+    if (nav && nav.extras && nav.extras.state) {
+      const s = nav.extras.state;
+      if (s['residentData']) {
+        this.residentData = s['residentData'];
+        // remember participant id from nav state so we can match updates from QuickbaseService
+        this.participantId = String(this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || this.participantId || '');
+        if (this.residentData?.residentPhoto) {
+          this.preloadResidentPhoto(this.residentData.residentPhoto);
+        }
       }
+      this.returnUrl = s['returnUrl'] || '';
     } else {
       // router.getCurrentNavigation() can be null when navigating via history or when component is reused.
       // Fall back to the browser history state (preserves the state object from previous router.navigate calls).
@@ -47,6 +52,7 @@ export class TrainingComponent implements OnInit {
           this.participantId = String(this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || this.participantId || '');
           if (this.residentData?.residentPhoto) this.preloadResidentPhoto(this.residentData.residentPhoto);
         }
+        this.returnUrl = hs?.returnUrl || '';
       } catch (e) {
         // ignore history read errors
       }
@@ -191,7 +197,8 @@ export class TrainingComponent implements OnInit {
     this.isLoading = true;
     this.quickbaseService.getTrainingRecords().subscribe({
       next: (res: any) => {
-        this.trainingRecords = (res && res.data) ? res.data : [];
+        // QuickBase returns records in the nested `data.data` property of the response
+        this.trainingRecords = Array.isArray(res?.data?.data) ? res.data.data : (Array.isArray(res?.data) ? res.data : []);
         this.isLoading = false;
       },
       error: err => {
@@ -235,7 +242,8 @@ export class TrainingComponent implements OnInit {
           state: {
             classesRecords: classes,
             trainingRecord: this.selectedRecord,
-            residentData: this.residentData
+            residentData: this.residentData,
+            returnUrl: this.returnUrl
           }
         });
       },

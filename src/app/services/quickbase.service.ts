@@ -75,6 +75,7 @@ export class QuickbaseService {
 
   private functions = getFunctions();
   private quickbaseProxy = httpsCallable(this.functions, 'quickbaseProxy');
+  private getCurriculumCallable = httpsCallable(this.functions, 'getCurriculum');
 
   constructor(
     private http: HttpClient,
@@ -343,6 +344,20 @@ export class QuickbaseService {
     );
   }
 
+  /**
+   * Calls the getCurriculum Firebase function to securely download a QuickBase attachment.
+   * Returns a base64 data object that the browser can open as a PDF.
+   */
+  public getCurriculum(recordId: string, fieldId: number = 161, fileName?: string): Promise<any> {
+    this.logger.log('QuickbaseService.getCurriculum - calling function', { tableId: this.classesTableId, recordId, fieldId, fileName });
+    return this.getCurriculumCallable({
+      tableId: this.classesTableId,
+      recordId,
+      fieldId,
+      fileName: fileName || 'curriculum.pdf'
+    });
+  }
+
   refreshAnnouncements(): Observable<any> {
   // Check if cached data is available
   if (this.isCacheAvailable('announcements')) {
@@ -548,16 +563,165 @@ export class QuickbaseService {
     this.logger.debug('Requesting classes records');
  
      return this.callQuickbaseProxy('POST', 'query', body).pipe(
-       map(data => ({ data })),
+       map(data => {
+         // QuickBase returns the records in the nested `data.data` property
+         const records = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+         this.logger.debug('Classes loaded successfully');
+         return { data: records };
+       }),
        tap(response => this.logger.debug('Classes loaded successfully'))
      );
   }
 
+  //Query to get classes a participant is registered for
+  getRegisteredClasses(participantId: string): Observable<{ data: any[] }> {
+    const escapedId = String(participantId || '').replace(/'/g, "\\'");
+    const body = {
+      from: this.registrationTableId,
+      select: [3, 16, 47, 51],
+      where: `{47.EX.'${escapedId}'}AND{16.EX.'Registered'}`,
+      options: {
+        skip: 0,
+        top: 0,
+        compareWithAppLocalTime: false
+      }
+    };
+    this.logger.debug('Requesting registered classes for participant', participantId);
+
+    return this.callQuickbaseProxy('POST', 'query', body).pipe(
+      switchMap((regResponse: any) => {
+        const regRecords = this.extractRecords(regResponse);
+        if (regRecords.length === 0) {
+          return of({ data: [] });
+        }
+        const classIds = regRecords
+          .map((r: any) => String(this.getFieldValue(r, 51) ?? ''))
+          .filter((id: string) => id !== '');
+        if (classIds.length === 0) {
+          const combined = regRecords.map((r: any) => this.enrichRegistration(r, new Map()));
+          return of({ data: combined });
+        }
+        const classWhere = classIds
+          .map(id => `{3.EX.'${id.replace(/'/g, "\\'")}'}`)
+          .join('OR');
+        const classBody = {
+          from: this.classesTableId,
+          select: [3, 7, 45, 47, 161],
+          where: classWhere,
+          options: {
+            skip: 0,
+            top: 0,
+            compareWithAppLocalTime: false
+          }
+        };
+        return this.callQuickbaseProxy('POST', 'query', classBody).pipe(
+          map((classResponse: any) => {
+            const classRecords = this.extractRecords(classResponse);
+            const classMap = new Map<string, any>();
+            classRecords.forEach((c: any) => {
+              const id = String(this.getFieldValue(c, 3) ?? '');
+              if (id) {
+                classMap.set(id, c);
+              }
+            });
+            const combined = regRecords.map((r: any) => this.enrichRegistration(r, classMap));
+            this.logger.debug('Registered classes enriched successfully', { count: combined.length });
+            return { data: combined };
+          }),
+          catchError(err => {
+            this.logger.error('Error fetching class details for registered classes', err);
+            const combined = regRecords.map((r: any) => this.enrichRegistration(r, new Map()));
+            return of({ data: combined });
+          })
+        );
+      }),
+      catchError(error => {
+        this.logger.error('Error fetching registered classes', error);
+        return of({ data: [] });
+      })
+    );
+  }
+
+  private extractRecords(response: any): any[] {
+    if (Array.isArray(response?.data?.data)) return response.data.data;
+    if (Array.isArray(response?.data)) return response.data;
+    if (Array.isArray(response)) return response;
+    return [];
+  }
+
+  private getFieldValue(record: any, fid: any): any {
+    const field = record?.[fid];
+    if (field && typeof field === 'object' && 'value' in field) {
+      return field.value;
+    }
+    return field;
+  }
+
+  private normalizeCurriculum(raw: any): any | null {
+    if (!raw) return null;
+    let fileName: string | null = null;
+    let url: string | null = null;
+    let hasFile = false;
+    let attachment: any = null;
+
+    if (typeof raw === 'object') {
+      attachment = raw.value ?? raw;
+      const inner = raw.value || raw;
+      if (inner && typeof inner === 'object') {
+        const versions = Array.isArray(inner.versions) ? inner.versions : [];
+        const latestVersion = versions.reduce((latest: any, v: any) => {
+          if (!v) return latest;
+          return (!latest || (v.versionNumber || 0) > (latest.versionNumber || 0)) ? v : latest;
+        }, null);
+        fileName = latestVersion?.fileName || latestVersion?.filename || inner.fileName || inner.filename || inner.name || null;
+        url = inner.url || inner.downloadUrl || null;
+      }
+      hasFile = !!(fileName || url || (typeof attachment === 'object' && Object.keys(attachment).length > 0));
+    } else {
+      hasFile = true;
+      fileName = String(raw);
+    }
+
+    if (!hasFile) return null;
+    return { hasFile, fileName, url, attachment, raw };
+  }
+
+  private getAttachmentUrl(tableId: string, recordId: string, fid: string, versionId: string = '0'): string {
+    return `https://${this.realm}/up/${tableId}/a/r${recordId}/e${fid}/v${versionId}?usertoken=${this.apiKey}`;
+  }
+
+  private enrichRegistration(reg: any, classMap: Map<string, any>): any {
+    const registrationId = this.getFieldValue(reg, 3) ?? '';
+    const status = this.getFieldValue(reg, 16) ?? '';
+    const classId = String(this.getFieldValue(reg, 51) ?? '');
+    const classRecord = classMap?.get(classId) || null;
+
+    const className = classRecord ? (this.getFieldValue(classRecord, 45) ?? '') : '';
+    const classDate = classRecord ? (this.getFieldValue(classRecord, 7) ?? null) : null;
+    const rawCurriculum = classRecord ? (this.getFieldValue(classRecord, 161) ?? null) : null;
+    const curriculum = this.normalizeCurriculum(rawCurriculum);
+
+    return {
+      registrationId,
+      status,
+      classId,
+      className,
+      classDate,
+      curriculum,
+      hasCurriculum: !!curriculum,
+      classRecord,
+      registration: reg
+    };
+  }
+
   //Query to get available training modules
   getTrainingRecords(): Observable<{ data: any[] }> {
-    // Check if cached data is available
+    // Check if cached data is available and actually contains records
     if (this.isCacheAvailable('trainingRecords')) {
-      return this.trainingRecords.asObservable();
+      const cached = this.trainingRecords.value;
+      if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+        return this.trainingRecords.asObservable();
+      }
     }
     
     this.trackApiCall('getTrainingRecords');

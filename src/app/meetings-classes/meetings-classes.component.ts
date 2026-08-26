@@ -13,6 +13,7 @@ export class MeetingsClassesComponent implements OnInit {
   trainingRecord: any = null;
   residentData: any = null;
   selectedRecord: any = null;
+  returnUrl = '';
   isLoading = false;
 
   constructor(
@@ -26,14 +27,16 @@ export class MeetingsClassesComponent implements OnInit {
     const nav = this.router.getCurrentNavigation();
     if (nav && nav.extras && nav.extras.state) {
       const s = nav.extras.state as any;
-      this.classesRecords = s.classesRecords || [];
+      this.classesRecords = (s.classesRecords?.data ? s.classesRecords.data : s.classesRecords) || [];
       this.trainingRecord = s.trainingRecord || null;
       this.residentData = s.residentData || null;
+      this.returnUrl = s.returnUrl || '';
     } else if (history && history.state) {
       const s = history.state as any;
-      this.classesRecords = s.classesRecords || [];
+      this.classesRecords = (s.classesRecords?.data ? s.classesRecords.data : s.classesRecords) || [];
       this.trainingRecord = s.trainingRecord || null;
       this.residentData = s.residentData || null;
+      this.returnUrl = s.returnUrl || '';
     }
 
     if (!this.classesRecords.length && this.trainingRecord) {
@@ -46,8 +49,9 @@ export class MeetingsClassesComponent implements OnInit {
     this.isLoading = true;
     const title = this.formatField(this.trainingRecord[7]);
     this.quickbaseService.getClassesRecords(title).subscribe({
-      next: res => {
-        this.classesRecords = (res && res.data) ? res.data : [];
+      next: (res: any) => {
+        // QuickBase returns records in the nested `data.data` property of the response
+        this.classesRecords = Array.isArray(res?.data?.data) ? res.data.data : (Array.isArray(res?.data) ? res.data : []);
         this.isLoading = false;
       },
       error: err => {
@@ -75,7 +79,8 @@ export class MeetingsClassesComponent implements OnInit {
       state: {
         classRecord: this.selectedRecord,
         trainingRecord: this.trainingRecord,
-        residentData: this.residentData
+        residentData: this.residentData,
+        returnUrl: this.returnUrl
       }
     });
   }

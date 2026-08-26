@@ -1,0 +1,98 @@
+ion-header {
+  --ion-background-color: #4194ab !important;
+  --ion-color-base: #fff !important;
+}
+
+ion-card-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+ion-card-header p {
+  color: #666;
+}
+
+.curriculum-label {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.curriculum {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.no-curriculum {
+  color: #999;
+  font-style: italic;
+}
+
+.curriculum-error {
+  color: #d9534f;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.scrollable-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  max-width: 360px;
+  min-height: 48px;
+  padding: 0 16px;
+  margin: 0 0 12px;
+
+  background: var(--ion-color-step-150, #ffffff);
+  color: #4194ab;
+
+  border: 2px solid #4194ab;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:active:not(:disabled) {
+    background: #4194ab;
+    color: #ffffff;
+  }
+
+  &:disabled,
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
+body.dark .action-button {
+  background: var(--ion-card-background, #1e1e1e);
+  color: #4194ab;
+  border-color: #4194ab;
+}
+
+.action-button:last-of-type {
+  margin-bottom: 0;
+}

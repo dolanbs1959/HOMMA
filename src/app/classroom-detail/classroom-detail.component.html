@@ -1,0 +1,49 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title color="Primary">
+      Classroom
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-text-center" *ngIf="classRecord">
+    <ion-card-header>
+      <h2>{{ classRecord.className || ('Class ' + classRecord.classId) }}</h2>
+      <p *ngIf="classRecord.classDate">{{ formatDate(classRecord.classDate) }}</p>
+      <p>Status: {{ classRecord.status || 'Registered' }}</p>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card *ngIf="classRecord?.hasCurriculum">
+    <ion-card-content>
+      <p class="curriculum-label">Class Curriculum</p>
+      <p class="curriculum">
+        <ion-icon name="document-text-outline"></ion-icon>
+        {{ formatCurriculum(classRecord.curriculum) }}
+      </p>
+      <p *ngIf="curriculumError" class="curriculum-error">{{ curriculumError }}</p>
+      <div class="wrapper">
+        <button type="button" class="action-button" (click)="proceedToCurriculum()">
+          Open Curriculum
+        </button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="!classRecord?.hasCurriculum">
+    <ion-card-content class="ion-text-center">
+      <p class="no-curriculum">No curriculum uploaded yet.</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-content class="scrollable-content">
+      <div class="wrapper">
+        <button type="button" class="action-button" (click)="goBack()">
+          Back
+        </button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

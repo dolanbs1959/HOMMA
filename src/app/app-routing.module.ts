@@ -3,6 +3,8 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { TransportationComponent } from './transportation/transportation.component';
 import { ParticipantReviewsComponent } from './participant-reviews/participant-reviews.component';
 import { TrainingComponent } from './training/training.component';
+import { ClassroomComponent } from './classroom/classroom.component';
+import { ClassroomDetailComponent } from './classroom-detail/classroom-detail.component';
 import { MeetingsClassesComponent } from './meetings-classes/meetings-classes.component';
 import { RegistrationsComponent } from './registrations/registrations.component';
 import { MessageCenterComponent } from './message.center/message.center.component';
@@ -77,6 +79,14 @@ const routes: Routes = [
   {
     path: 'training',
     component: TrainingComponent
+  },
+  {
+    path: 'classroom',
+    component: ClassroomComponent
+  },
+  {
+    path: 'classroom-detail',
+    component: ClassroomDetailComponent
   },
   {
     path: 'meetingsClasses',

@@ -175,6 +175,62 @@ exports.quickbaseProxy = onCall({cors: true, secrets: ['QUICKBASE_API_KEY']}, as
 });
 
 /**
+ * Retrieves a file attachment from QuickBase (e.g., Classes FID 161 curriculum)
+ * and returns it as a base64 data string so the browser can open it.
+ */
+exports.getCurriculum = onCall({
+  cors: true,
+  secrets: ['QUICKBASE_API_KEY'],
+}, async (request) => {
+  const {tableId, recordId, fieldId, fileName: preferredFileName} = request.data || {};
+
+  if (!tableId || !recordId || !fieldId) {
+    throw new Error('Missing required parameters: tableId, recordId, fieldId');
+  }
+
+  if (!QUICKBASE_CONFIG.apiKey) {
+    logger.error('Quickbase API key not configured on server');
+    throw new Error('Quickbase API key not configured on server');
+  }
+
+  try {
+    const fetch = require('node-fetch');
+    // Uses the same file-download URL pattern that quickbaseProxy already proves works
+    const url = `https://${QUICKBASE_CONFIG.realm}/up/${tableId}/a/r${recordId}/e${fieldId}`;
+    const headers = {
+      'QB-Realm-Hostname': QUICKBASE_CONFIG.realm,
+      'Authorization': `QB-USER-TOKEN ${QUICKBASE_CONFIG.apiKey}`,
+    };
+
+    logger.info('getCurriculum downloading attachment', {tableId, recordId, fieldId, url, preferredFileName});
+    const response = await fetch(url, {method: 'GET', headers});
+
+    if (!response.ok) {
+      logger.error('Quickbase file download failed', {status: response.status, tableId, recordId, fieldId, url});
+      throw new Error(`Quickbase file download failed: ${response.status}`);
+    }
+
+    const contentType = response.headers.get('content-type') || 'application/pdf';
+    const contentDisposition = response.headers.get('content-disposition') || '';
+    const fileNameMatch = contentDisposition.match(/filename=\"?([^\"]+)\"?/);
+    const fileName = preferredFileName || (fileNameMatch ? fileNameMatch[1] : 'curriculum.pdf');
+
+    const buffer = await response.buffer();
+    const base64 = buffer.toString('base64');
+
+    if (!base64) {
+      throw new Error('No attachment data returned from QuickBase');
+    }
+
+    logger.info('getCurriculum attachment downloaded', {tableId, recordId, fieldId, url, contentType, fileName, bytes: base64.length});
+    return {success: true, base64, contentType, fileName};
+  } catch (error) {
+    logger.error('getCurriculum error', {error: error.message, tableId, recordId, fieldId});
+    throw new Error('Unable to retrieve the curriculum attachment.');
+  }
+});
+
+/**
  * Health check endpoint
  */
 exports.healthCheck = onRequest((req, res) => {

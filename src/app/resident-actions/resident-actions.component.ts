@@ -274,14 +274,38 @@ export class ResidentActionsComponent implements OnInit {
     });
   }
 
-  async registerForMeeting() {
-    console.log('ResidentActions.registerForMeeting - navigating to registrations', { id: this.normalizedId });
+  async navigateToClassroom() {
+    console.log('ResidentActions.navigateToClassroom - navigating to classroom', { id: this.normalizedId });
     await this.close();
     try { (document.activeElement as HTMLElement)?.blur(); } catch (e) {}
     await this.clearOverlays();
-    // RegistrationsComponent reads residentData from navigation state
+
+    const r = this.residentOriginal || this.resident || {};
+    const participantId = this.normalizedId;
+    const participantPhoto = r.residentPhoto || null;
+
+    if (participantPhoto && participantId) {
+      try { this.photoStorageService.setPhoto(String(participantId), participantPhoto); } catch (e) {}
+      try { sessionStorage.setItem(`residentPhoto_${participantId}`, participantPhoto); } catch (e) {}
+    }
+
+    const residentClone: any = Object.assign({}, r);
+    if (residentClone) residentClone.residentPhoto = undefined;
+
+    const navState: any = {
+      residentData: residentClone,
+      theHouseName: this.theHouseName,
+      houseLeaderName: this.houseLeaderName || '',
+      houseLeaderRecordId: this.houseLeaderRecordId || '',
+      fromSearch: this.fromSearchModal || false,
+      returnUrl: this.router.url
+    };
+
+    const queryParams: any = { participantId: String(participantId) };
+
     this.ngZone.run(() => {
-      this.router.navigate(['/registrations'], { state: { residentData: this.residentOriginal || this.resident, fromSearch: this.fromSearchModal || false } }).catch(err => console.error('ResidentActions.registerForMeeting - navigation error', err));
+      this.router.navigate(['/classroom'], { state: navState, queryParams })
+        .catch(err => console.error('ResidentActions.navigateToClassroom - navigation error', err));
     });
   }
 

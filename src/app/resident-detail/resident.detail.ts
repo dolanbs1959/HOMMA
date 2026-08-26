@@ -200,6 +200,34 @@ export class ResidentDetailComponent  implements OnInit {
     this.router.navigate(['/training'], { state: navState, queryParams });
   }
 
+  async navigateToClassroom(): Promise<void> {
+    const participantId = this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || '';
+    const participantPhoto = this.residentData?.residentPhoto;
+
+    // Persist the resolved photo so the Classroom page can retrieve it
+    try {
+      if (participantPhoto && participantId) {
+        this.photoStorageService.setPhoto(String(participantId), participantPhoto);
+        try {
+          sessionStorage.setItem(`residentPhoto_${participantId}`, participantPhoto);
+        } catch (e) {}
+      }
+    } catch (e) {}
+
+    const residentCloneForNav = Object.assign({}, this.residentData);
+    if (residentCloneForNav) residentCloneForNav.residentPhoto = undefined;
+    const navState = {
+      residentData: residentCloneForNav,
+      theHouseName: this.theHouseName,
+      houseLeaderName: this.houseLeaderName,
+      returnUrl: this.router.url
+    };
+
+    const queryParams: any = { participantId };
+
+    this.router.navigate(['/classroom'], { state: navState, queryParams });
+  }
+
   navigateToTransportation() {
     const participantName = this.residentData?.residentFullName?.value || '';
     const participantPhoto = this.residentData?.residentPhoto;

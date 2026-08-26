@@ -29,6 +29,8 @@ import { participantReviewsModule } from './participant-reviews/participant-revi
 import { MeetingsClassesModule } from './meetings-classes/meetings-classes.module';
 import { RegistrationsModule } from './registrations/registrations.module';
 import { TrainingModule } from './training/training.module';
+import { ClassroomModule } from './classroom/classroom.module';
+import { ClassroomDetailModule } from './classroom-detail/classroom-detail.module';
 import { LoginPageModule } from './login/login.module';
 import { MessageCenterComponent } from './message.center/message.center.component';
 import { StipulatedAgreementModule } from './stipulated-agreement/stipulated-agreement.module';
@@ -45,6 +47,8 @@ import { StipulatedAgreementModule } from './stipulated-agreement/stipulated-agr
     TransportationModule,
     participantReviewsModule,
     TrainingModule,
+    ClassroomModule,
+    ClassroomDetailModule,
     LoginPageModule,
     MeetingsClassesModule,
     RegistrationsModule,
