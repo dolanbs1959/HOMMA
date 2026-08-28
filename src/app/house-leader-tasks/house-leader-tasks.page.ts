@@ -61,6 +61,29 @@ export class HouseLeaderTasksPage implements OnInit, OnDestroy {
   }
 
   ionViewWillEnter() {
+    // The house data may change when a staff member logs in to a different
+    // house without restarting the app. Rehydrate the header fields if the
+    // selected house has changed, then reload the task list for that house.
+    const qd = this.quickbaseService.queryData;
+    const newHouseName = qd?.theHouseName?.value || '';
+    if (newHouseName && newHouseName !== this.theHouseName) {
+      this.theHouseName = newHouseName;
+      this.HouseLeaderName = qd?.HouseLeaderName?.value || '';
+      this.HLphone = qd?.HLphone?.value || '';
+      this.Alert = this.quickbaseService.Alert || '';
+      this.quickbaseService.getMaxMeetingDate(this.theHouseName).subscribe({
+        next: (response: any) => {
+          try {
+            const entry = response?.data?.[0];
+            const raw = entry?.['40'];
+            const value = raw?.value ?? raw;
+            this.maxMeetingDate = value || this.maxMeetingDate;
+            this.quickbaseService.maxMeetingDate = this.maxMeetingDate;
+          } catch (e) {}
+        },
+        error: () => {}
+      });
+    }
     this.loadTasks();
   }
 
@@ -77,7 +100,7 @@ export class HouseLeaderTasksPage implements OnInit, OnDestroy {
             return {
               id: taskRecord[3]?.value || taskRecord[3],
               taskName: taskRecord[8]?.value || taskRecord[8],
-              priority: taskRecord[15]?.value || taskRecord[15],
+              priority: this.quickbaseService.normalizeFieldToString(taskRecord[15]),
               status: taskRecord[22]?.value || taskRecord[22],
               role: taskRecord[32]?.value || taskRecord[32],
               houseName: taskRecord[36]?.value || taskRecord[36],

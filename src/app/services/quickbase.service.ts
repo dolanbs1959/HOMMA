@@ -269,7 +269,7 @@ export class QuickbaseService {
   }
 
   // Normalize various Quickbase field shapes into a display string
-  private normalizeFieldToString(field: any): string {
+  public normalizeFieldToString(field: any): string {
     try {
       if (field === null || field === undefined) return '';
       if (typeof field === 'string') return field;
@@ -1264,6 +1264,12 @@ insertActivity(activityData: any): Observable<any> {
   //Login to Quickbase and query the Staff table to return the HL and House name.
   query(housename: string, staffID: string): Observable<any> {
     this.logger.debug('Querying staff access');
+
+    // Staff task assignments are house- and staff-specific. Flush the cache
+    // at the start of the house/staff query so the Tasks page fetches fresh
+    // data for the newly selected house instead of reusing the previous cache.
+    try { this.staffTasks.next(null); } catch (e) {}
+
     this.logger.debug('Login attempt - housename/staffID', { housename, staffID });
     
     // Single API call to get all active staff records with house and area manager info

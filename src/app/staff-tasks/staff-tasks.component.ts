@@ -120,7 +120,7 @@ export class StaffTasksComponent  implements OnInit, OnDestroy {
             return {
               id: taskRecord[3]?.value || taskRecord[3],
               taskName: taskRecord[8]?.value || taskRecord[8],
-              priority: taskRecord[15]?.value || taskRecord[15],
+              priority: this.quickbaseService.normalizeFieldToString(taskRecord[15]),
               status: taskRecord[22]?.value || taskRecord[22],
               role: taskRecord[32]?.value || taskRecord[32],
               houseName: taskRecord[36]?.value || taskRecord[36],
