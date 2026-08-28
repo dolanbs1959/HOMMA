@@ -141,6 +141,12 @@ ngOnInit() {
       (error: any) => this.logger.error('Error caching Senior Staff data', error)
     );
 
+    // Pre-fetch and cache open Job Board records as shared application data
+    this.quickbaseService.getOpenJobs().subscribe(
+      () => this.logger.log('Open jobs cached for Job Board'),
+      (error: any) => this.logger.error('Error caching open jobs', error)
+    );
+
     // get the app version to display in the login footer
     try {
       this.versionService.getVersion().then(v => {

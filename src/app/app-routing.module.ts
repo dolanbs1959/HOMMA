@@ -36,6 +36,18 @@ const routes: Routes = [
   },
 
   {
+    path: 'job-board',
+    loadChildren: () => import('./job-board/job-board.module').then(m => m.JobBoardPageModule)
+  },
+  {
+    path: 'job-detail',
+    loadChildren: () => import('./job-detail/job-detail.module').then(m => m.JobDetailPageModule)
+  },
+  {
+    path: 'coming-soon',
+    loadChildren: () => import('./coming-soon/coming-soon.module').then(m => m.ComingSoonPageModule)
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full'

@@ -1,0 +1,16 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" text="Back" icon="arrow-back-outline"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ featureTitle }} — Coming Soon</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="coming-soon-container">
+    <ion-icon name="briefcase-outline" class="coming-soon-icon"></ion-icon>
+    <h1>{{ featureTitle }} is on the way</h1>
+    <p class="coming-soon-message">{{ message }}</p>
+  </div>
+</ion-content>

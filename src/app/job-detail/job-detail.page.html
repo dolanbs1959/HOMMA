@@ -1,0 +1,80 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/job-board" text="Back" icon="arrow-back-outline"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Job Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" *ngIf="job; else notFound">
+  <ion-card class="job-header-card">
+    <ion-card-header>
+      <ion-card-title>{{ job.jobTitle }}</ion-card-title>
+      <ion-card-subtitle *ngIf="job.employerName">{{ job.employerName }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p *ngIf="hasValue(job.employerCity)">
+        <ion-icon name="location-outline"></ion-icon>
+        {{ job.employerCity }}
+      </p>
+      <p *ngIf="hasValue(job.employerIndustry)">
+        <ion-icon name="business-outline"></ion-icon>
+        {{ job.employerIndustry }}
+      </p>
+      <p *ngIf="hasValue(job.datePosted)">
+        <ion-icon name="calendar-outline"></ion-icon>
+        Posted: {{ job.datePosted | date:'MM-dd-yyyy' }} &bull; Aged {{ getAged(job.datePosted) }}
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="job-section-card">
+    <ion-card-header>
+      <ion-card-title>Job Information</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p *ngIf="hasValue(job.skillsNeeded)">
+        <strong>Skills Needed:</strong>
+        <span [innerHTML]="getSafeHtml(job.skillsNeeded)"></span>
+      </p>
+      <p *ngIf="hasValue(job.shifts)"><strong>Shifts:</strong> {{ job.shifts }}</p>
+      <p *ngIf="hasValue(job.payRate)"><strong>Pay Rate:</strong> {{ formatPay(job.payRate) }}</p>
+      <p *ngIf="hasValue(job.benefits)"><strong>Benefits:</strong> {{ job.benefits }}</p>
+      <p *ngIf="hasValue(job.employerReferral)"><strong>Employer Referral:</strong> {{ job.employerReferral }}</p>
+      <p *ngIf="hasValue(job.status)"><strong>Status:</strong> {{ job.status }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="job-section-card" *ngIf="hasValue(job.employerName)">
+    <ion-card-header>
+      <ion-card-title>Employer Contact</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p *ngIf="hasValue(job.employerAddress)"><strong>Address:</strong> {{ job.employerAddress }}</p>
+      <p *ngIf="hasValue(job.employerCity)"><strong>City:</strong> {{ job.employerCity }}</p>
+      <p *ngIf="hasValue(job.employerPhone)"><strong>Phone:</strong> {{ job.employerPhone }}</p>
+      <p *ngIf="hasValue(job.employerPointOfContact)"><strong>Point of Contact:</strong> {{ job.employerPointOfContact }}</p>
+      <p *ngIf="hasValue(job.employerEmail)"><strong>Email:</strong> {{ job.employerEmail }}</p>
+      <p *ngIf="hasValue(job.employerWebsite)"><strong>Website:</strong> {{ job.employerWebsite }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <button
+    *ngIf="hasValue(job.employerWebsite)"
+    type="button"
+    class="action-button"
+    (click)="applyHere()"
+  >
+    Apply Here
+  </button>
+</ion-content>
+
+<ng-template #notFound>
+  <ion-content class="ion-padding ion-text-center">
+    <ion-icon name="briefcase-outline" class="not-found-icon"></ion-icon>
+    <h2>Job not found</h2>
+    <p>This job may no longer be available.</p>
+    <ion-button (click)="goBack()" fill="clear">Go Back</ion-button>
+  </ion-content>
+</ng-template>

@@ -22,6 +22,7 @@ import { ResidentSearchComponent } from '../resident-search/resident-search.comp
 export class ResidentDetailComponent  implements OnInit {
   @ViewChild('residentSearch', { static: false }) residentSearch!: ResidentSearchComponent;
   residentData: any;
+  showJobBoardComingSoon = true;
   theHouseName: string = '';
   houseLeaderName: string = '';
   houseLeaderPhone: string = '';
@@ -236,15 +237,6 @@ export class ResidentDetailComponent  implements OnInit {
     const isStaff = this.userService.isStaffUser();
     const destination = isStaff ? '/transportation-history' : '/transportation';
 
-    console.debug('ResidentDetail.navigateToTransportation', {
-      isStaff,
-      destination,
-      participantName,
-      participantId,
-      theHouseName: this.theHouseName,
-      houseLeaderName: this.houseLeaderName,
-      houseLeaderRecordId: resolvedHouseLeaderRecordId
-    });
     // Persist photo and navigate passing only identifiers; avoid sending photo data in query params.
     try {
       if (participantPhoto && participantId) {
@@ -370,6 +362,27 @@ goToVitals() {
   }
 }
 
+  navigateToJobBoard() {
+    // Temporary gate: while showJobBoardComingSoon is true, the Job Board tab
+    // opens a Coming Soon decoy page instead of the real Job Board. When the
+    // flag is set to false, the existing real Job Board is exposed normally.
+    // If the participant (or HL) is currently on the Payments child route, replace
+    // that history entry so the Back button returns to the resident-detail context
+    // instead of landing on Payments.
+    const navigationExtras = { replaceUrl: this.isPaymentsActive() };
+    if (this.showJobBoardComingSoon) {
+      this.router.navigate(['/coming-soon'], {
+        ...navigationExtras,
+        state: { title: 'Job Board' },
+      });
+      return;
+    }
+    this.router.navigate(['/job-board'], {
+      ...navigationExtras,
+      state: { residentData: this.residentData },
+    });
+  }
+
 addObservationReport() {
     // Persist photo and navigate without embedding full photo data in state
     try {
@@ -421,14 +434,6 @@ addObservationReport() {
 
   ngOnInit(): void {
     const navigation = this.router.getCurrentNavigation();
-    console.log('ResidentDetail.ngOnInit - currentNavigation', navigation);
-    this.router.events.subscribe(e => {
-      try {
-        // Log Navigation events to help debug why view isn't updating
-        const name = (e as any).constructor && (e as any).constructor.name;
-        console.log('Router event in ResidentDetail:', name, e);
-      } catch (err) {}
-    });
     const state = navigation?.extras.state as { 
       residentData: any, 
       theHouseName: string, 
@@ -459,19 +464,9 @@ addObservationReport() {
       }
       // some navigations use recordNumber2 or participantId
       queryParticipantId = params['recordNumber2'] || params['participantId'] || null;
-
-      console.debug('ResidentDetail query params resolved', {
-        houseLeaderRecordId: this.houseLeaderRecordId,
-        rawLower: params['houseLeaderRecordId'],
-        rawUpper: params['HouseLeaderRecordId'],
-        theHouseName: this.theHouseName,
-        houseLeaderName: this.houseLeaderName,
-        participantId: queryParticipantId
-      });
     });
 
     if (state && state.residentData) {
-      console.log('ResidentDetail.ngOnInit - navigation state present', { fromSearch: state.fromSearch, searchQuery: state.searchQuery });
       this.residentData = state.residentData;
       this.theHouseName = state.theHouseName || '';
       this.houseLeaderName = state.houseLeaderName || '';
@@ -495,16 +490,7 @@ addObservationReport() {
         this.searchResults = state.searchResults || [];
         this.searchQuery = state.searchQuery || '';
       }
-      console.log('ResidentDetail.ngOnInit - residentData loaded', { id: this.residentData?.recordNumber2 || this.residentData?.recordNumber });
-
       // console.log('Resident Data from state:', this.residentData); // Log the resident data from state
-      console.debug('ResidentDetail.ngOnInit resolved houseLeaderRecordId', {
-        houseLeaderRecordId: this.houseLeaderRecordId,
-        stateHouseLeaderRecordId: state?.houseLeaderRecordId,
-        stateHouseLeaderRecordIdUpper: state?.HouseLeaderRecordId,
-        queryParamLower: this.route.snapshot?.queryParamMap?.get('houseLeaderRecordId'),
-        queryParamUpper: this.route.snapshot?.queryParamMap?.get('HouseLeaderRecordId')
-      });
       // console.log('House Name:', this.theHouseName); // Log the house name
       // console.log('House Leader Name:', this.houseLeaderName); // Log the house leader name
       // console.log('House Leader Phone:', this.houseLeaderPhone); // Log the house leader phone
@@ -594,16 +580,6 @@ addObservationReport() {
   async ionViewWillEnter() {
     const last = this.quickbaseService.getLastResidentSearch();
     const staff = this.userService.getParticipantInfo();
-    console.log('[ResidentDetail] ionViewWillEnter', {
-      currentUrl: this.router.url,
-      staffId: staff?.recordId,
-      staffName: staff?.fullName,
-      residentDataId: this.residentData?.recordNumber2?.value || this.residentData?.recordNumber || 'none',
-      residentDataName: this.residentData?.residentFullName?.value || this.residentData?.residentFullName || this.residentData?.residentName || 'none',
-      lastOpenOnReturn: last?.openOnReturn,
-      lastSelectedId: last?.selectedResident?.recordNumber2?.value || last?.selectedResident?.recordNumber || 'none',
-      lastSelectedName: last?.selectedResident?.residentFullName?.value || last?.selectedResident?.residentFullName || last?.selectedResident?.residentName || 'none'
-    });
     this.residentSearch?.restoreFromCache();
   }
   

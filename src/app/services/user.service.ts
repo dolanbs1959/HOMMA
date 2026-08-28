@@ -125,6 +125,10 @@ export class UserService {
     this.participantInfo = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0 };
     this.displayName = '';
     try { this.quickbaseService.currentStaffRole = ''; } catch (e) {}
+    // Clear cached invoice payments on any login reset. Invoice payments are
+    // house-specific; without this a participant's first payment view can use
+    // stale data from a previous session, causing the listing to appear empty.
+    try { this.quickbaseService.invoicePayments.next(null); } catch (e) {}
   }
 
   // Manual logout method

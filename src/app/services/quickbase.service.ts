@@ -34,6 +34,7 @@ export class QuickbaseService {
   private communicationTableId = environment.communicationTableID;
   private announcementsTableId = environment.announcementsTableID;
   private invoicePaymentsTableId = environment.invoicePaymentsTableID;
+  private jobBoardTableId = environment.jobBoardTableId;
   
   private errorMessage: BehaviorSubject<string> = new BehaviorSubject<string>('');
   errorMessage$: Observable<string> = this.errorMessage.asObservable();
@@ -61,6 +62,7 @@ export class QuickbaseService {
   transportRequests = new BehaviorSubject<any>(null); // Cached transport requests for house leaders
   locations = new BehaviorSubject<any>(null); // Cached locations (pickup/destination)
   invoicePayments = new BehaviorSubject<any>(null); // Cached invoice payment records for the current house
+  openJobs = new BehaviorSubject<any>(null); // Cached open job board records
   
   // Simple session-based caching - no timers needed
   
@@ -290,13 +292,11 @@ export class QuickbaseService {
    * This keeps the API token server-side and never exposed to clients
    */
   public callQuickbaseProxy(method: string, endpoint: string, body?: any): Observable<any> {
-    // Defensive logging of the outgoing payload (also emit console logs for temporary debugging)
+    // Defensive logging of the outgoing payload
     let safeBody = '{}';
     try {
       safeBody = JSON.stringify(body || {});
       this.logger.debug(`Proxy Request -> method: ${method}, endpoint: ${endpoint}, body: ${safeBody}`);
-      // Temporary console debug to aid diagnosing 500 errors for specific houses/users
-      this.logger.debug('QuickbaseProxy Request Preview', { method, endpoint, bodyPreview: safeBody.substring(0, 200) });
     } catch (e) {
       this.logger.warn('Failed to stringify proxy body for logging', e);
     }
@@ -317,7 +317,6 @@ export class QuickbaseService {
         })
       )),
       map((result: any) => {
-        this.logger.debug('🔒 Proxy call received', result);
         // Normalize callable result shapes: firebase v2 wraps in `result`, v1 in `data`
         const payload = result?.data ?? result?.result ?? result;
         // If the proxy returned a structured failure, surface it as an error so retry/catchError run
@@ -485,6 +484,7 @@ export class QuickbaseService {
       this.transportRequests.next(null);
       this.locations.next(null);
       this.invoicePayments.next(null);
+      this.openJobs.next(null);
     } catch (e) {
       this.logger.warn('clearAllCaches failed', e);
     }
@@ -1794,11 +1794,8 @@ getInvoicePayments(houseName: string): Observable<any> {
     }
   };
 
-  try { this.logger.debug('getInvoicePayments - query body', body); } catch (e) {}
-
   return this.callQuickbaseProxy('POST', 'query', body).pipe(
     tap((response: any) => {
-      try { this.logger.debug('getInvoicePayments - proxy response', response); } catch (e) {}
       const data = response?.data || [];
       this.invoicePayments.next(data);
     })
@@ -1824,12 +1821,7 @@ getInvoicePaymentsForResident(residentId: string | number): Observable<any> {
     }
   };
 
-  try { this.logger.debug('getInvoicePaymentsForResident - query body', body); } catch (e) {}
-
   return this.callQuickbaseProxy('POST', 'query', body).pipe(
-    tap((response: any) => {
-      try { this.logger.debug('getInvoicePaymentsForResident - proxy response', response); } catch (e) {}
-    }),
     map((response: any) => response?.data || [])
   );
 }
@@ -2081,4 +2073,77 @@ getActiveStaff(): Observable<any> {
     })
   );
 }
+
+  /**
+   * Query and cache open job board records. Returns the cached array on
+   * subsequent calls, ensuring the Job Board page does not trigger a new
+   * QuickBase request.
+   */
+  getOpenJobs(): Observable<any[]> {
+    if (this.isCacheAvailable('openJobs')) {
+      this.logger.log('Returning cached open jobs');
+      return this.openJobs.asObservable();
+    }
+
+    this.trackApiCall('getOpenJobs');
+    this.logger.log('Fetching open jobs from API');
+    const body = {
+      from: this.jobBoardTableId,
+      select: [3, 6, 8, 9, 10, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23, 24, 25],
+      where: `{14.EX.'Open'}`,
+      sortBy: [
+        {
+          fieldId: 25,
+          order: 'DESC'
+        }
+      ],
+      options: {
+        skip: 0,
+        top: 0,
+        compareWithAppLocalTime: false
+      }
+    };
+
+    return this.callQuickbaseProxy('POST', 'query', body).pipe(
+      map(response => {
+        const records = this.extractRecords(response);
+        return records.map((record: any) => ({
+          id: this.getFieldValue(record, 3) ?? '',
+          jobTitle: this.getFieldValue(record, 6) ?? '',
+          skillsNeeded: this.getFieldValue(record, 8) ?? '',
+          shifts: this.getFieldValue(record, 9) ?? '',
+          payRate: this.getFieldValue(record, 10) ?? '',
+          benefits: this.getFieldValue(record, 12) ?? '',
+          employerReferral: this.getFieldValue(record, 13) ?? '',
+          status: this.getFieldValue(record, 14) ?? '',
+          employerName: this.getFieldValue(record, 16) ?? '',
+          employerAddress: this.getFieldValue(record, 17) ?? '',
+          employerCity: this.getFieldValue(record, 18) ?? '',
+          employerIndustry: this.getFieldValue(record, 19) ?? '',
+          employerPhone: this.getFieldValue(record, 20) ?? '',
+          employerPointOfContact: this.getFieldValue(record, 21) ?? '',
+          employerWebsite: this.getFieldValue(record, 23) ?? '',
+          employerEmail: this.getFieldValue(record, 24) ?? '',
+          datePosted: this.getFieldValue(record, 25) ?? null,
+          raw: record
+        }));
+      }),
+      tap(mappedData => {
+        this.logger.log(`Cached ${mappedData.length} open jobs`);
+        this.openJobs.next(mappedData);
+      }),
+      catchError(error => {
+        this.logger.error('Error fetching open jobs', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Returns the number of cached open jobs for the UI to derive a count.
+   */
+  getOpenJobCount(): number {
+    const jobs = this.openJobs.value;
+    return Array.isArray(jobs) ? jobs.length : 0;
+  }
 }

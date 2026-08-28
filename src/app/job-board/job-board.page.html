@@ -1,0 +1,53 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" text="Back" icon="arrow-back-outline"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      Open Jobs
+      <span *ngIf="openCount > 0" class="job-count-badge">({{ openCount }})</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Empty state -->
+  <ion-card *ngIf="openCount === 0" class="empty-jobs-card">
+    <ion-card-content class="ion-text-center">
+      <ion-icon name="briefcase-outline" class="empty-icon"></ion-icon>
+      <h2>No open jobs right now</h2>
+      <p>Check back later for new job opportunities.</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Job count header -->
+  <ion-list-header *ngIf="openCount > 0" class="ion-no-padding">
+    <ion-label>{{ openCount }} Open Job{{ openCount === 1 ? '' : 's' }}</ion-label>
+  </ion-list-header>
+
+  <!-- Job listing -->
+  <ion-list *ngIf="openCount > 0" lines="full" class="job-list">
+    <ion-item
+      *ngFor="let job of jobs; trackBy: trackByJob"
+      button
+      detail="true"
+      detail-icon="chevron-forward-outline"
+      (click)="openDetail(job)"
+    >
+      <ion-label class="job-summary">
+        <h2 class="job-title">{{ job.jobTitle }}</h2>
+        <p class="job-meta" *ngIf="job.employerName || job.employerCity">
+          <span *ngIf="job.employerName">{{ job.employerName }}</span>
+          <span *ngIf="job.employerName && job.employerCity"> — </span>
+          <span *ngIf="job.employerCity">{{ job.employerCity }}</span>
+        </p>
+        <p class="job-pay" *ngIf="job.payRate">
+          <strong>Pay:</strong> {{ formatPay(job.payRate) }}
+        </p>
+        <p class="job-aged">
+          <strong>Aged:</strong> {{ getAged(job.datePosted) }}
+        </p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -44,6 +44,8 @@ export const environment = {
   expenseReceiptTableID: 'bvnkq2hnd', // Expense Receipt table
   expenseReceiptPhotoFieldID: 10, // Receipt file attachment field ID
   invoicePaymentsTableID: 'bpsqbqm9z', // Invoice Payments table
+  jobBoardAppId: 'bviye7aye', // Job Board source app
+  jobBoardTableId: 'bv28nc39y', // Job Board source table
 
 };
 

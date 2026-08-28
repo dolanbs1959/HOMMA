@@ -121,9 +121,10 @@
     <ion-icon name="arrow-back-outline"></ion-icon>
     <span>Back</span>
   </button>
-  <button type="button" class="tab-item" (click)="exitApp()">
-    <ion-icon name="log-out-outline"></ion-icon>
-    <span>Exit</span>
+  <button type="button" class="tab-item job-board-tab" (click)="navigateToJobBoard()">
+    <span *ngIf="showJobBoardComingSoon" class="coming-soon-badge" aria-hidden="true">COMING SOON</span>
+    <ion-icon name="briefcase-outline"></ion-icon>
+    <span>Job Board</span>
   </button>
 </nav>
 </ion-content>
@@ -142,9 +143,10 @@
     <ion-icon name="card-outline"></ion-icon>
     <span>Payments</span>
   </button>
-  <button type="button" class="tab-item" (click)="goToVitals()">
-    <ion-icon name="pulse-outline"></ion-icon>
-    <span>Vitals</span>
+  <button type="button" class="tab-item job-board-tab" (click)="navigateToJobBoard()">
+    <span *ngIf="showJobBoardComingSoon" class="coming-soon-badge" aria-hidden="true">COMING SOON</span>
+    <ion-icon name="briefcase-outline"></ion-icon>
+    <span>Job Board</span>
   </button>
   <button type="button" class="tab-item" (click)="goToMessageCenter()">
     <ion-icon name="mail-outline"></ion-icon>
@@ -153,10 +155,6 @@
   <button type="button" class="tab-item" (click)="navigateToClassroom()">
     <ion-icon name="calendar-outline"></ion-icon>
     <span>Classroom</span>
-  </button>
-  <button type="button" class="tab-item" (click)="exitApp()">
-    <ion-icon name="log-out-outline"></ion-icon>
-    <span>Exit</span>
   </button>
 </nav>
 </ion-footer>
