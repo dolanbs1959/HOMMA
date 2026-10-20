@@ -97,13 +97,27 @@ export class WeeklyMeetingsPage implements OnInit {
     }
 
     this.isLoading = true;
-    const TaskRecordId = this.quickbaseService.TaskRecordId; // Get TaskRecordId directly from the service
     const newActivityData = this.formGroup.value;
 
+    this.quickbaseService.getWeeklyMeetingTaskAssignment().subscribe((taskAssignmentRid: number | null) => {
+      if (!taskAssignmentRid) {
+        this.isLoading = false;
+        this.message = 'No open Weekly House Meeting task assignment was found. The meeting may already have been submitted.';
+        return;
+      }
+      this.submitWeeklyHouseMeeting(taskAssignmentRid, newActivityData);
+    }, (lookupError) => {
+      this.isLoading = false;
+      this.message = 'Unable to look up the task assignment. Please try again.';
+      this.logger.error('Meeting task assignment lookup failed', lookupError);
+    });
+  }
+
+  private submitWeeklyHouseMeeting(taskAssignmentRid: number, newActivityData: any) {
     const activityBody = {
       6: { value: newActivityData.ActivityDesc }, // Activity Description
       89: { value: new Date().toISOString().split('T')[0] }, // Current Date
-      43: { value: TaskRecordId }
+      43: { value: taskAssignmentRid }
     };
 
     // Robust insert with simple retry/backoff to avoid intermittent missing activityId
@@ -162,13 +176,20 @@ export class WeeklyMeetingsPage implements OnInit {
           this.quickbaseService.createAttendanceRecordsBulk(records).subscribe(resp => {
             this.logger.log('Batch attendance records created', resp);
             this.attendanceUpdated = true;
-            this.isLoading = false;
-            // Show confirmation popup with number of records created
             const count = resp?.metadata?.totalNumberOfRecordsProcessed ?? (resp?.data?.length ?? 0);
             const ids = resp?.metadata?.createdRecordIds ?? (resp?.data?.map((d: any) => d['3']?.value ?? d['3']) || []);
             this.confirmationCount = Number(count) || ids.length || 0;
             this.confirmationIds = ids;
-            this.showConfirmation = true;
+            // Submitting the record constitutes completion of the task assignment.
+            this.quickbaseService.markTaskAssignmentComplete(taskAssignmentRid).subscribe(() => {
+              this.quickbaseService.clearStaffTasksCache();
+              this.isLoading = false;
+              this.showConfirmation = true;
+            }, (completeErr) => {
+              this.logger.error('Failed to mark task assignment complete', completeErr);
+              this.isLoading = false;
+              this.showConfirmation = true;
+            });
             // do not navigate until user clicks OK
           }, err => {
             this.logger.error('Batch create failed', err);

@@ -31,7 +31,7 @@
       <p><strong>House:</strong> {{ task.houseName }}</p>
       <p [ngClass]="{'status-overdue': (task.status || '').includes('Due')}"><strong>Status:</strong> {{ task.status | extractText }}</p>
       <p><strong>Frequency:</strong> {{ task.frequency | extractText }}</p>
-      <p><strong>Priority:</strong> {{ task.priority }}</p>
+      <!-- <p><strong>Priority:</strong> {{ task.priority }}</p> -->
       <p *ngIf="(task.taskName || '').includes('Reviews')" [ngClass]="{'reviews-due': (task.status || '').includes('Reviews')}">
         <strong>1 on 1's Due:</strong> {{ task.p1on1sDue }}
       </p>

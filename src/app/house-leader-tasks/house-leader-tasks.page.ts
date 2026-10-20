@@ -101,9 +101,9 @@ export class HouseLeaderTasksPage implements OnInit, OnDestroy {
               id: taskRecord[3]?.value || taskRecord[3],
               taskName: taskRecord[8]?.value || taskRecord[8],
               priority: this.quickbaseService.normalizeFieldToString(taskRecord[15]),
-              status: taskRecord[22]?.value || taskRecord[22],
+              status: taskRecord[326]?.value || taskRecord[326] || this.quickbaseService.normalizeFieldToString(taskRecord[22]),
               role: taskRecord[32]?.value || taskRecord[32],
-              houseName: taskRecord[36]?.value || taskRecord[36],
+              houseName: this.quickbaseService.normalizeFieldToString(taskRecord[36]) || this.theHouseName,
               frequency: taskRecord[47]?.value || taskRecord[47],
               p1on1sDue: taskRecord[263]?.value || taskRecord[263]
             };

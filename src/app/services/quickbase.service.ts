@@ -275,9 +275,20 @@ export class QuickbaseService {
       if (typeof field === 'string') return field;
       if (typeof field === 'number' || typeof field === 'boolean') return String(field);
       if (typeof field === 'object') {
-        if ('value' in field) return String(field.value ?? '');
+        if (Array.isArray(field)) {
+          return field
+            .map((item: any) => this.normalizeFieldToString(item))
+            .filter((s: string) => s !== '')
+            .join(', ');
+        }
+        if ('value' in field) {
+          const inner = field.value;
+          if (inner && typeof inner === 'object') return this.normalizeFieldToString(inner);
+          return String(inner ?? '');
+        }
         if ('display' in field) return String(field.display ?? '');
         if ('text' in field) return String(field.text ?? '');
+        if ('name' in field) return String(field.name ?? '');
         if ('html' in field) return String(field.html ?? '');
         try { return JSON.stringify(field); } catch (e) { return String(field); }
       }
@@ -767,8 +778,8 @@ getStaffTasks(): Observable<any> {
   if (this.isCacheAvailable('staffTasks')) {
     return this.staffTasks.asObservable();
   }
-  // If we don't yet have a valid staffRecordID, try to rehydrate from queryData/TaskRecordId
-  const resolvedStaffId = this.staffRecordID || (this.queryData?.TaskRecordId?.value ?? this.queryData?.recordNumber?.value ?? this.TaskRecordId) || 0;
+  // If we don't yet have a valid staffRecordID, try to rehydrate from queryData
+  const resolvedStaffId = this.staffRecordID || (this.queryData?.recordNumber?.value ?? this.queryData?.recordNumber) || 0;
   if (!resolvedStaffId || resolvedStaffId === 0) {
     this.logger.warn('getStaffTasks: staffRecordID not yet available, skipping fetch to avoid empty overwrite');
     // Return the cached observable (may be null) without making the API call
@@ -781,9 +792,9 @@ getStaffTasks(): Observable<any> {
   this.trackApiCall('getStaffTasks');
   this.logger.log('Fetching fresh staff tasks from API', { staffRecordID: this.staffRecordID });
   const body = {
-    from: this.StaffTasksTableID, 
-    select: [3, 22, 32, 8, 36, 47, 15, 263],
-    where: `{34.EX.${this.staffRecordID}}AND{12.EX.'House Leader'}AND{37.EX.'Active'}AND{41.EX.'Active'}AND{40.EX.'Active'}AND{22.CT.'Activity Over-Due'}`, 
+    from: this.StaffTasksTableID,
+    select: [3, 326, 32, 8, 36, 47, 15, 263],
+    where: `{88.EX.${this.staffRecordID}}AND{32.EX.'House Leader'}AND{37.EX.'Active'}AND{41.EX.'Active'}AND{40.EX.'Active'}AND{326.EX.'Incomplete'}`,
     options: {
       skip: 0,
       top: 0,
@@ -800,6 +811,7 @@ getStaffTasks(): Observable<any> {
         return this.callQuickbaseProxy('POST', 'query', body).pipe(
           tap(response => {
             this.logger.debug('Staff tasks loaded successfully', { rawResponse: response });
+            try { this.logger.debug('getStaffTasks - first raw task record', JSON.stringify(response?.data?.[0] ?? response?.[0] ?? null)); } catch (e) {}
 
             const incomingCount = (() => {
               try {
@@ -822,10 +834,10 @@ getStaffTasks(): Observable<any> {
 
             this.logger.log('QuickbaseService - staffTasks incoming vs current', { incomingCount, currentCount });
 
-            // Set STAalert based on the incoming API count (reflect actual overdue tasks)
+            // Set STAalert based on the incoming API count (reflect actual tasks due)
             try {
               if (typeof incomingCount === 'number') {
-                this.STAalert = `There are ${incomingCount} Staff Task Assignments Overdue`;
+                this.STAalert = `There are ${incomingCount} Staff Task Assignments Due`;
                 try { this._STAalert.next(this.STAalert); } catch (e) {}
               }
             } catch (e) {}
@@ -838,6 +850,62 @@ getStaffTasks(): Observable<any> {
             this.publishCache('staffTasks', this.staffTasks, response);
           })
         );
+}
+
+getWeeklyMeetingTaskAssignment(): Observable<number | null> {
+  const staffId = this.staffRecordID;
+  if (!staffId) {
+    this.logger.warn('getWeeklyMeetingTaskAssignment: staffRecordID not available');
+    return of(null);
+  }
+  this.trackApiCall('getWeeklyMeetingTaskAssignment');
+  const body = {
+    from: this.StaffTasksTableID,
+    select: [3],
+    where: `{88.EX.${staffId}}AND{32.EX.'House Leader'}AND{37.EX.'Active'}AND{41.EX.'Active'}AND{40.EX.'Active'}AND{326.EX.'Incomplete'}AND{318.EX.4}`,
+    options: {
+      skip: 0,
+      top: 0,
+      compareWithAppLocalTime: false
+    }
+  };
+  return this.callQuickbaseProxy('POST', 'query', body).pipe(
+    map((response: any) => {
+      const data = Array.isArray(response) ? response : (response?.data || []);
+      if (!data.length) {
+        this.logger.warn('getWeeklyMeetingTaskAssignment: no incomplete meeting task found');
+        return null;
+      }
+      if (data.length > 1) {
+        this.logger.warn('getWeeklyMeetingTaskAssignment: multiple matching tasks, using first', { count: data.length });
+      }
+      const raw = data[0]?.['3'];
+      return raw?.value ?? raw ?? null;
+    }),
+    catchError(err => {
+      this.logger.error('getWeeklyMeetingTaskAssignment query failed', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+markTaskAssignmentComplete(taskRecordId: number): Observable<any> {
+  this.trackApiCall('markTaskAssignmentComplete');
+  const body = {
+    to: this.StaffTasksTableID,
+    data: [{
+      3: { value: taskRecordId },
+      326: { value: 'Complete' },
+      381: { value: new Date().toISOString().split('T')[0] }
+    }],
+    fieldsToReturn: [3, 326, 381]
+  };
+  return this.callQuickbaseProxy('POST', 'records', body);
+}
+
+clearStaffTasksCache(): void {
+  try { sessionStorage.removeItem('HOMMA__STAFFTASKS'); } catch (e) {}
+  this.staffTasks.next(null);
 }
 
 insertActivity(activityData: any): Observable<any> {
@@ -1275,7 +1343,7 @@ insertActivity(activityData: any): Observable<any> {
     // Single API call to get all active staff records with house and area manager info
     const body = {
       from: this.queryStaffTableId,
-      select: [3, 6, 9, 10, 55, 93, 102, 139, 223, 225, 247, 248, 295], // Added 93 (Role), 102 (Staff ID) and 295 (Senior Staff)
+      select: [3, 6, 9, 10, 55, 93, 102, 139, 223, 225, 248, 295], // Added 93 (Role), 102 (Staff ID) and 295 (Senior Staff)
       where: `{6.XEX.'Closed'}`, // Get all non-closed staff records
       options: {
         skip: 0,
@@ -1400,12 +1468,10 @@ insertActivity(activityData: any): Observable<any> {
             const HouseLeaderName = record['10'];
             const HouseLeaderRecordId = record['9'];
             const HLphone = record['55'];
-            const TaskRecordId = record['247'];
             const STAalert = record['225'];
             const Alert = record['139'];
 
             // Store values for service state (normalize alert fields to strings)
-            this.TaskRecordId = record['247']?.value || record['247'] || 0;
             this.STAalert = this.normalizeFieldToString(record['225']) || '';
             try { this._STAalert.next(this.STAalert); } catch (e) {}
             this.Alert = this.normalizeFieldToString(record['139']) || '';
@@ -1416,7 +1482,6 @@ insertActivity(activityData: any): Observable<any> {
               'HouseLeaderName': HouseLeaderName,
               'HouseLeaderRecordId': HouseLeaderRecordId,
               'HLphone': HLphone,
-              'TaskRecordId': TaskRecordId,
               'STAalert': STAalert,
               'Alert': Alert
             });
