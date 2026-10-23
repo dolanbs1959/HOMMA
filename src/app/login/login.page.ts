@@ -319,9 +319,10 @@ ngOnInit() {
             this.logger.log(`Checking Senior Staff status for resident record ID: ${participantRecordId}`);
             const staffRecordId = this.userService.checkIsSeniorStaff(participantRecordId);
             const isStaff = staffRecordId > 0;
+            const timeClockEnabled = isStaff && this.userService.checkTimeClockEnabled(staffRecordId);
             this.logger.log(`checkIsSeniorStaff returned: ${staffRecordId} (type: ${typeof staffRecordId}) for participantRecordId: ${participantRecordId} -> isStaff: ${isStaff}`);
-            this.userService.setParticipantInfo(participantEmail, participantRecordId, participantFullName, isStaff, staffRecordId);
-            this.logger.log(`=== LOGIN SUCCESSFUL - Senior Staff: ${isStaff}, Staff Record ID: ${staffRecordId} ===`);
+            this.userService.setParticipantInfo(participantEmail, participantRecordId, participantFullName, isStaff, staffRecordId, timeClockEnabled);
+            this.logger.log(`=== LOGIN SUCCESSFUL - Senior Staff: ${isStaff}, Staff Record ID: ${staffRecordId}, Time Clock Enabled: ${timeClockEnabled} ===`);
             
             // Track participant login in Google Analytics
             const participantId = `participant_${resident.residentIDnumber.value}`;

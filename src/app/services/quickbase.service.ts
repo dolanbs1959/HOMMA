@@ -35,6 +35,8 @@ export class QuickbaseService {
   private announcementsTableId = environment.announcementsTableID;
   private invoicePaymentsTableId = environment.invoicePaymentsTableID;
   private jobBoardTableId = environment.jobBoardTableId;
+  private staffTimeEntriesTableID = environment.staffTimeEntriesTableID; // Staff Time Entries table
+  private staffTimePunchesTableID = environment.staffTimePunchesTableID; // Staff Time Punches table
   
   private errorMessage: BehaviorSubject<string> = new BehaviorSubject<string>('');
   errorMessage$: Observable<string> = this.errorMessage.asObservable();
@@ -78,6 +80,7 @@ export class QuickbaseService {
   private functions = getFunctions();
   private quickbaseProxy = httpsCallable(this.functions, 'quickbaseProxy');
   private getCurriculumCallable = httpsCallable(this.functions, 'getCurriculum');
+  private reverseGeocodeCallable = httpsCallable(this.functions, 'reverseGeocode');
 
   constructor(
     private http: HttpClient,
@@ -2030,7 +2033,7 @@ getActiveStaff(): Observable<any> {
   const body = {
     from: this.queryStaffTableId,
     // Include additional fields that may contain email or identifiers (best-effort)
-    select: [3, 9, 10, 55, 102, 118, 139, 177, 301],  // fid 3 = Staff Record ID, fid 9 = Related Participant, fid 10 = Display Name, others may include contact info
+    select: [3, 9, 10, 55, 102, 118, 139, 177, 301, 359],  // fid 3 = Staff Record ID, fid 9 = Related Participant, fid 10 = Display Name, fid 359 = Time Clock (HOMMA), others may include contact info
     where: `{6.EX.'Active'}AND{292.EX.'Yes'}`, //fields for Staff Status; Senior Staff
     sortBy: [
       {
@@ -2104,6 +2107,9 @@ getActiveStaff(): Observable<any> {
           } catch (e) {}
         }
 
+        const tc359 = record['359'];
+        const timeClockEnabled = tc359 === true || tc359?.value === true || tc359 === 'Yes' || tc359?.value === 'Yes';
+
         return {
           raw: record,
           userId: record['3']?.value,
@@ -2111,6 +2117,7 @@ getActiveStaff(): Observable<any> {
           feedbackRole: (record['301'] && (record['301'].value ?? record['301'])) || null,
           relatedParticipantId: record['9']?.value,
           staffId: record['102']?.value || record['102'],
+          timeClockEnabled,
           email
         };
       });
@@ -2130,6 +2137,7 @@ getActiveStaff(): Observable<any> {
             feedbackRole: s.feedbackRole || null,
             relatedParticipantId: s.relatedParticipantId,
             staffId: s.staffId,
+            timeClockEnabled: !!s.timeClockEnabled,
             email: s.email
           };
         });
@@ -2216,5 +2224,216 @@ getActiveStaff(): Observable<any> {
   getOpenJobCount(): number {
     const jobs = this.openJobs.value;
     return Array.isArray(jobs) ? jobs.length : 0;
+  }
+
+  /**
+   * Query the Staff Time Entries table for today's record for the given staff
+   * record. Staff Reference (fid 29) is matched to the staff record ID and
+   * Work Date (fid 7) to today's date in America/Los_Angeles.
+   * Read-only: returns matching records (fid 3 only); empty array on error.
+   */
+  getTodayStaffTimeEntry(staffRecordId: number | string): Observable<any[]> {
+    this.trackApiCall('getTodayStaffTimeEntry');
+    // Today's date in America/Los_Angeles as YYYY-MM-DD
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+    const body = {
+      from: this.staffTimeEntriesTableID,
+      select: [3], // fid 3 = Record ID#
+      where: `{29.EX.${staffRecordId}}AND{7.EX.'${today}'}`,
+      options: {
+        skip: 0,
+        top: 0,
+        compareWithAppLocalTime: false
+      }
+    };
+
+    this.logger.log(`getTodayStaffTimeEntry - staffRecordId=${staffRecordId}, workDate=${today}`);
+    return this.callQuickbaseProxy('POST', 'query', body).pipe(
+      map(response => this.extractRecords(response)),
+      catchError(error => {
+        this.logger.error('Error querying Staff Time Entries', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Query the Staff Time Entries table for YESTERDAY's record for the given
+   * staff record (America/Los_Angeles calendar date). Same shape as
+   * getTodayStaffTimeEntry — read-only, returns fid 3 matches, [] on error.
+   */
+  getYesterdayStaffTimeEntry(staffRecordId: number | string): Observable<any[]> {
+    this.trackApiCall('getYesterdayStaffTimeEntry');
+    // Yesterday in America/Los_Angeles as YYYY-MM-DD — computed via UTC date
+    // math on the LA calendar date so device timezone can't skew the result.
+    const laToday = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+    const [y, m, d] = laToday.split('-').map(Number);
+    const yd = new Date(Date.UTC(y, m - 1, d) - 86400000);
+    const yesterday = `${yd.getUTCFullYear()}-${String(yd.getUTCMonth() + 1).padStart(2, '0')}-${String(yd.getUTCDate()).padStart(2, '0')}`;
+    const body = {
+      from: this.staffTimeEntriesTableID,
+      select: [3, 63], // fid 3 = Record ID#, fid 63 = Missed Clock-Out flag
+      where: `{29.EX.${staffRecordId}}AND{7.EX.'${yesterday}'}`,
+      options: {
+        skip: 0,
+        top: 0,
+        compareWithAppLocalTime: false
+      }
+    };
+
+    return this.callQuickbaseProxy('POST', 'query', body).pipe(
+      map(response => this.extractRecords(response)),
+      catchError(error => {
+        this.logger.error('Error querying yesterday Staff Time Entries', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Set the Missed Clock-Out flag (fid 63) on a Staff Time Entries record.
+   * Errors propagate so the caller can avoid claiming the flag was saved.
+   */
+  markStaffTimeEntryMissedClockOut(steRecordId: number | string): Observable<any> {
+    this.trackApiCall('markStaffTimeEntryMissedClockOut');
+    const body = {
+      to: this.staffTimeEntriesTableID,
+      data: [{
+        3: { value: steRecordId },
+        63: { value: true }
+      }],
+      fieldsToReturn: [3]
+    };
+    return this.callQuickbaseProxy('POST', 'records', body).pipe(
+      map(response => {
+        const payload = response || {};
+        if (payload.lineErrors) {
+          console.error('Quickbase flag update rejected', payload.lineErrors);
+          throw new Error(`Quickbase rejected the flag update: ${JSON.stringify(payload.lineErrors)}`);
+        }
+        const updated = payload?.metadata?.updatedRecordIds;
+        const records = payload?.data ?? payload;
+        if ((!updated || updated.length === 0) && (!Array.isArray(records) || records.length === 0)) {
+          console.error('Quickbase did not confirm flag update', response);
+          throw new Error('Quickbase did not confirm the flag update');
+        }
+        return response;
+      })
+    );
+  }
+
+  /**
+   * Query today's punch records for a Staff Time Entry.
+   * fid 6 = Related Staff Time Entry, fid 9 = Punch Type,
+   * fid 10 = Punch Timestamp, fid 3 = Record ID.
+   * Sorted by timestamp then Record ID. Errors propagate so the caller can
+   * distinguish a failed lookup from an empty punch list.
+   */
+  getStaffTimePunches(steRecordId: number | string): Observable<any[]> {
+    this.trackApiCall('getStaffTimePunches');
+    const body = {
+      from: this.staffTimePunchesTableID,
+      select: [3, 9, 10],
+      where: `{6.EX.${steRecordId}}`,
+      sortBy: [
+        { fieldId: 10, order: 'ASC' },
+        { fieldId: 3, order: 'ASC' }
+      ],
+      options: {
+        skip: 0,
+        top: 0,
+        compareWithAppLocalTime: false
+      }
+    };
+
+    return this.callQuickbaseProxy('POST', 'query', body).pipe(
+      map(response => this.extractRecords(response))
+    );
+  }
+
+  /**
+   * Create a punch record in the Staff Time Punches table.
+   * fid 6 = Related Staff Time Entry (the daily STE record ID),
+   * fid 9 = Punch Type ('Clock In' | 'Clock Out'),
+   * fid 10 = Punch Timestamp (ISO string).
+   * The observable errors propagate to the caller so the UI can react.
+   */
+  createStaffTimePunch(
+    steRecordId: number | string,
+    punchType: string,
+    location?: { latitude?: number; longitude?: number; address?: string; accuracyFeet?: number },
+    timestampIso?: string
+  ): Observable<any> {
+    this.trackApiCall('createStaffTimePunch');
+    const record: any = {
+      6: { value: steRecordId },
+      9: { value: punchType },
+      10: { value: timestampIso || new Date().toISOString() }
+    };
+    if (location) {
+      if (typeof location.latitude === 'number') {
+        record[11] = { value: location.latitude };
+      }
+      if (typeof location.longitude === 'number') {
+        record[12] = { value: location.longitude };
+      }
+      if (location.address) {
+        record[13] = { value: location.address };
+      }
+      if (typeof location.accuracyFeet === 'number') {
+        record[14] = { value: location.accuracyFeet };
+      }
+    }
+    const body = {
+      to: this.staffTimePunchesTableID,
+      data: [record],
+      fieldsToReturn: [3]
+    };
+    this.logger.log(`createStaffTimePunch - steRid=${steRecordId}, type=${punchType}`);
+    return this.callQuickbaseProxy('POST', 'records', body).pipe(
+      map((response: any) => {
+        // Quickbase can return HTTP 207 with metadata.lineErrors on rejected
+        // records, and the proxy may return either the full {data, metadata}
+        // object or just the records array. Verify actual creation.
+        const meta = response?.metadata ?? response?.data?.metadata ?? {};
+        const lineErrors = meta.lineErrors;
+        const errorCount = lineErrors ? (Array.isArray(lineErrors) ? lineErrors.length : Object.keys(lineErrors).length) : 0;
+        if (errorCount > 0) {
+          this.logger.error('Quickbase rejected staff time punch', lineErrors);
+          throw new Error(`Quickbase rejected the punch record: ${JSON.stringify(lineErrors)}`);
+        }
+        const createdIds = Array.isArray(meta.createdRecordIds) ? meta.createdRecordIds : [];
+        const records = Array.isArray(response) ? response
+          : (Array.isArray(response?.data) ? response.data : []);
+        if (createdIds.length === 0 && records.length === 0) {
+          this.logger.error('Quickbase did not confirm punch record creation', response);
+          throw new Error('Quickbase did not confirm creation of the punch record');
+        }
+        return response;
+      })
+    );
+  }
+
+  /**
+   * Reverse geocode coordinates to a street address via the server-side
+   * Firebase callable (no third-party keys in client code).
+   * Best-effort only: resolves to null on any failure so callers can proceed
+   * without an address.
+   */
+  reverseGeocodeAddress(latitude: number, longitude: number): Observable<string | null> {
+    this.trackApiCall('reverseGeocodeAddress');
+    return from(this.reverseGeocodeCallable({ latitude, longitude })).pipe(
+      map((result: any) => {
+        const payload = result?.data ?? result?.result ?? result;
+        if (!payload || payload.success === false) {
+          return null;
+        }
+        return payload?.data?.address || payload?.address || null;
+      }),
+      catchError(error => {
+        this.logger.warn('reverseGeocodeAddress failed', error);
+        return of(null);
+      })
+    );
   }
 }

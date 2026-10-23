@@ -19,10 +19,56 @@
   <ion-card class="ion-text-center">
     <img src="assets/logo/HOM3.png" alt="Logo" class="hom-logo" />
     <ion-card-header *ngIf="residentData">
-      <div *ngIf="isStaff; else residentInfo" class="staff-profile">
-        <img *ngIf="residentData.residentPhoto" [src]="residentData.residentPhoto" alt="Staff Photo" class="staff-avatar" />
-        <span class="staff-name">{{ residentData.residentFullName.value }}</span>
-      </div>
+      <ng-container *ngIf="isStaff; else residentInfo">
+        <div class="staff-profile" style="justify-content:flex-start">
+          <img *ngIf="residentData.residentPhoto" [src]="residentData.residentPhoto" alt="Staff Photo" class="staff-avatar" style="border-radius:12px" />
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left">
+            <span style="font-size:12px;font-weight:500;color:var(--ion-color-medium)">Staff Profile</span>
+            <span class="staff-name">{{ residentData.residentFullName.value }}</span>
+          </div>
+        </div>
+        <div *ngIf="timeClockEnabled" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:12px;padding-bottom:12px;border-top:1px solid rgba(128,128,128,0.25)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1.3;text-align:left;flex:0 1 auto">
+            <ng-container *ngIf="clockedIn; else notClocked">
+              <span style="font-size:10px;font-weight:600;letter-spacing:0.5px;color:var(--ion-color-medium)">CLOCKED IN AT</span>
+              <span style="font-size:18px;font-weight:700">{{ clockInTime | date:'shortTime' }}</span>
+              <span style="font-size:11px;color:var(--ion-color-medium)">Elapsed: {{ elapsedText }}</span>
+            </ng-container>
+            <ng-template #notClocked>
+              <span style="font-size:12px;color:var(--ion-color-medium)">Not clocked in</span>
+            </ng-template>
+            <span *ngIf="timeEntryStatus" style="font-size:10px;font-weight:700;color:#c0392b">{{ timeEntryStatus }}</span>
+          </div>
+          <button type="button"
+            (click)="toggleClock()"
+            [disabled]="processing || !steReady"
+            [style.background]="clockedIn ? '#c0392b' : '#2b9c4d'"
+            [style.opacity]="(processing || !steReady) ? '0.6' : '1'"
+            style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-size:15px;font-weight:700;padding:14px 22px;min-height:64px;flex:0 0 55%;max-width:240px;border:none;border-radius:10px;cursor:pointer;white-space:nowrap">
+            <ion-icon name="time-outline" style="font-size:22px"></ion-icon>
+            <span>{{ processing ? (clockedIn ? 'CLOCKING OUT...' : 'CLOCKING IN...') : (clockedIn ? 'CLOCK OUT' : 'CLOCK IN') }}</span>
+          </button>
+        </div>
+        <div *ngIf="timeClockEnabled && steReady" style="margin-top:2px;padding-top:10px;padding-bottom:10px;border-top:1px solid rgba(128,128,128,0.25);text-align:left">
+          <div style="font-size:14px;font-weight:700;letter-spacing:0.5px;color:var(--ion-color-medium);text-align:center">TODAY'S TIME</div>
+          <div style="display:flex;justify-content:space-between;gap:16px;margin-top:6px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;line-height:1.3">
+              <span style="font-size:10px;color:var(--ion-color-medium)">Worked Today</span>
+              <span style="font-size:15px;font-weight:700">{{ workedTodayText }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;line-height:1.3">
+              <span style="font-size:10px;color:var(--ion-color-medium)">Off-Clock Breaks</span>
+              <span style="font-size:15px;font-weight:700">{{ breaksTodayText }}</span>
+            </div>
+          </div>
+          <div *ngIf="todaySessions.length" style="margin-top:8px;display:flex;flex-direction:column;gap:3px">
+            <div *ngFor="let s of todaySessions" style="display:flex;justify-content:space-between;font-size:11px;color:var(--ion-color-medium)">
+              <span>{{ s.start | date:'shortTime' }} – {{ s.end | date:'shortTime' }}</span>
+              <span style="font-weight:600">{{ s.durText }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
       <ng-template #residentInfo>
         <div>
           <h1>{{ residentData.residentFullName.value }}</h1>
@@ -89,7 +135,10 @@
   </ion-card>
 </div>
 
-<app-resident-search #residentSearch *ngIf="isStaff"></app-resident-search>
+<div *ngIf="isStaff" style="margin-top:8px;padding-top:14px;border-top:1px solid rgba(128,128,128,0.25)">
+  <div style="text-align:center;font-size:16px;font-weight:700;margin-bottom:10px">Resident Search</div>
+  <app-resident-search #residentSearch></app-resident-search>
+</div>
 
 <!-- Phase 1: House Leader secondary tab navigation -->
 <nav class="resident-tab-nav" *ngIf="!isStaff && residentData && !isResident" aria-label="Participant actions">

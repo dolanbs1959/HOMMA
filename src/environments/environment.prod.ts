@@ -46,6 +46,8 @@ export const environment = {
   invoicePaymentsTableID: 'bpsqbqm9z', // Invoice Payments table
   jobBoardAppId: 'bviye7aye', // Job Board source app
   jobBoardTableId: 'bv28nc39y', // Job Board source table
+  staffTimeEntriesTableID: 'bwd36b3dc', // Staff Time Entries table
+  staffTimePunchesTableID: 'bwfuta5si', // Staff Time Punches table
 
 };
 

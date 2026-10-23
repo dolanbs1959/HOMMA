@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QuickbaseService } from '../services/quickbase.service';
 import { ThemeService } from '../services/theme.service';
@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../dialog/dialog.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PhotoStorageService } from '../services/photoProcessing.service';
-import { PopoverController } from '@ionic/angular';
+import { PopoverController, AlertController } from '@ionic/angular';
 import { ResidentActionsComponent } from '../resident-actions/resident-actions.component';
 import { ResidentSearchComponent } from '../resident-search/resident-search.component';
 
@@ -19,7 +19,7 @@ import { ResidentSearchComponent } from '../resident-search/resident-search.comp
   styleUrls: ['./resident.detail.scss'],
 })
 
-export class ResidentDetailComponent  implements OnInit {
+export class ResidentDetailComponent  implements OnInit, OnDestroy {
   @ViewChild('residentSearch', { static: false }) residentSearch!: ResidentSearchComponent;
   residentData: any;
   showJobBoardComingSoon = true;
@@ -30,6 +30,20 @@ export class ResidentDetailComponent  implements OnInit {
   residentPhoto: string | undefined;
   isResident: boolean = false;
   isStaff: boolean = false;
+  timeClockEnabled: boolean = false;
+  timeEntryStatus: string = '';
+  steReady: boolean = false;
+  steRecordId: any = null;
+  clockedIn: boolean = false;
+  clockInTime: Date | null = null;
+  elapsedText: string = '';
+  processing: boolean = false;
+  private elapsedTimer: any = null;
+  private tenHourAlertShown: boolean = false;
+  todaySessions: { start: Date; end: Date; durText: string }[] = [];
+  workedTodayText: string = '';
+  breaksTodayText: string = '';
+  private punchTimeline: { type: string; ts: Date }[] = [];
   announcements: any[] = [];
   // Search session state
   searchSessionExists: boolean = false;
@@ -46,7 +60,8 @@ export class ResidentDetailComponent  implements OnInit {
     private quickbaseService: QuickbaseService,
     private userService: UserService,
     public themeService: ThemeService,
-    private popoverCtrl: PopoverController
+    private popoverCtrl: PopoverController,
+    private alertCtrl: AlertController
   ) { 
   }
 
@@ -483,6 +498,21 @@ addObservationReport() {
       // When navigated from the staff 'Resident Search', show the participant view
       // (hide senior-staff-only buttons) so staff can view resident vitals as a resident.
       this.isStaff = state.fromSearch ? false : this.userService.isStaffUser();
+      this.timeClockEnabled = this.userService.isTimeClockEnabled();
+      if (this.timeClockEnabled) {
+        const staffRecordId = this.userService.getParticipantInfo().staffRecordId;
+        this.quickbaseService.getTodayStaffTimeEntry(staffRecordId).subscribe(records => {
+          if (records.length === 1) {
+            this.steRecordId = records[0]['3']?.value ?? records[0]['3'];
+            this.restoreTimeClockState(this.steRecordId);
+            this.checkMissedClockOutYesterday(staffRecordId);
+          } else if (records.length === 0) {
+            this.timeEntryStatus = 'NO TIME ENTRY FOUND FOR TODAY';
+          } else {
+            this.timeEntryStatus = 'MULTIPLE TIME ENTRIES FOUND';
+          }
+        });
+      }
       this.announcements = state.announcements || [];
       // If navigated from a search session, capture the search data so we can return
       if (state.fromSearch) {
@@ -582,7 +612,311 @@ addObservationReport() {
     const staff = this.userService.getParticipantInfo();
     this.residentSearch?.restoreFromCache();
   }
-  
+
+  /**
+   * Restore clock state from today's punches on the validated STE record.
+   * Enables the button only after the lookup succeeds; on failure the button
+   * stays disabled and we do not assume the staff member is clocked out.
+   */
+  private restoreTimeClockState(steRecordId: any) {
+    this.quickbaseService.getStaffTimePunches(steRecordId).subscribe(
+      (punches: any[]) => {
+        const sorted = (punches || []).slice().sort((a: any, b: any) => {
+          const ta = new Date(a['10']?.value ?? a['10']).getTime() || 0;
+          const tb = new Date(b['10']?.value ?? b['10']).getTime() || 0;
+          if (ta !== tb) {
+            return ta - tb;
+          }
+          return (Number(a['3']?.value ?? a['3']) || 0) - (Number(b['3']?.value ?? b['3']) || 0);
+        });
+        this.punchTimeline = sorted.map((p: any) => ({
+          type: String(p['9']?.value ?? p['9'] ?? ''),
+          ts: new Date(p['10']?.value ?? p['10'])
+        })).filter((p: any) => !isNaN(p.ts.getTime()));
+        this.computeDailyStats();
+        const latest = sorted.length ? sorted[sorted.length - 1] : null;
+        const latestType = latest ? String(latest['9']?.value ?? latest['9'] ?? '') : '';
+        if (latestType.toLowerCase() === 'clock in') {
+          const ts = new Date(latest['10']?.value ?? latest['10']);
+          const punchIsToday = isNaN(ts.getTime()) || this.laDateStr(ts) === this.laDateStr(new Date());
+          if (punchIsToday) {
+            this.clockedIn = true;
+            this.clockInTime = isNaN(ts.getTime()) ? new Date() : ts;
+            this.updateElapsed();
+            this.elapsedTimer = setInterval(() => this.updateElapsed(), 1000);
+          } else {
+            // Open Clock In from a previous Pacific day — alert, leave the
+            // prior-day record untouched, and let staff clock in fresh today.
+            this.showForgotClockOutAlert();
+          }
+        }
+        this.steReady = true;
+      },
+      (error: any) => {
+        console.error('Failed to restore time clock state', error);
+        this.timeEntryStatus = 'TIME CLOCK STATUS UNAVAILABLE — RELOAD TO RETRY';
+      }
+    );
+  }
+
+  /**
+   * Best-effort GPS capture for a punch. Always resolves — permission denial,
+   * timeout, or geocode failure never blocks the punch from being saved.
+   */
+  private capturePunchLocation(): Promise<{ latitude?: number; longitude?: number; address?: string; accuracyFeet?: number }> {
+    return new Promise(resolve => {
+      try {
+        if (!navigator?.geolocation) {
+          resolve({});
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const location: any = {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude
+            };
+            if (typeof pos.coords.accuracy === 'number' && isFinite(pos.coords.accuracy)) {
+              location.accuracyFeet = Math.round(pos.coords.accuracy * 3.28084);
+            }
+            this.quickbaseService.reverseGeocodeAddress(location.latitude, location.longitude).subscribe(
+              (address) => {
+                if (address) {
+                  location.address = address;
+                }
+                resolve(location);
+              }
+            );
+          },
+          () => resolve({}),
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+        );
+      } catch (e) {
+        resolve({});
+      }
+    });
+  }
+
+  toggleClock() {
+    if (this.processing || !this.steReady) {
+      return;
+    }
+    this.processing = true;
+    this.timeEntryStatus = '';
+
+    const punchType = this.clockedIn ? 'Clock Out' : 'Clock In';
+    // Capture the punch timestamp at tap time; GPS may take a few seconds.
+    const punchTimestamp = new Date().toISOString();
+
+    this.capturePunchLocation().then(location => {
+      this.quickbaseService.createStaffTimePunch(this.steRecordId, punchType, location, punchTimestamp).subscribe(
+        () => {
+          this.processing = false;
+          this.punchTimeline.push({type: punchType, ts: new Date(punchTimestamp)});
+          this.computeDailyStats();
+          if (this.clockedIn) {
+            this.clockedIn = false;
+            this.clockInTime = null;
+            this.elapsedText = '';
+            if (this.elapsedTimer) {
+              clearInterval(this.elapsedTimer);
+              this.elapsedTimer = null;
+            }
+          } else {
+            this.clockedIn = true;
+            this.tenHourAlertShown = false;
+            this.clockInTime = new Date(punchTimestamp);
+            this.updateElapsed();
+            this.elapsedTimer = setInterval(() => this.updateElapsed(), 1000);
+          }
+        },
+        (error: any) => {
+          console.error(`${punchType} punch failed`, error);
+          this.processing = false;
+          this.timeEntryStatus = `${punchType.toUpperCase()} FAILED — TRY AGAIN`;
+        }
+      );
+    });
+  }
+
+  private updateElapsed() {
+    if (!this.clockInTime) {
+      this.elapsedText = '';
+      return;
+    }
+    const totalMin = Math.max(0, Math.floor((Date.now() - this.clockInTime.getTime()) / 60000));
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    this.elapsedText = `${h}h ${String(m).padStart(2, '0')}m`;
+    this.computeDailyStats();
+    this.checkTenHourReminder();
+  }
+
+  /**
+   * One-time reminder once a clock-in session passes 10 hours. Runs from the
+   * elapsed ticker while clocked in and right after state restore, so it also
+   * fires when the app is reopened already past the threshold. Dismissal-only;
+   * never clocks the employee out.
+   */
+  private checkTenHourReminder() {
+    if (this.tenHourAlertShown || !this.clockedIn || !this.clockInTime) {
+      return;
+    }
+    if (Date.now() - this.clockInTime.getTime() < 10 * 60 * 60 * 1000) {
+      return;
+    }
+    this.tenHourAlertShown = true;
+    this.alertCtrl.create({
+      message: "You've been clocked in for 10 hours. If you've finished working, please remember to CLOCK OUT.",
+      buttons: ['OK']
+    }).then(alert => alert.present());
+  }
+
+  /**
+   * Derive daily totals and the completed session list from the punch
+   * timeline. Pairs Clock In -> next Clock Out; an unmatched Clock Out is
+   * ignored, a superseded Clock In is dropped, and a trailing open Clock In
+   * counts as the active session through "now".
+   */
+  private computeDailyStats() {
+    const sessions: { start: Date; end: Date; durText: string }[] = [];
+    let openIn: Date | null = null;
+    let lastOut: Date | null = null;
+    let breakMs = 0;
+    let workedMs = 0;
+
+    for (const p of this.punchTimeline) {
+      const t = p.type.toLowerCase();
+      if (t === 'clock in') {
+        openIn = p.ts;
+        if (lastOut && p.ts.getTime() > lastOut.getTime()) {
+          breakMs += p.ts.getTime() - lastOut.getTime();
+        }
+      } else if (t === 'clock out' && openIn && p.ts.getTime() > openIn.getTime()) {
+        const dur = p.ts.getTime() - openIn.getTime();
+        sessions.push({start: openIn, end: p.ts, durText: this.formatHm(dur)});
+        workedMs += dur;
+        lastOut = p.ts;
+        openIn = null;
+      }
+    }
+    if (openIn && this.laDateStr(openIn) === this.laDateStr(new Date())) {
+      workedMs += Math.max(0, Date.now() - openIn.getTime());
+    }
+    this.todaySessions = sessions;
+    this.workedTodayText = this.formatHm(workedMs);
+    this.breaksTodayText = this.formatHm(breakMs);
+  }
+
+  /**
+   * Independent check of yesterday's STE: if its latest punch is an open
+   * Clock In, alert once per login session. Read-only — yesterday's STE and
+   * punches are never modified. Missing STE/punches or query errors continue
+   * silently.
+   */
+  private checkMissedClockOutYesterday(staffRecordId: any) {
+    const flagKey = 'HOMMA__MISSED_CLOCKOUT_ALERT';
+    try {
+      if (sessionStorage.getItem(flagKey)) {
+        return;
+      }
+    } catch (e) {}
+    this.quickbaseService.getYesterdayStaffTimeEntry(staffRecordId).subscribe(
+      (entries: any[]) => {
+        if (!entries || entries.length !== 1) {
+          return;
+        }
+        const yRid = entries[0]['3']?.value ?? entries[0]['3'];
+        this.quickbaseService.getStaffTimePunches(yRid).subscribe(
+          (punches: any[]) => {
+            const sorted = (punches || []).slice().sort((a: any, b: any) => {
+              const ta = new Date(a['10']?.value ?? a['10']).getTime() || 0;
+              const tb = new Date(b['10']?.value ?? b['10']).getTime() || 0;
+              if (ta !== tb) {
+                return ta - tb;
+              }
+              return (Number(a['3']?.value ?? a['3']) || 0) - (Number(b['3']?.value ?? b['3']) || 0);
+            });
+            const latest = sorted.length ? sorted[sorted.length - 1] : null;
+            const latestType = latest ? String(latest['9']?.value ?? latest['9'] ?? '') : '';
+            if (latestType.toLowerCase() === 'clock in') {
+              try {
+                sessionStorage.setItem(flagKey, '1');
+              } catch (e) {}
+              // Flag yesterday's STE (fid 63) before alerting — but only claim
+              // it was flagged if the write (or an existing flag) confirms it.
+              const alreadyFlagged = entries[0]['63']?.value === true || entries[0]['63'] === true;
+              if (alreadyFlagged) {
+                this.presentMissedClockOutAlert(true);
+                return;
+              }
+              this.quickbaseService.markStaffTimeEntryMissedClockOut(yRid).subscribe(
+                () => this.presentMissedClockOutAlert(true),
+                (err) => {
+                  console.error('Failed to flag yesterday STE for missed clock-out', err);
+                  this.presentMissedClockOutAlert(false);
+                }
+              );
+            }
+          },
+          () => {}
+        );
+      },
+      () => {}
+    );
+  }
+
+  /**
+   * Missed clock-out alert. `flagged` true means fid 63 on yesterday's STE is
+   * confirmed set (already checked or write succeeded); false means the flag
+   * could not be saved so the copy stays non-committal. Dismissal-only.
+   */
+  private presentMissedClockOutAlert(flagged: boolean) {
+    const message = flagged
+      ? 'You forgot to clock out yesterday. That time entry has been flagged for review. You may clock in today.'
+      : 'You forgot to clock out yesterday. That time entry needs review. You may clock in today.';
+    this.alertCtrl.create({ message, buttons: ['OK'] }).then(alert => alert.present());
+  }
+
+  private laDateStr(d: Date): string {
+    return d.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  }
+
+  /**
+   * Latest punch was an open Clock In from a previous Pacific day. Do not
+   * write a Clock Out or alter the old record — flagging for supervisor
+   * review isn't implemented yet, so the copy says "needs review". On OK the
+   * UI resets to a fresh green CLOCK IN against today's validated STE.
+   */
+  private showForgotClockOutAlert() {
+    this.alertCtrl.create({
+      message: 'You forgot to clock out on a previous day. That time entry needs review. You can clock in for today.',
+      buttons: [{
+        text: 'OK',
+        handler: () => {
+          this.clockedIn = false;
+          this.clockInTime = null;
+          this.elapsedText = '';
+        }
+      }]
+    }).then(alert => alert.present());
+  }
+
+  private formatHm(ms: number): string {
+    const totalMin = Math.max(0, Math.floor(ms / 60000));
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return `${h}h ${String(m).padStart(2, '0')}m`;
+  }
+
+  ngOnDestroy() {
+    if (this.elapsedTimer) {
+      clearInterval(this.elapsedTimer);
+      this.elapsedTimer = null;
+    }
+  }
+
+
   clearCache() {
     this.residentData = null;
     this.theHouseName = '';

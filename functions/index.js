@@ -6,6 +6,7 @@
 
 const {onRequest, onCall} = require("firebase-functions/v2/https");
 const {setGlobalOptions} = require("firebase-functions/v2");
+const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 // v1 functions is used only for HttpsError constructor
 let functionsV1;
@@ -502,5 +503,61 @@ exports.uploadStipulatedAgreementPdf = onCall({
       error: error.message,
     });
     throw new Error(`Unable to upload the agreement to QuickBase: ${error.message}`);
+  }
+});
+
+const googleGeocodingApiKey = defineSecret('GOOGLE_GEOCODING_API_KEY');
+
+/**
+ * Reverse Geocode Cloud Function
+ * Converts device GPS coordinates to a readable street address server-side so
+ * no third-party API keys are ever exposed to the client. Uses the Google Maps
+ * Geocoding API; the key lives in Secret Manager as GOOGLE_GEOCODING_API_KEY
+ * and is bound via `secrets` so it is injected at runtime only.
+ */
+exports.reverseGeocode = onCall({cors: true, secrets: [googleGeocodingApiKey]}, async (request) => {
+  const data = request.data || {};
+  const lat = Number(data.latitude);
+  const lng = Number(data.longitude);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return {success: false, error: {type: 'validation', message: 'Invalid or missing latitude/longitude'}};
+  }
+
+  const apiKey = googleGeocodingApiKey.value();
+  if (!apiKey) {
+    logger.error('reverseGeocode: GOOGLE_GEOCODING_API_KEY is not set');
+    return {success: false, error: {type: 'config', message: 'Geocoding API key not configured'}};
+  }
+
+  try {
+    const fetch = require('node-fetch');
+    const url = 'https://maps.googleapis.com/maps/api/geocode/json'
+      + `?latlng=${encodeURIComponent(lat)},${encodeURIComponent(lng)}&key=${encodeURIComponent(apiKey)}`;
+
+    const response = await fetch(url, {method: 'GET'});
+
+    if (!response.ok) {
+      logger.warn('Google reverse geocode HTTP failure', {status: response.status, lat, lng});
+      return {success: false, error: {type: 'upstream', status: response.status}};
+    }
+
+    const json = await response.json();
+    const status = json && json.status;
+
+    if (status !== 'OK' || !Array.isArray(json.results) || json.results.length === 0) {
+      logger.warn('Google reverse geocode returned no address', {status, lat, lng});
+      return {success: false, error: {type: 'not_found', status: status || 'UNKNOWN', message: json && json.error_message ? String(json.error_message) : 'No address found for coordinates'}};
+    }
+
+    const address = String(json.results[0].formatted_address || '');
+    if (!address) {
+      return {success: false, error: {type: 'not_found', message: 'No address found for coordinates'}};
+    }
+
+    return {success: true, data: {address}};
+  } catch (error) {
+    logger.error('reverseGeocode error', {message: error.message, lat, lng});
+    return {success: false, error: {type: 'internal', message: error.message}};
   }
 });

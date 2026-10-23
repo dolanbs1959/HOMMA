@@ -16,41 +16,40 @@
     <p class="static-verse-text">{{ staticVerse }}</p>
   </div>
 
-  <ion-card-header>
-    <div class="header-row">
-      <ion-card-title>Tap on your role below to get started.</ion-card-title>
-    </div>
-
+  <div class="role-prompt">
+    <p>Tap on your role below to get started.</p>
     <div *ngIf="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
-  </ion-card-header>
+  </div>
 
-  <div class="login-cards">
-    <ion-card
-      class="ion-text-center"
-      (click)="selectUserType('PP')"
-      [class.selected]="userType === 'PP'">
-      <img src="assets/logo/Participants.png" alt="Logo" />
-      <ion-card-title>Program Participant Login</ion-card-title>
-    </ion-card>
+  <div class="role-cards">
+    <button
+      type="button"
+      class="role-card role-pp ion-activatable"
+      [class.selected]="userType === 'PP'"
+      (click)="selectUserType('PP')">
+      <ion-icon name="people-outline"></ion-icon>
+      <span class="role-card-label">Participants &amp; Staff</span>
+      <ion-ripple-effect></ion-ripple-effect>
+    </button>
 
-    <ion-card
-      class="ion-text-center"
-      (click)="selectUserType('HL')"
-      [class.selected]="userType === 'HL'">
-      <img src="assets/logo/House Leader.png" alt="Logo" />
-      <ion-card-title>House Leader Login</ion-card-title>
-    </ion-card>
+    <button
+      type="button"
+      class="role-card role-hl ion-activatable"
+      [class.selected]="userType === 'HL'"
+      (click)="selectUserType('HL')">
+      <ion-icon name="home-outline"></ion-icon>
+      <span class="role-card-label">House Leaders</span>
+      <ion-ripple-effect></ion-ripple-effect>
+    </button>
   </div>
 
   <!-- House Leader Login -->
-  <ion-card class="ion-text-center" *ngIf="userType === 'HL'">
-    <ion-card-subtitle class="ion-text-center">
-      <i>Select your house and enter your Staff ID to login.</i>
-    </ion-card-subtitle>
-
+  <ion-card class="login-form-card ion-text-center" *ngIf="userType === 'HL'">
     <ion-card-content>
+
+      <p class="form-hint">Select your house and enter your Staff ID to login.</p>
 
       <ion-item class="ion-text-center house-select-item">
         <ion-label position="stacked" class="house-select-label">
@@ -71,8 +70,6 @@
 
         </ion-select>
       </ion-item>
-
-      <br>
 
       <ion-item>
         <ion-input
@@ -103,11 +100,9 @@
 
       <div
         class="storage-indicator"
-        style="font-size:0.9em;color:var(--ion-text-color-secondary);margin-top:6px">
+        style="font-size:0.9em;color:var(--ion-text-color-secondary);margin-top:6px;margin-bottom:12px">
         Storage: {{ storageBackend }}
       </div>
-
-      <br>
 
       <button
         type="button"
@@ -121,15 +116,13 @@
   </ion-card>
 
   <!-- Participant Login -->
-  <ion-card class="ion-text-center" *ngIf="userType === 'PP'">
-    <ion-card-subtitle class="ion-text-center">
-      <i>
+  <ion-card class="login-form-card ion-text-center" *ngIf="userType === 'PP'">
+    <ion-card-content>
+
+      <p class="form-hint">
         Enter a valid email address and then your password you recevied from HOM staff.<br>
         If you do not have an HOM provided password you can request it from your Care Navigator.
-      </i>
-    </ion-card-subtitle>
-
-    <ion-card-content>
+      </p>
 
       <ion-item>
         <ion-input
@@ -138,8 +131,6 @@
           placeholder="Participant's Email Address">
         </ion-input>
       </ion-item>
-
-      <br>
 
       <ion-item>
         <ion-input
@@ -156,8 +147,6 @@
         </ion-icon>
       </ion-item>
 
-      <br>
-
       <button
         type="button"
         class="login-button"
@@ -170,7 +159,7 @@
 
   <ion-card class="verse-card">
     <ion-card-content>
-      <p><b>Random Gospel Verse (KJV):</b></p>
+      <span class="verse-title">Random Gospel Verse (KJV)</span>
 
       <div *ngIf="dailyVerse" class="daily-verse">
         <p

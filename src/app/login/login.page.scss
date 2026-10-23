@@ -5,256 +5,260 @@ ion-header {
 }
 
 ion-card-title {
-    text-align: center;
-    font-size: 22px;
-  }
-  .error-message {
-    color: red;
-    font-size: 20px;
-    margin-top: 10px;
-  }
-  ion-button {
-    --padding-start: 40px; // padding on the left
-    --padding-end: 40px; // padding on the right
-    --padding-top: 10px; // padding on the top
-    --padding-bottom: 10px; // padding on the bottom
-    --background: #4194ab; // background color
-    --color: #fff; // text color
-    --border-radius: 10px; // border radius
-    font-size: 18px;
-    font-weight: bolder;
-    position: relative;
-    z-index: 1;
-  }
-  
-  .disabled {
-    pointer-events: none;
-    opacity: 0.5;
+  text-align: center;
+  font-size: 22px;
+}
+
+.error-message {
+  color: var(--ion-color-danger, #c0392b);
+  font-size: 16px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Brand + static verse */
+.logo-container {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.static-verse-container {
+  text-align: center;
+  margin: 4px 0 10px;
+}
+
+.static-verse-text {
+  color: var(--ion-color-medium);
+  font-style: italic;
+  font-size: 0.75em;
+  padding: 0 16px;
+  margin: 0;
+}
+
+/* Role prompt */
+.role-prompt {
+  text-align: center;
+  margin: 10px 16px 4px;
+}
+
+.role-prompt p {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ion-text-color);
+}
+
+/* Role cards */
+.role-cards {
+  display: flex;
+  gap: 12px;
+  margin: 8px 16px 4px;
+}
+
+.role-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 96px;
+  padding: 16px 8px;
+  border: 1.5px solid rgba(65, 148, 171, 0.25);
+  border-radius: 14px;
+  color: #3a5f73;
+  font: inherit;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.10);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease,
+    color 0.15s ease, transform 0.15s ease;
+
+  ion-icon {
+    font-size: 30px;
+    color: inherit;
   }
 
-  ion-card-subtitle.ion-text-center {
+  .role-card-label {
     font-size: 14px;
-    padding-left: 50px;
-    padding-right: 50px;
-    padding-top: 10px;
-  }
-
-  .header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .version-label {
-    --padding-start: 6px;
-    --padding-end: 6px;
-    --padding-top: 2px;
-    --padding-bottom: 2px;
-    font-size: 12px;
-    color: var(--ion-color-primary);
-  }
-
-  .header-version-btn {
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --padding-top: 6px;
-    --padding-bottom: 6px;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.06);
-    color: #fff;
-    --color: #fff;
-  }
-
-  /* Slightly smaller alert text for the About dialog */
-  .about-alert .alert-message {
-    font-size: 0.95rem;
+    font-weight: 600;
     line-height: 1.2;
-  }
-  .about-alert .alert-message {
-    white-space: pre-wrap;
-  }
-
-  .logo-container {
-    text-align: center;
-    margin-left: 15px;
-    margin-top: 10px;
-    margin-bottom: 0px;
-  }
-  
-  .login-cards ion-card ion-card-title {
-    font-size: 12px; /* Adjust this value to change the font size */
     text-align: center;
   }
+}
 
-  .login-cards {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-  }
-  
-  .login-cards ion-card {
-    flex: 1;
-    max-width: 100px; /* Adjust this value to change the card width */
-    margin: 5px;
-    cursor: pointer;
-  }
-  
-  .login-cards ion-card.selected {
-    background-color: #4194ab;
-    border-top: 2px solid #4194ab;
-    border-bottom: 2px solid #4194ab;
-    border-left: 2px solid #4194ab;
-    border-right: 2px solid #4194ab;
-  }
+/* Slightly different pastel blue per role */
+.role-card.role-pp {
+  background: #d7ecf3;
+}
+.role-card.role-hl {
+  background: #dbe9f7;
+}
 
-  .login-cards ion-card.selected ion-card-title {
-    color: white !important;
-    font-size: 14px;
-    font-weight: bold;
-  }
-  // Ripple effect styles
-  .ripple-effect-blue {
-    color: #010384;
-  }
-  
-  .ripple-effect-lightblue {
-    color: #00c8ff;
-  }
-  
-  .ripple-effect-red {
-    color: #980707;
-  }
-  .wrapper {
-    position: fixed;
-    bottom: 5;
-    left: 0;
-    right: 0;
+/* Pressed-down effect on the whole button */
+.role-card:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Gentle icon scale-up + bounce-back on tap */
+@keyframes roleIconBounce {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.22); }
+  75%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+
+.role-card:active ion-icon {
+  animation: roleIconBounce 300ms ease-out;
+}
+
+/* Selected: deeper blue, stronger shadow */
+.role-card.selected {
+  border-color: #4194ab;
+  background: #4194ab;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(65, 148, 171, 0.45);
+}
+
+/* Dark theme: keep the pastel look subtle with muted teal tints */
+body.dark .role-card {
+  color: #cfe3ee;
+  border-color: rgba(65, 148, 171, 0.4);
+}
+body.dark .role-card.role-pp {
+  background: rgba(65, 148, 171, 0.22);
+}
+body.dark .role-card.role-hl {
+  background: rgba(90, 140, 190, 0.22);
+}
+body.dark .role-card.selected {
+  background: #4194ab;
+  color: #ffffff;
+}
+
+/* Reduced-motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .role-card {
+    transition: none;
+  }
+  .role-card:active {
+    transform: none;
+  }
+  .role-card:active ion-icon {
+    animation: none;
+  }
+}
+
+/* Login form card */
+.login-form-card {
+  margin: 12px 16px;
+  border-radius: 12px;
+}
+
+.login-form-card ion-item {
+  margin-bottom: 10px;
+}
+
+.login-form-card .login-button {
+  margin-top: 4px;
+}
+
+.form-hint {
+  text-align: center;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ion-color-medium);
+  margin: 4px 0 14px;
+}
+
+// Center the house selection dropdown with proper label
+.house-select-item {
+  --ion-item-background: transparent;
+  --border-style: none;
+  --inner-border-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+
+  .house-select-label {
+    align-self: center;
     text-align: center;
-    font-size: small;
-
-    height: 50px;
-  }
-  
-  b {
-    width: 100%;
-  }
-  
-  .ripple-parent {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  
-    position: relative;
-    overflow: hidden;
-  
-    border: 1px solid #4194ab;
-  
-  //      user-select: none;
-  
-    width: 100%;
-    height: 50px;
-    border-radius: 8px;
-  }
-  
-  .rounded-rectangle {
-    width: 200px;
-    height: 20px;
-    border-radius: 8px;
-  }
-
-  .verse-card {
-    margin: 20px;
-    padding: 10px;
-    border: 2px solid #25aa32;  /* Light red border */
-    border-radius: 8px;  /* Optional: adds rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  /* Optional: subtle shadow for depth */
-  }
-  
-  .verse-text {
-    color: #25aa32;
-    font-style: italic;
-    font-size: 0.9em;
-  }
-  
-  .static-verse-container {
-    text-align: center;
-    margin: 5px 5;
-  }
-  
-  .static-verse-text {
-    color: #151212;
-    font-style: italic;
-    font-size: 0.7em;
-    padding: 0 16px;
-  }
-
-  .instruction-text {
-    text-align: center;
-    margin-top: 10px;
-
-    small {
-      color: var(--ion-color-medium);
-      font-style: italic;
-    }
-  }
-
-  .login-version-footer {
-    text-align: center;
-    padding: 16px 12px 28px;
-    font-size: 12px;
+    font-size: 16px;
     color: var(--ion-color-medium);
+    margin-bottom: 8px;
   }
 
-  // Center the house selection dropdown with proper label
-  .house-select-item {
-    --ion-item-background: transparent;
-    --border-style: none;
-    --inner-border-width: 0;
-    text-align: center;
-    
-    .house-select-label {
-      text-align: center;
-      font-size: 16px;
-      color: var(--ion-color-medium);
-      margin-bottom: 8px;
-    }
-    
-    ion-select.centered-select {
-      width: 100%;
-      text-align: center;
-      --text-align: center;
-      --color: var(--ion-color-primary);
-      
-      button {
-        text-align: center;
-        justify-content: center;
-      }
-    }
-  }
-
-  // Alternative approach using display flex on the container
-  .house-select-item {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  ion-select.centered-select {
+    align-self: stretch;
     width: 100%;
-    
-    ion-label {
-      align-self: center;
+    text-align: center;
+    --text-align: center;
+    --color: var(--ion-color-primary);
+
+    button {
       text-align: center;
-    }
-    
-    ion-select {
-      align-self: stretch;
-      text-align: center;
+      justify-content: center;
     }
   }
-  .login-button {
+}
+
+.wrapper {
+  position: fixed;
+  bottom: 5;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: small;
+  height: 50px;
+}
+
+/* Daily verse — subtle */
+.verse-card {
+  margin: 16px;
+  padding: 4px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.verse-title {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+  margin: 0 0 4px;
+}
+
+.verse-text {
+  color: #25aa32;
+  font-style: italic;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.login-version-footer {
+  text-align: center;
+  padding: 16px 12px 28px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.login-button {
   width: 140px;
   height: 48px;
   padding: 0 24px;

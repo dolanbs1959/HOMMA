@@ -8,13 +8,14 @@ import { LoggerService } from './logger.service';
 })
 export class UserService {
   private userInfo: { houseName: string, staffId: string } = { houseName: '', staffId: '' };
-  private participantInfo: { 
-    email: string, 
-    recordId: number, 
-    fullName: string, 
+  private participantInfo: {
+    email: string,
+    recordId: number,
+    fullName: string,
     isStaff: boolean,
-    staffRecordId: number 
-  } = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0 };
+    staffRecordId: number,
+    timeClockEnabled: boolean
+  } = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0, timeClockEnabled: false };
   private displayName = '';
 
   constructor(
@@ -40,8 +41,8 @@ export class UserService {
   }
 
   // Participant login info methods
-  setParticipantInfo(email: string, recordId: number, fullName: string, isStaff: boolean = false, staffRecordId: number = 0) {
-    this.participantInfo = { email, recordId, fullName, isStaff, staffRecordId };
+  setParticipantInfo(email: string, recordId: number, fullName: string, isStaff: boolean = false, staffRecordId: number = 0, timeClockEnabled: boolean = false) {
+    this.participantInfo = { email, recordId, fullName, isStaff, staffRecordId, timeClockEnabled };
   }
 
   getParticipantInfo() {
@@ -50,6 +51,34 @@ export class UserService {
 
   isStaffUser(): boolean {
     return this.participantInfo.isStaff;
+  }
+
+  /**
+   * Whether the authenticated user's Staff record has Time Clock (HOMMA)
+   * (fid 359) checked. Only meaningful for Senior Staff participant logins.
+   */
+  isTimeClockEnabled(): boolean {
+    return this.participantInfo.timeClockEnabled === true;
+  }
+
+  /**
+   * Look up a staff record in the cached activeStaff data and return whether
+   * its Time Clock (HOMMA) field (fid 359) is checked.
+   * @param staffRecordId The staff record ID (fid 3) to check
+   */
+  checkTimeClockEnabled(staffRecordId: number): boolean {
+    const cachedStaff = this.quickbaseService.activeStaff.value;
+    if (!cachedStaff || !Array.isArray(cachedStaff) || !staffRecordId) {
+      return false;
+    }
+
+    const match = cachedStaff.find((staff: any) => {
+      const id = staff?.staffRecordId ?? staff?.userId;
+      return id === staffRecordId || Number(id) === Number(staffRecordId);
+    });
+
+    this.logger.log(`checkTimeClockEnabled for staffRecordId ${staffRecordId}: ${!!match?.timeClockEnabled}`);
+    return !!match?.timeClockEnabled;
   }
 
   getParticipantEmail(): string {
@@ -122,13 +151,14 @@ export class UserService {
    */
   public resetAuthState(): void {
     this.userInfo = { houseName: '', staffId: '' };
-    this.participantInfo = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0 };
+    this.participantInfo = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0, timeClockEnabled: false };
     this.displayName = '';
     try { this.quickbaseService.currentStaffRole = ''; } catch (e) {}
     // Clear cached invoice payments on any login reset. Invoice payments are
     // house-specific; without this a participant's first payment view can use
     // stale data from a previous session, causing the listing to appear empty.
     try { this.quickbaseService.invoicePayments.next(null); } catch (e) {}
+    try { sessionStorage.removeItem('HOMMA__MISSED_CLOCKOUT_ALERT'); } catch (e) {}
   }
 
   // Manual logout method
