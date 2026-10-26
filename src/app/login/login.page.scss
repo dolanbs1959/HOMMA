@@ -120,28 +120,48 @@ ion-card-title {
   animation: roleIconBounce 300ms ease-out;
 }
 
-/* Selected: deeper blue, stronger shadow */
+/* Selected: deeper blue, stronger shadow
+   (!important on color — a global `button { color: ... !important }` rule in
+   variables.scss otherwise overrides it) */
 .role-card.selected {
   border-color: #4194ab;
   background: #4194ab;
-  color: #ffffff;
+  color: #ffffff !important;
   box-shadow: 0 4px 14px rgba(65, 148, 171, 0.45);
 }
 
-/* Dark theme: keep the pastel look subtle with muted teal tints */
-body.dark .role-card {
-  color: #cfe3ee;
-  border-color: rgba(65, 148, 171, 0.4);
+/* Dark theme: richer muted blues with bold readable labels.
+   :host-context is required — `body.dark` inside a component stylesheet gets
+   Angular's scoping attribute appended and can never match <body>. */
+:host-context(body.dark) .role-card {
+  color: #dcecf5 !important;
+  border-color: rgba(120, 180, 205, 0.45);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
-body.dark .role-card.role-pp {
-  background: rgba(65, 148, 171, 0.22);
+:host-context(body.dark) .role-card .role-card-label {
+  font-weight: 700;
 }
-body.dark .role-card.role-hl {
-  background: rgba(90, 140, 190, 0.22);
+:host-context(body.dark) .role-card.role-pp {
+  background: #2f5d70;
 }
-body.dark .role-card.selected {
+:host-context(body.dark) .role-card.role-hl {
+  background: #31546f;
+}
+:host-context(body.dark) .role-card:hover {
+  border-color: rgba(140, 200, 225, 0.6);
+}
+:host-context(body.dark) .role-card:focus-visible {
+  outline: 2px solid #7cc8dd;
+  outline-offset: 2px;
+}
+:host-context(body.dark) .role-card:active {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+:host-context(body.dark) .role-card.selected {
   background: #4194ab;
-  color: #ffffff;
+  color: #ffffff !important;
+  border-color: #6cc3d8;
+  box-shadow: 0 4px 16px rgba(65, 148, 171, 0.55);
 }
 
 /* Reduced-motion accessibility */
