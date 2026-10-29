@@ -189,6 +189,14 @@ ngOnInit() {
           // Store the response from the first query
           this.quickbaseService.queryData = response;
 
+          // Pre-fetch Staff Task Assignments now that staffRecordID is set so the
+          // homepage counter shows the correct count on first load. The shared
+          // in-flight request in getStaffTasks prevents duplicate API calls.
+          this.quickbaseService.getStaffTasks().subscribe(
+            () => this.logger.log('Staff task assignments loaded'),
+            (error: any) => this.logger.error('Error loading staff task assignments', error)
+          );
+
           this.quickbaseService.getResidents(this.savedRecordNumber).subscribe(
             residentResponse => {
               try {
@@ -268,6 +276,11 @@ ngOnInit() {
   
   onResidentLogin() {
     this.userService.resetAuthState(); // Clear any previous house leader or staff role state
+    // Clear any stale staff-credential role so it can't leak into the resident session
+    this.quickbaseService.currentStaffRole = '';
+    this.quickbaseService.sessionStaffRole = '';
+    try { localStorage.removeItem('currentStaffRole'); } catch (e) {}
+    try { localStorage.removeItem('sessionStaffRole'); } catch (e) {}
     this.logger.log('=== RESIDENT LOGIN ATTEMPT ===');
     this.logger.log(`Email entered: "${this.email}"`);
     this.loadingService.show();

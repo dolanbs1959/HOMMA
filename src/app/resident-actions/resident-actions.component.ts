@@ -22,6 +22,7 @@ export class ResidentActionsComponent implements OnInit {
   maxMeetingDate: string = '';
   fromSearchModal: boolean = false;
   canShowStipulated: boolean = false;
+  isHouseLeader: boolean = false;
 
   constructor(
     private popoverCtrl: PopoverController,
@@ -44,6 +45,8 @@ export class ResidentActionsComponent implements OnInit {
     const isParticipantStaff = this.userService.isStaffUser();
     const isHouseLeaderLoginStaff = !!this.quickbaseService.currentStaffRole && this.quickbaseService.currentStaffRole !== 'House Leader';
     this.canShowStipulated = isParticipantStaff || isHouseLeaderLoginStaff;
+    // House Leaders reach 1-on-1 reviews through their assigned Task cards only
+    this.isHouseLeader = this.quickbaseService.isHouseLeaderSession;
 
     // Coerce boolean-like values passed via componentProps
     try {

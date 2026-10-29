@@ -150,7 +150,7 @@
     <ion-icon name="create-outline"></ion-icon>
     <span>Updates</span>
   </button>
-  <button type="button" class="tab-item" (click)="addParticipantReviews()">
+  <button type="button" class="tab-item" *ngIf="!isHouseLeader" (click)="addParticipantReviews()">
     <ion-icon name="chatbubbles-outline"></ion-icon>
     <span>1-on-1</span>
   </button>

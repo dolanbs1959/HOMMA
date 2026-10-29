@@ -1,7 +1,7 @@
 // src/app/services/quickbase.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject, catchError, throwError, of, forkJoin, from, retryWhen, timer } from 'rxjs';
+import { Observable, BehaviorSubject, catchError, throwError, of, forkJoin, from, retryWhen, timer, finalize, shareReplay } from 'rxjs';
 import { map, tap, switchMap, mergeMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { PhotoStorageService } from './photoProcessing.service';
@@ -48,6 +48,17 @@ export class QuickbaseService {
   HLphone: string = '';
   queryData: any;
   currentStaffRole: string = '';
+  // Effective role of the session record actually in use (finalRecord field 93).
+  // Differs from currentStaffRole (the typed credential's role) when an area
+  // manager logs into a house — the session then operates AS that house's
+  // House Leader even though the credential isn't one.
+  sessionStaffRole: string = '';
+
+  // True when the authenticated session is operating as a House Leader.
+  // Centralized so every consumer uses the same verified comparison.
+  get isHouseLeaderSession(): boolean {
+    return ((this.sessionStaffRole || this.currentStaffRole) || '').trim() === 'House Leader';
+  }
   isActivityAddedOnce = false;
   
   // Enhanced caching with BehaviorSubjects
@@ -70,6 +81,8 @@ export class QuickbaseService {
   
   residentsSelections: any[] = [];
   staffRecordID: number = 0;
+  // Shared in-flight StaffTasks request so concurrent subscribers never duplicate the API call
+  private staffTasksRequest$: Observable<any> | null = null;
 
   // API call tracking for debugging
   private apiCallCount = 0;
@@ -118,6 +131,11 @@ export class QuickbaseService {
     this.logger.log('🚀 QuickbaseService initialized with enhanced caching and secure proxy');
     // Initialize STAalert subject with current value
     try { this._STAalert.next(this.STAalert || ''); } catch (e) {}
+
+    // Restore the authenticated staff role so role-gated UI keeps working after
+    // a reload/update restore (when query() does not re-run)
+    try { this.currentStaffRole = localStorage.getItem('currentStaffRole') || ''; } catch (e) {}
+    try { this.sessionStaffRole = localStorage.getItem('sessionStaffRole') || ''; } catch (e) {}
 
     // Restore preserved app state after a reload if present.
     try {
@@ -777,12 +795,21 @@ export class QuickbaseService {
 
   //Query to get attendance record based on participantID and activityID
 getStaffTasks(): Observable<any> {
-  // Check if cached data is available
-  if (this.isCacheAvailable('staffTasks')) {
+  // Check if cached data is available. The cached value must contain an actual
+  // task list — a restored state summary (e.g. {dataLength: n}) is not usable
+  // and must trigger a fresh fetch so the counter is correct after a reload.
+  const cached = this.staffTasks.value;
+  const hasUsableCache = !!cached && (Array.isArray(cached) ? cached.length > 0 : Array.isArray(cached.data));
+  if (hasUsableCache) {
+    // Re-emit the counter so subscribers that attach after a restore/reload
+    // (when _STAalert was reset to '') still get the correct count.
+    const cachedCount = Array.isArray(cached) ? cached.length : cached.data.length;
+    this.STAalert = `There are ${cachedCount} Staff Task Assignments Due`;
+    try { this._STAalert.next(this.STAalert); } catch (e) {}
     return this.staffTasks.asObservable();
   }
-  // If we don't yet have a valid staffRecordID, try to rehydrate from queryData
-  const resolvedStaffId = this.staffRecordID || (this.queryData?.recordNumber?.value ?? this.queryData?.recordNumber) || 0;
+  // If we don't yet have a valid staffRecordID, try to rehydrate from queryData or persisted session info
+  const resolvedStaffId = this.staffRecordID || (this.queryData?.recordNumber?.value ?? this.queryData?.recordNumber) || Number(localStorage.getItem('savedRecordNumber')) || 0;
   if (!resolvedStaffId || resolvedStaffId === 0) {
     this.logger.warn('getStaffTasks: staffRecordID not yet available, skipping fetch to avoid empty overwrite');
     // Return the cached observable (may be null) without making the API call
@@ -792,11 +819,17 @@ getStaffTasks(): Observable<any> {
   // update staffRecordID to the resolved value for future calls
   this.staffRecordID = resolvedStaffId;
 
+  // Reuse the in-flight request so concurrent callers (e.g. the login prefetch
+  // and the Tasks page) share a single API call instead of duplicating it.
+  if (this.staffTasksRequest$) {
+    return this.staffTasksRequest$;
+  }
+
   this.trackApiCall('getStaffTasks');
   this.logger.log('Fetching fresh staff tasks from API', { staffRecordID: this.staffRecordID });
   const body = {
     from: this.StaffTasksTableID,
-    select: [3, 326, 32, 8, 36, 47, 15, 263],
+    select: [3, 326, 32, 8, 36, 47, 15, 263, 313, 325],
     where: `{88.EX.${this.staffRecordID}}AND{32.EX.'House Leader'}AND{37.EX.'Active'}AND{41.EX.'Active'}AND{40.EX.'Active'}AND{326.EX.'Incomplete'}`,
     options: {
       skip: 0,
@@ -811,8 +844,22 @@ getStaffTasks(): Observable<any> {
           this.logger.debug('getStaffTasks - current staffTasks shape', { current: cur });
         } catch (e) {}
 
-        return this.callQuickbaseProxy('POST', 'query', body).pipe(
+        // Show a loading message so the UI doesn't display a misleading zero
+        // count while the request is in flight
+        try {
+          this.STAalert = 'Loading Staff Task Assignments...';
+          this._STAalert.next(this.STAalert);
+        } catch (e) {}
+
+        const staffIdForRequest = resolvedStaffId;
+        this.staffTasksRequest$ = this.callQuickbaseProxy('POST', 'query', body).pipe(
           tap(response => {
+            // Discard the response if the logged-in staff record changed while
+            // the request was in flight (e.g. logout then login as another user)
+            if (String(this.staffRecordID) !== String(staffIdForRequest)) {
+              this.logger.warn('getStaffTasks: staff record changed mid-flight, discarding stale response');
+              return;
+            }
             this.logger.debug('Staff tasks loaded successfully', { rawResponse: response });
             try { this.logger.debug('getStaffTasks - first raw task record', JSON.stringify(response?.data?.[0] ?? response?.[0] ?? null)); } catch (e) {}
 
@@ -837,6 +884,14 @@ getStaffTasks(): Observable<any> {
 
             this.logger.log('QuickbaseService - staffTasks incoming vs current', { incomingCount, currentCount });
 
+            if (incomingCount === 0 && currentCount > 0) {
+              this.logger.debug('getStaffTasks: incoming empty, preserving existing staffTasks cache');
+              // Keep the counter consistent with the preserved cache rather than showing 0
+              this.STAalert = `There are ${currentCount} Staff Task Assignments Due`;
+              try { this._STAalert.next(this.STAalert); } catch (e) {}
+              return;
+            }
+
             // Set STAalert based on the incoming API count (reflect actual tasks due)
             try {
               if (typeof incomingCount === 'number') {
@@ -845,14 +900,19 @@ getStaffTasks(): Observable<any> {
               }
             } catch (e) {}
 
-            if (incomingCount === 0 && currentCount > 0) {
-              this.logger.debug('getStaffTasks: incoming empty, preserving existing staffTasks cache');
-              return;
-            }
-
             this.publishCache('staffTasks', this.staffTasks, response);
-          })
+          }),
+          catchError(error => {
+            this.logger.error('getStaffTasks failed', error);
+            // Surface an honest "unavailable" message instead of a misleading zero count
+            this.STAalert = 'Staff Task Assignments unavailable - reload to retry';
+            try { this._STAalert.next(this.STAalert); } catch (e) {}
+            return throwError(() => error);
+          }),
+          finalize(() => { this.staffTasksRequest$ = null; }),
+          shareReplay({ bufferSize: 1, refCount: false })
         );
+        return this.staffTasksRequest$;
 }
 
 getWeeklyMeetingTaskAssignment(): Observable<number | null> {
@@ -909,6 +969,7 @@ markTaskAssignmentComplete(taskRecordId: number): Observable<any> {
 clearStaffTasksCache(): void {
   try { sessionStorage.removeItem('HOMMA__STAFFTASKS'); } catch (e) {}
   this.staffTasks.next(null);
+  this.staffTasksRequest$ = null;
 }
 
 insertActivity(activityData: any): Observable<any> {
@@ -1339,7 +1400,19 @@ insertActivity(activityData: any): Observable<any> {
     // Staff task assignments are house- and staff-specific. Flush the cache
     // at the start of the house/staff query so the Tasks page fetches fresh
     // data for the newly selected house instead of reusing the previous cache.
-    try { this.staffTasks.next(null); } catch (e) {}
+    // Clearing staffRecordID also guarantees any late-arriving response from a
+    // previous user's in-flight request is discarded instead of published.
+    // The stored staff role is reset too so a new login can't inherit the
+    // previous user's role if authentication fails partway through.
+    try {
+      this.staffTasks.next(null);
+      this.staffTasksRequest$ = null;
+      this.staffRecordID = 0;
+      this.currentStaffRole = '';
+      this.sessionStaffRole = '';
+      try { localStorage.removeItem('currentStaffRole'); } catch (e) {}
+      try { localStorage.removeItem('sessionStaffRole'); } catch (e) {}
+    } catch (e) {}
 
     this.logger.debug('Login attempt - housename/staffID', { housename, staffID });
     
@@ -1449,6 +1522,16 @@ insertActivity(activityData: any): Observable<any> {
         // Capture the authenticated user's actual role from the staff table (field 93)
         const requestingUserRecord = allStaffRecords.find((r: any) => (r['102']?.value || r['102']) === staffID);
         this.currentStaffRole = requestingUserRecord ? (requestingUserRecord['93']?.value || requestingUserRecord['93']) : '';
+        // Persist so role-gated UI survives reloads/update restores
+        try { localStorage.setItem('currentStaffRole', this.currentStaffRole || ''); } catch (e) {}
+
+        // Capture the effective session role from the record actually selected
+        // for this session (finalRecord). For area managers this is the house's
+        // House Leader record, so the session is treated as a House Leader
+        // session even though the typed credential has a different role.
+        const sessionRecord = finalRecord || null;
+        this.sessionStaffRole = sessionRecord ? (this.normalizeFieldToString(sessionRecord['93']) || '') : '';
+        try { localStorage.setItem('sessionStaffRole', this.sessionStaffRole || ''); } catch (e) {}
 
         // Return the modified response that postData can process
         return {

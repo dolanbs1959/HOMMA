@@ -26,6 +26,7 @@ export class ResidentSearchComponent implements OnInit {
   selectedIsPending = false;
   panelOpen = false;
   canShowStipulated = false;
+  isHouseLeader = false;
   theHouseName = '';
   houseLeaderName = '';
   houseLeaderRecordId = '';
@@ -56,6 +57,8 @@ export class ResidentSearchComponent implements OnInit {
     const isParticipantStaff = this.userService.isStaffUser();
     const isHouseLeaderLoginStaff = !!this.quickbaseService.currentStaffRole && this.quickbaseService.currentStaffRole !== 'House Leader';
     this.canShowStipulated = isParticipantStaff || isHouseLeaderLoginStaff;
+    // House Leaders reach 1-on-1 reviews through their assigned Task cards only
+    this.isHouseLeader = this.quickbaseService.isHouseLeaderSession;
 
     this.restoreFromCache();
   }

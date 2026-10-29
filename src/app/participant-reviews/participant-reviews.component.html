@@ -15,7 +15,7 @@
           <img *ngIf="residentPhoto" [src]="residentPhoto" alt="Participant Photo" class="thumbnail" />
         <ion-card-subtitle>
           {{ participantName }}<br>
-          Last 1 on 1 submitted: <b>{{ last1on1Date | date: 'MM/dd/yyyy' }}</b>
+          Last 1 on 1 submitted: <b>{{ hasValidLast1on1Date ? (last1on1Date | date: 'MM/dd/yyyy') : 'No previous 1-on-1' }}</b>
         </ion-card-subtitle>
     </ion-card-header>
   </ion-card>

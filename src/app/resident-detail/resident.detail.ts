@@ -30,6 +30,11 @@ export class ResidentDetailComponent  implements OnInit, OnDestroy {
   residentPhoto: string | undefined;
   isResident: boolean = false;
   isStaff: boolean = false;
+
+  // House Leaders reach 1-on-1 reviews through their assigned Task cards only
+  get isHouseLeader(): boolean {
+    return this.quickbaseService.isHouseLeaderSession;
+  }
   timeClockEnabled: boolean = false;
   timeEntryStatus: string = '';
   steReady: boolean = false;

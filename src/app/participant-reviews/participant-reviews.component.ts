@@ -41,9 +41,23 @@ export class ParticipantReviewsComponent implements OnInit {
   residentData: any;
   fromSearch = false;
   last1on1Date!: Date;
+
+  // True only when last1on1Date parses to a real date — guards the template
+  // DatePipe against 'No Date', null, and other invalid values (NG02100)
+  get hasValidLast1on1Date(): boolean {
+    const v: any = this.last1on1Date;
+    if (!v) return false;
+    const t = v instanceof Date ? v.getTime() : new Date(v).getTime();
+    return !isNaN(t);
+  }
   // track if a review was already submitted in this page instance
   submittedReviewRecordId: string | null = null;
   submissionInProgress: boolean = false;
+  // Originating Staff Task Assignment record ID (from Tasks page navigation);
+  // written to FID 274 on the review record and marked complete after submit
+  taskAssignmentId: string | null = null;
+  // Guard so the originating Task Assignment is only completed once
+  private taskCompletionAttempted = false;
 
   constructor(
     private fb: FormBuilder,
@@ -225,6 +239,7 @@ export class ParticipantReviewsComponent implements OnInit {
         }
       }
       this.last1on1Date = params['Last1on1Date'];
+      this.taskAssignmentId = params['taskAssignmentId'] || null;
       
       // console.log('Participant data:', {
       //   participantName: this.participantName,
@@ -1321,10 +1336,7 @@ export class ParticipantReviewsComponent implements OnInit {
     const ccoMobileValue = isOnSupervision ? (formData.updateCCOMobile ? formData.newCCOmobile : '') : '';
     const ccoEmailValue = isOnSupervision ? (formData.updateCCOEmail ? formData.newCCOemail : '') : '';
     
-    const payload = {
-      to: this.participantReviewsTableId,
-      data: [
-        {
+    const recordData: any = {
           276: { value: formData.status },
           104: { value: formData.updatePhoneNumber ? formData.newPhoneNumber : '' },
           105: { value: formData.updateEmail ? formData.newEmail : '' },
@@ -1356,8 +1368,15 @@ export class ParticipantReviewsComponent implements OnInit {
           165: { value: formData.temperament },
           213: { value: formData.leadershipPotential },
           147: { value: this.participantId }
-        }
-      ]
+    };
+    // Link the review to its originating Staff Task Assignment when launched
+    // from a task card (FID 274 = Related Task Assignment)
+    if (this.taskAssignmentId) {
+      recordData[274] = { value: Number(this.taskAssignmentId) };
+    }
+    const payload = {
+      to: this.participantReviewsTableId,
+      data: [recordData]
     };
 
     // console.log('Payload:', payload);
@@ -1371,10 +1390,26 @@ export class ParticipantReviewsComponent implements OnInit {
         this.submissionErrorMessage = '';
         this.submittedReviewRecordId = newRecordId?.toString() || null;
         this.submissionInProgress = false;
+
+        // The review record now exists — complete the originating Task
+        // Assignment (if any) and refresh the cached task list/alert count.
+        // A failure here must not be reported as a review failure.
+        let taskWarning = '';
+        if (this.taskAssignmentId && !this.taskCompletionAttempted) {
+          this.taskCompletionAttempted = true;
+          try {
+            await this.quickbaseService.markTaskAssignmentComplete(Number(this.taskAssignmentId)).toPromise();
+            try { this.quickbaseService.clearStaffTasksCache(); } catch (e) {}
+            try { this.quickbaseService.getStaffTasks().subscribe({ error: () => {} }); } catch (e) {}
+          } catch (e) {
+            taskWarning = ' However, the originating Task Assignment could not be marked complete — it can still be completed from the Tasks page.';
+          }
+        }
+
         // Show a confirmation alert with the record number
         const alert = await this.alertController.create({
           header: 'Review Submitted',
-          message: `Participant Review #${newRecordId} submitted successfully.`,
+          message: `Participant Review #${newRecordId} submitted successfully.${taskWarning}`,
           buttons: ['OK']
         });
         await alert.present();
@@ -1414,11 +1449,29 @@ export class ParticipantReviewsComponent implements OnInit {
   }
 
   goBack() {
+    // Reviews launched from a Task Assignment card always return to the House
+    // Leader homepage via explicit router navigation — never browser history,
+    // which strands the user or walks them back to the login page when entries
+    // are missing. Reviews opened independently (Participants page / Resident
+    // Search) keep the existing back behavior.
+    if (this.taskAssignmentId) {
+      this.router.navigate(['/tabs', 'participants']).catch(() => {
+        this.router.navigateByUrl('/tabs/participants');
+      });
+      return;
+    }
     if (this.fromSearch && this.residentData) {
       const last = this.quickbaseService.getLastResidentSearch();
       this.quickbaseService.setLastResidentSearch(last?.query || '', last?.results || [], this.residentData, true);
+      this.location.back();
+      return;
     }
-    this.location.back();
+    // Independent review (e.g. opened from the Participants page): return to the
+    // originating tab explicitly instead of walking browser history — repeated
+    // location.back() pops can strand the user back at the login redirect.
+    this.router.navigate(['/tabs', 'participants']).catch(() => {
+      this.router.navigateByUrl('/tabs/participants');
+    });
   }
 
 

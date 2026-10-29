@@ -27,14 +27,20 @@
       <ion-card-title>{{ task.taskName }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Role:</strong> {{ task.role }}</p>
-      <p><strong>House:</strong> {{ task.houseName }}</p>
-      <p [ngClass]="{'status-overdue': (task.status || '').includes('Due')}"><strong>Status:</strong> {{ task.status | extractText }}</p>
-      <p><strong>Frequency:</strong> {{ task.frequency | extractText }}</p>
-      <!-- <p><strong>Priority:</strong> {{ task.priority }}</p> -->
-      <p *ngIf="(task.taskName || '').includes('Reviews')" [ngClass]="{'reviews-due': (task.status || '').includes('Reviews')}">
-        <strong>1 on 1's Due:</strong> {{ task.p1on1sDue }}
-      </p>
+      <ng-container *ngIf="isReviewTask(task); else standardTask">
+        <p><strong>Participant:</strong>
+          <a *ngIf="task.resident" class="participant-link" (click)="openParticipantReview(task)">{{ task.participantName || 'Unknown participant' }}</a><span *ngIf="!task.resident">{{ task.participantName || 'Unknown participant' }}</span>
+        </p>
+        <p [ngClass]="{'status-overdue': (task.status || '').includes('Due')}"><strong>Status:</strong> {{ task.status | extractText }}</p>
+        <p><strong>Due Date:</strong> {{ task.dueDate ? (task.dueDate | date:'MMM d, y') : 'Not set' }}</p>
+      </ng-container>
+      <ng-template #standardTask>
+        <p><strong>Role:</strong> {{ task.role }}</p>
+        <p><strong>House:</strong> {{ task.houseName }}</p>
+        <p [ngClass]="{'status-overdue': (task.status || '').includes('Due')}"><strong>Status:</strong> {{ task.status | extractText }}</p>
+        <p><strong>Frequency:</strong> {{ task.frequency | extractText }}</p>
+        <!-- <p><strong>Priority:</strong> {{ task.priority }}</p> -->
+      </ng-template>
     </ion-card-content>
   </ion-card>
 </ion-content>

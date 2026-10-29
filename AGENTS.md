@@ -42,13 +42,50 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   session `theHouseName`. A debug log in getStaffTasks dumps the first raw task record
   to help identify the correct house-name FID later.
 
+### Implemented: 1-on-1 task cards display participant
+- `getStaffTasks()` also selects FID 313 (Related Participant → resident record ID)
+- House Leader Tasks page maps `participantRecordId` (FID 313) and enriches cards
+  from the cached `residentData` BehaviorSubject (`enrichTaskParticipants()`)
+- Review tasks (taskName contains 'Reviews') show `Participant: <name>` instead of
+  the legacy FID 263 `1 on 1's Due` counter; unresolved participants show
+  "Unknown participant" (non-clickable)
+- Tapping the name navigates to `/participant-reviews` using the same
+  queryParams/state shape as `ParticipantsPage.addParticipantOneOnOne()`, plus
+  `taskAssignmentId` = Task Assignment record ID (FID 3)
+- `participant-reviews.component.ts` stores `taskAssignmentId` from queryParams
+- 1-on-1 cards are simplified: Participant (clickable), Status, Due Date only
+  (Role/House/Frequency removed for Reviews tasks; other task types unchanged).
+  Due Date = StaffTasks FID 325, parsed as a local date (`parseQbDate`) to avoid
+  the YYYY-MM-DD UTC-midnight off-by-one, rendered via `| date:'MMM d, y'`
+- On successful review create: `recordData[274] = taskAssignmentId` (FID 147
+  preserved), then `markTaskAssignmentComplete(taskAssignmentId)` →
+  `clearStaffTasksCache()` → `getStaffTasks()` refresh (updates list + STAalert
+  count). Completion is guarded by `taskCompletionAttempted` (once per page
+  instance); a completion failure shows a warning appended to the success alert,
+  never a review failure. Independent submissions (no taskAssignmentId) are
+  unaffected. Quickbase pipeline creates the Activity — HOMMA does not.
+- `goBack()` (Back/Start Over) uses explicit `router.navigate(['/tabs','participants'])`
+  (with `navigateByUrl` fallback) whenever the review was task-launched
+  (`taskAssignmentId` set) — never `location.back()`, which walks history to login.
+  Independent reviews keep `location.back()`.
+- 1-on-1 shortcuts are hidden for House Leader sessions via the centralized
+  `quickbaseService.isHouseLeaderSession` getter, which reads `sessionStaffRole`
+  (the finalRecord's field-93 role — i.e., the record the session operates as)
+  falling back to `currentStaffRole` (the typed credential's role). The
+  distinction matters for area managers, whose credential role is 'Staff' but
+  whose session record is the house's House Leader record. `sessionStaffRole`
+  is persisted to localStorage at login, restored in the constructor, and
+  cleared on new staff logins + resident logins.
+- `participant-reviews` header pipes `last1on1Date` only when
+  `hasValidLast1on1Date` is true — guards DatePipe against 'No Date'/null
+  (NG02100); displays 'No previous 1-on-1'.
+
 ### Still open
 - Correct FID for task house-name display (36 is unpopulated in new schema)
 - `status-overdue` CSS class keys on `.includes('Due')` — 'Incomplete' won't trigger it
 - Retry path `updateAttendanceRecords` observable is never subscribed (pre-existing dead code)
 
 ### Deferred (same migration, later sessions)
-- 1-on-1 workflow task updates
 - Observation reports
 - Resident updates
 - Transport requests

@@ -55,7 +55,7 @@
           <ion-icon name="create-outline"></ion-icon>
           <ion-label>Update</ion-label>
         </div>
-        <div *ngIf="!selectedIsPending" class="action-tab" (click)="addParticipantOneOnOne()">
+        <div *ngIf="!selectedIsPending && !isHouseLeader" class="action-tab" (click)="addParticipantOneOnOne()">
           <ion-icon name="chatbubbles-outline"></ion-icon>
           <ion-label>1-on-1</ion-label>
         </div>

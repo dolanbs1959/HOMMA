@@ -16,6 +16,7 @@ export class ParticipantsPage implements OnInit, OnDestroy {
   HLphone = '';
   maxMeetingDate = '';
   canShowStipulated = false;
+  isHouseLeader = false;
   STAalert = '';
 
   selectedResident: any = null;
@@ -42,11 +43,23 @@ export class ParticipantsPage implements OnInit, OnDestroy {
     const isParticipantStaff = this.userService.isStaffUser();
     const isHouseLeaderLoginStaff = !!this.quickbaseService.currentStaffRole && this.quickbaseService.currentStaffRole !== 'House Leader';
     this.canShowStipulated = isParticipantStaff || isHouseLeaderLoginStaff;
+    // House Leaders reach 1-on-1 reviews through their assigned Task cards only
+    this.isHouseLeader = this.quickbaseService.isHouseLeaderSession;
 
     const staSub = this.quickbaseService.STAalert$.subscribe((val: string) => {
-      this.STAalert = val || 'There are 0 Staff Task Assignments Overdue';
+      this.STAalert = val || 'There are 0 Staff Task Assignments Due';
     });
     this.subs.push(staSub);
+  }
+
+  ionViewWillEnter() {
+    // Ensure a task fetch is underway so the counter is correct on first entry
+    // and after tasks are completed elsewhere. getStaffTasks returns the cached
+    // or shared in-flight result, so this never duplicates the API call.
+    const taskSub = this.quickbaseService.getStaffTasks().subscribe({
+      error: (err: any) => console.error('ParticipantsPage - error loading staff tasks', err)
+    });
+    this.subs.push(taskSub);
   }
 
   ionViewWillLeave() {
