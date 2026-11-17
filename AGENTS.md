@@ -76,6 +76,11 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   whose session record is the house's House Leader record. `sessionStaffRole`
   is persisted to localStorage at login, restored in the constructor, and
   cleared on new staff logins + resident logins.
+- `quickbaseService.currentStaffName` mirrors that pattern for the typed
+  credential's name (staff field 10 of the requesting-user record) — differs
+  from the session's `HouseLeaderName` for area managers. It drives the HOM
+  Staff signature name on the Stipulated Agreement so an area manager's
+  signature isn't attributed to the house's House Leader.
 - `participant-reviews` header pipes `last1on1Date` only when
   `hasValidLast1on1Date` is true — guards DatePipe against 'No Date'/null
   (NG02100); displays 'No previous 1-on-1'.

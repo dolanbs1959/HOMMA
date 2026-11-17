@@ -172,7 +172,10 @@ ngOnInit() {
           const HouseLeaderRecordId = response.HouseLeaderRecordId?.value; // Get house leader record ID from login query
           const HLphone = response.HLphone?.value;
           this.recordNumber = response.recordNumber;
-          this.userService.setDisplayName(HouseLeaderName || '');
+          // Prefer the typed credential's name (currentStaffName). For area
+          // managers the session record is the house's House Leader, so
+          // HouseLeaderName would attribute actions to the wrong person.
+          this.userService.setDisplayName(this.quickbaseService.currentStaffName || HouseLeaderName || '');
           this.savedRecordNumber = this.recordNumber;
           this.maxMeetingDate = response.maxMeetingDate?.value;
           this.logger.log('Login successful');
@@ -279,8 +282,10 @@ ngOnInit() {
     // Clear any stale staff-credential role so it can't leak into the resident session
     this.quickbaseService.currentStaffRole = '';
     this.quickbaseService.sessionStaffRole = '';
+    this.quickbaseService.currentStaffName = '';
     try { localStorage.removeItem('currentStaffRole'); } catch (e) {}
     try { localStorage.removeItem('sessionStaffRole'); } catch (e) {}
+    try { localStorage.removeItem('currentStaffName'); } catch (e) {}
     this.logger.log('=== RESIDENT LOGIN ATTEMPT ===');
     this.logger.log(`Email entered: "${this.email}"`);
     this.loadingService.show();

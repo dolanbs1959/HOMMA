@@ -53,6 +53,11 @@ export class QuickbaseService {
   // manager logs into a house — the session then operates AS that house's
   // House Leader even though the credential isn't one.
   sessionStaffRole: string = '';
+  // Name of the staff member whose credential was typed (field 10 of the
+  // requesting user's staff record). Differs from the session's
+  // HouseLeaderName when an area manager logs into a house — used for
+  // signature attribution (e.g. Stipulated Agreement).
+  currentStaffName: string = '';
 
   // True when the authenticated session is operating as a House Leader.
   // Centralized so every consumer uses the same verified comparison.
@@ -136,6 +141,7 @@ export class QuickbaseService {
     // a reload/update restore (when query() does not re-run)
     try { this.currentStaffRole = localStorage.getItem('currentStaffRole') || ''; } catch (e) {}
     try { this.sessionStaffRole = localStorage.getItem('sessionStaffRole') || ''; } catch (e) {}
+    try { this.currentStaffName = localStorage.getItem('currentStaffName') || ''; } catch (e) {}
 
     // Restore preserved app state after a reload if present.
     try {
@@ -1410,8 +1416,10 @@ insertActivity(activityData: any): Observable<any> {
       this.staffRecordID = 0;
       this.currentStaffRole = '';
       this.sessionStaffRole = '';
+      this.currentStaffName = '';
       try { localStorage.removeItem('currentStaffRole'); } catch (e) {}
       try { localStorage.removeItem('sessionStaffRole'); } catch (e) {}
+      try { localStorage.removeItem('currentStaffName'); } catch (e) {}
     } catch (e) {}
 
     this.logger.debug('Login attempt - housename/staffID', { housename, staffID });
@@ -1524,6 +1532,12 @@ insertActivity(activityData: any): Observable<any> {
         this.currentStaffRole = requestingUserRecord ? (requestingUserRecord['93']?.value || requestingUserRecord['93']) : '';
         // Persist so role-gated UI survives reloads/update restores
         try { localStorage.setItem('currentStaffRole', this.currentStaffRole || ''); } catch (e) {}
+
+        // Capture the authenticated user's name (field 10) so signatures
+        // attribute the agreement to the person who logged in rather than
+        // the session's House Leader record.
+        this.currentStaffName = requestingUserRecord ? (this.normalizeFieldToString(requestingUserRecord['10']) || '') : '';
+        try { localStorage.setItem('currentStaffName', this.currentStaffName || ''); } catch (e) {}
 
         // Capture the effective session role from the record actually selected
         // for this session (finalRecord). For area managers this is the house's
