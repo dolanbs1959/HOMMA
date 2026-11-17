@@ -1784,6 +1784,83 @@ private extractImageUrl(html: string): string | null {
   return url;
 }
 
+/**
+ * Fetch the staff member's photo from the Staff table.
+ * Staff FID 307 ("Photo New") is a rich text field that renders the photo stored
+ * in FID 308 ("Photo", file attachment). Prefer the rendered <img> URL from 307;
+ * fall back to 308's file attachment URL. The image is downloaded through the
+ * secure proxy and cached in PhotoStorageService under a `staff_`-prefixed key
+ * so it can't collide with participant record IDs.
+ */
+getStaffPhoto(staffRecordId: number | string): Observable<string | null> {
+  const id = String(staffRecordId ?? '').trim();
+  if (!id || id === '0') {
+    return of(null);
+  }
+
+  const cacheKey = `staff_${id}`;
+  const cached = this.photoStorageService.getPhoto(cacheKey);
+  if (cached) {
+    return of(cached);
+  }
+
+  const body = {
+    from: this.queryStaffTableId,
+    select: [3, 307, 308],
+    where: `{3.EX.${id}}`,
+    options: {
+      skip: 0,
+      top: 0,
+      compareWithAppLocalTime: false
+    }
+  };
+
+  return this.callQuickbaseProxy('POST', 'query', body).pipe(
+    switchMap((response: any) => {
+      const record = response?.data?.[0];
+      if (!record) {
+        return of(null);
+      }
+
+      const richText = record['307']?.value ?? record['307'];
+      let url = (typeof richText === 'string') ? this.extractImageUrl(richText) : null;
+
+      if (!url) {
+        const attachment = record['308']?.value ?? record['308'];
+        const attachmentUrl = (attachment && typeof attachment === 'object' && attachment.url)
+          ? attachment.url
+          : (typeof attachment === 'string' ? attachment : null);
+        if (attachmentUrl) {
+          // File attachment URLs come back root-relative ("/files/..."); make absolute
+          url = attachmentUrl.startsWith('http')
+            ? attachmentUrl
+            : `https://${this.realm}${attachmentUrl.startsWith('/') ? '' : '/'}${attachmentUrl}`;
+        }
+      }
+
+      if (!url) {
+        return of(null);
+      }
+
+      return this.callQuickbaseProxy('GET', url).pipe(
+        map((imgData: any) => {
+          const photo = imgData || null;
+          if (photo) {
+            try { this.photoStorageService.setPhoto(cacheKey, photo); } catch (e) {}
+            try { sessionStorage.setItem(`residentPhoto_${cacheKey}`, photo); } catch (e) {}
+          }
+          return photo;
+        }),
+        catchError(() => of(null))
+      );
+    }),
+    catchError(error => {
+      this.logger.warn('getStaffPhoto failed', error);
+      return of(null);
+    })
+  );
+}
+
 //Convert the photo file to base64
 // downloadAndConvertToBase64(fileUrl: string, recordId: string): Observable<string> {
 //   const urlParts = fileUrl.split('/');

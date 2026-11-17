@@ -28,6 +28,7 @@ export class ResidentDetailComponent  implements OnInit, OnDestroy {
   houseLeaderPhone: string = '';
   houseLeaderRecordId: string = ''; // Add this property
   residentPhoto: string | undefined;
+  staffPhoto: string | undefined;
   isResident: boolean = false;
   isStaff: boolean = false;
 
@@ -91,6 +92,27 @@ export class ResidentDetailComponent  implements OnInit, OnDestroy {
     }
 
     return '';
+  }
+
+  // Load the staff member's photo from the Staff table (FID 307/308) for the
+  // staff-profile avatar. Falls back to the participant photo in the template
+  // when no staff photo is available.
+  private loadStaffPhoto(): void {
+    const staffRecordId = this.userService.getParticipantInfo().staffRecordId;
+    if (!staffRecordId) {
+      return;
+    }
+    const cacheKey = `staff_${staffRecordId}`;
+    const cached = this.photoStorageService.getPhoto(cacheKey);
+    if (cached) {
+      this.staffPhoto = this.photoStorageService.getSafeSrc(cached, cacheKey) || cached;
+      return;
+    }
+    this.quickbaseService.getStaffPhoto(staffRecordId).subscribe(photo => {
+      if (photo) {
+        this.staffPhoto = this.photoStorageService.getSafeSrc(photo, cacheKey) || photo;
+      }
+    });
   }
 
   async presentResidentActions(resident: any, isPending: boolean = false) {
@@ -503,6 +525,9 @@ addObservationReport() {
       // When navigated from the staff 'Resident Search', show the participant view
       // (hide senior-staff-only buttons) so staff can view resident vitals as a resident.
       this.isStaff = state.fromSearch ? false : this.userService.isStaffUser();
+      if (this.isStaff) {
+        this.loadStaffPhoto();
+      }
       this.timeClockEnabled = this.userService.isTimeClockEnabled();
       if (this.timeClockEnabled) {
         const staffRecordId = this.userService.getParticipantInfo().staffRecordId;

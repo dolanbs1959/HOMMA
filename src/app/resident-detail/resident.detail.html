@@ -21,7 +21,7 @@
     <ion-card-header *ngIf="residentData" style="flex-direction:column">
       <ng-container *ngIf="isStaff; else residentInfo">
         <div class="staff-profile" style="justify-content:flex-start">
-          <img *ngIf="residentData.residentPhoto" [src]="residentData.residentPhoto" alt="Staff Photo" class="staff-avatar" style="border-radius:12px" />
+          <img *ngIf="staffPhoto || residentData.residentPhoto" [src]="staffPhoto || residentData.residentPhoto" alt="Staff Photo" class="staff-avatar" style="border-radius:12px" />
           <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left">
             <span style="font-size:12px;font-weight:500;color:var(--ion-color-medium)">Staff Profile</span>
             <span class="staff-name">{{ residentData.residentFullName.value }}</span>

@@ -80,6 +80,21 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   `hasValidLast1on1Date` is true — guards DatePipe against 'No Date'/null
   (NG02100); displays 'No previous 1-on-1'.
 
+### Implemented: staff profile photo from Staff table
+- Staff photo now lives on the Staff table (previously reached via the
+  participant table photo, FID 40): FID 307 'Photo New' is a rich text field
+  that renders FID 308 'Photo' (file attachment)
+- `quickbaseService.getStaffPhoto(staffRecordId)` queries the staff record
+  (select [3, 307, 308]), resolves the image URL from 307's rendered `<img>`
+  via `extractImageUrl`, falls back to 308's file-attachment `url`, downloads
+  through the proxy, and caches in PhotoStorageService / sessionStorage under
+  a `staff_<id>` key (avoids colliding with participant record IDs)
+- `resident-detail` calls `loadStaffPhoto()` when `isStaff` (staffRecordId from
+  `userService.getParticipantInfo()`); the staff-profile avatar binds
+  `staffPhoto || residentData.residentPhoto` — participant photo is the fallback
+- Only the senior-staff (participant-login) profile view uses this; the
+  House Leader login flow displays no staff photo
+
 ### Still open
 - Correct FID for task house-name display (36 is unpopulated in new schema)
 - `status-overdue` CSS class keys on `.includes('Due')` — 'Incomplete' won't trigger it

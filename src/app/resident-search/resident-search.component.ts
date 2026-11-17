@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import { QuickbaseService } from '../services/quickbase.service';
 import { LoggerService } from '../services/logger.service';
 import { UserService } from '../services/user.service';
@@ -45,8 +45,18 @@ export class ResidentSearchComponent implements OnInit {
     this.search$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      filter(q => q.trim().length >= 2)
-    ).subscribe(q => this.performSearch(q));
+      filter(q => q.trim().length >= 2),
+      tap(() => { this.isLoading = true; }),
+      // switchMap cancels the previous in-flight request when a newer query
+      // arrives, so a slower response for a shorter query can't overwrite
+      // results for the latest one.
+      switchMap(q => {
+        const trimmed = q.trim();
+        return this.executeSearch(trimmed).pipe(
+          map(resp => ({ trimmed, resp }))
+        );
+      })
+    ).subscribe(({ trimmed, resp }) => this.applyResults(trimmed, resp));
 
     const qd = this.quickbaseService.queryData;
     this.theHouseName = qd?.theHouseName?.value || '';
@@ -132,22 +142,33 @@ export class ResidentSearchComponent implements OnInit {
     }
     this.isLoading = true;
     console.log('ResidentSearch.performSearch - calling QuickbaseService');
-    this.quickbaseService.searchResidentsByName(trimmed, 50).subscribe(
-      (resp: any[]) => {
-        this.isLoading = false;
-        this.results = Array.isArray(resp) ? resp : [];
-        // Cache the search so Back can restore results without another API call
-        try { this.quickbaseService.setLastResidentSearch(trimmed, this.results, this.selectedResident, false); } catch (e) {}
-        console.log('ResidentSearch.performSearch - results received', { count: this.results.length });
-        this.logger.debug('Resident search results', { query: trimmed, count: this.results.length });
-      },
-      (err) => {
-        this.isLoading = false;
+    this.executeSearch(trimmed).subscribe(resp => this.applyResults(trimmed, resp));
+  }
+
+  // Run the Quickbase name search; errors resolve to an empty result set so a
+  // failure can't kill the debounced search stream.
+  private executeSearch(trimmed: string): Observable<any[]> {
+    return this.quickbaseService.searchResidentsByName(trimmed, 50).pipe(
+      catchError(err => {
         console.error('ResidentSearch.performSearch - error', err);
         this.logger.error('Resident search error', err);
-        this.results = [];
-      }
+        return of([]);
+      })
     );
+  }
+
+  private applyResults(trimmed: string, resp: any[]) {
+    this.isLoading = false;
+    // Drop responses that no longer match the current input — guards the
+    // explicit search() path (the debounced stream is protected by switchMap).
+    if (trimmed !== (this.query || '').trim()) {
+      return;
+    }
+    this.results = Array.isArray(resp) ? resp : [];
+    // Cache the search so Back can restore results without another API call
+    try { this.quickbaseService.setLastResidentSearch(trimmed, this.results, this.selectedResident, false); } catch (e) {}
+    console.log('ResidentSearch.performSearch - results received', { count: this.results.length });
+    this.logger.debug('Resident search results', { query: trimmed, count: this.results.length });
   }
 
   selectResident(resident: any, isPending: boolean = false) {
