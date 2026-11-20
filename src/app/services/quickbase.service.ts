@@ -1527,7 +1527,9 @@ insertActivity(activityData: any): Observable<any> {
               // managers may select any house; the session operates as that
               // house's House Leader record.
               const houseLeaderRecord = allStaffRecords.find((r: any) => isHouseLeaderRecord(r) && houseOf(r) === selectedHouse);
-              finalRecord = houseLeaderRecord || ownHouseRecord || credentialRecords[0];
+              // Only area managers keep the legacy fallback to their own record
+              // when the selected house has no House Leader record.
+              finalRecord = houseLeaderRecord || ownHouseRecord || (isAreaManager ? credentialRecords[0] : null);
               this.logger.debug(houseLeaderRecord ? 'Staff accessing house leader record' : 'Staff using own record');
             } else {
               // House Leader-only and other non-Staff users: only their own

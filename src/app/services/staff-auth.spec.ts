@@ -189,6 +189,18 @@ describe('Staff authentication (Role Assignments / email matching)', () => {
     });
   });
 
+  it('Staff selecting a house with no House Leader record is rejected, not given another house', (done) => {
+    mockQuickbase(
+      [staffRecord({ rid: 50, staffId: '500', house: 'HQ' })],
+      [{ 6: f('Active'), 10: f('Staff'), 12: f(50) }],
+      []
+    );
+    qb.query('Empty House', '500').subscribe(res => {
+      expect(res).toBeNull();
+      done();
+    });
+  });
+
   it('House Leader-only user cannot select a house other than their own', (done) => {
     mockQuickbase(
       [
