@@ -140,7 +140,7 @@ export class StipulatedAgreementComponent implements OnInit {
     this.houseLeaderEmail = (r.houseLeaderEmail?.value || r.houseLeaderEmail || '').trim();
 
     // Prefer the typed credential's name (persisted, survives reload) over the
-    // in-memory display name so an area manager's signature isn't attributed
+    // in-memory display name so an All Access staff member's signature isn't attributed
     // to the house's House Leader.
     this.staffName = this.quickbaseService.currentStaffName || this.userService.getDisplayName() || 'Unknown Staff';
 

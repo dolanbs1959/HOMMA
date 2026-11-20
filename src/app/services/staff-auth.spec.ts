@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ɵAngularFireSchedulers } from '@angular/fire';
 import { FirebaseApp, provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { Functions, provideFunctions, getFunctions } from '@angular/fire/functions';
@@ -11,9 +11,9 @@ import { environment } from '../../environments/environment';
 
 const f = (value: any) => ({ value });
 
-const staffRecord = (o: { rid: number; staffId: string; house: string; hl?: boolean; am?: boolean; email?: string; name?: string; status?: string }) => ({
+const staffRecord = (o: { rid: number; staffId: string; house: string; hl?: boolean; allAccess?: boolean; email?: string; name?: string; status?: string }) => ({
   3: f(o.rid), 6: f(o.status || 'Active'), 71: f(o.hl ? 1 : 0), 102: f(o.staffId), 139: f(''), 225: f(''),
-  295: f(!!o.am), 304: f(o.name || `Staff ${o.rid}`), 305: f('555-0100'), 306: f(o.email || ''), 372: f(o.house)
+  295: f(!!o.allAccess), 304: f(o.name || `Staff ${o.rid}`), 305: f('555-0100'), 306: f(o.email || ''), 372: f(o.house)
 });
 
 describe('Staff authentication (FID 71 / FID 295 / email matching)', () => {
@@ -82,7 +82,7 @@ describe('Staff authentication (FID 71 / FID 295 / email matching)', () => {
 
   it('authorized Staff (Active + FID 295) select any house as its House Leader record', async () => {
     mockQuickbase([
-      staffRecord({ rid: 20, staffId: '200', house: 'HQ', am: true, name: 'Area Mgr' }),
+      staffRecord({ rid: 20, staffId: '200', house: 'HQ', allAccess: true, name: 'All Access Staff' }),
       staffRecord({ rid: 12, staffId: '400', house: 'Beta House', hl: true })
     ]);
     const res = await login('Beta House', '200');
@@ -90,12 +90,12 @@ describe('Staff authentication (FID 71 / FID 295 / email matching)', () => {
     expect(qb.sessionIsHouseLeader).toBeTrue();
     expect(qb.isStaffSession).toBeTrue();
     expect(qb.isHouseLeaderSession).toBeFalse();
-    expect(qb.currentStaffName).toBe('Area Mgr');
+    expect(qb.currentStaffName).toBe('All Access Staff');
   });
 
   it('Staff who are also House Leaders keep Staff privileges at another house', async () => {
     mockQuickbase([
-      staffRecord({ rid: 11, staffId: '100', house: 'Alpha House', hl: true, am: true, name: 'HL Staff' }),
+      staffRecord({ rid: 11, staffId: '100', house: 'Alpha House', hl: true, allAccess: true, name: 'HL Staff' }),
       staffRecord({ rid: 12, staffId: '400', house: 'Beta House', hl: true })
     ]);
     const res = await login('Beta House', '100');
@@ -107,7 +107,7 @@ describe('Staff authentication (FID 71 / FID 295 / email matching)', () => {
 
   it('FID 295 on a non-Active Staff record grants nothing', async () => {
     mockQuickbase([
-      staffRecord({ rid: 20, staffId: '200', house: 'HQ', am: true, status: 'Inactive' }),
+      staffRecord({ rid: 20, staffId: '200', house: 'HQ', allAccess: true, status: 'Inactive' }),
       staffRecord({ rid: 12, staffId: '400', house: 'Beta House', hl: true })
     ]);
     expect(await login('Beta House', '200')).toBeNull();
@@ -138,6 +138,31 @@ describe('Staff authentication (FID 71 / FID 295 / email matching)', () => {
     const res = await login('Alpha House', '100');
     expect(res.HouseLeaderRecordId).toEqual(f(11));
     expect(res.HouseLeaderParticipantId).toEqual(f(''));
+  });
+
+  it('leaves the Participant ID blank when the House Leader email matches no participant or is empty', async () => {
+    mockQuickbase(
+      [staffRecord({ rid: 11, staffId: '100', house: 'Alpha House', hl: true, email: 'nobody@example.com' }),
+       staffRecord({ rid: 12, staffId: '200', house: 'Beta House', hl: true, email: '' })],
+      [{ 3: f(501), 177: f('someone@example.com') }]
+    );
+    expect((await login('Alpha House', '100')).HouseLeaderParticipantId).toEqual(f(''));
+    const res = await login('Beta House', '200');
+    expect(res.HouseLeaderParticipantId).toEqual(f(''));
+    expect(res.HouseLeaderRecordId).toEqual(f(12));
+  });
+
+  it('getParticipantRecordIdByEmail returns null when the lookup fails', async () => {
+    spyOn(qb, 'callQuickbaseProxy').and.returnValue(throwError(() => new Error('boom')));
+    const id = await new Promise(resolve => qb.getParticipantRecordIdByEmail('hl@example.com').subscribe(resolve));
+    expect(id).toBeNull();
+  });
+
+  it('getResidents filters Participant FID 692 by the session Staff Record ID', async () => {
+    mockQuickbase([]);
+    await new Promise(resolve => qb.getResidents(f(11) as any).subscribe(resolve));
+    expect(calls[0].from).toBe('bjgvye6ni');
+    expect(calls[0].where).toContain('{692.EX.11}');
   });
 
   describe('UserService Senior Staff (participant login)', () => {

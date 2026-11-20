@@ -48,18 +48,18 @@ export class QuickbaseService {
   HLphone: string = '';
   queryData: any;
   // Whether the typed credential is authorized Staff on House Leader Login:
-  // an Active (FID 6) Staff record with the Area Manager flag (FID 295), the
-  // flag that granted any-house access in production. Independent of House
-  // Leader status (FID 71).
+  // an Active (FID 6) Staff record with the All Access (HOMMA) checkbox
+  // (FID 295), which grants any-house access. Independent of House Leader
+  // status (FID 71).
   sessionIsAuthorizedStaff: boolean = false;
   // Whether the session record actually in use (finalRecord) is a House
-  // Leader (Staff FID 71 = 1). For area managers the session record is the
+  // Leader (Staff FID 71 = 1). For All Access staff the session record is the
   // house's House Leader record, so the session operates AS that House Leader
   // even though the credential isn't one.
   sessionIsHouseLeader: boolean = false;
   // Name of the staff member whose credential was typed (field 10 of the
   // requesting user's staff record). Differs from the session's
-  // HouseLeaderName when an area manager logs into a house — used for
+  // HouseLeaderName when All Access staff log into a house — used for
   // signature attribution (e.g. Stipulated Agreement).
   currentStaffName: string = '';
 
@@ -1442,10 +1442,10 @@ insertActivity(activityData: any): Observable<any> {
   // Staff FIDs (after removal of the Staff -> Participants relationship):
   //   3 = Staff Record ID, 6 = Staff Status, 71 = House Leader (1 = yes),
   //   102 = Staff ID (credential), 139 = Alert, 225 = STA alert,
-  //   295 = Area Manager, 304 = Name, 305 = Phone, 306 = Email,
+  //   295 = All Access (HOMMA) checkbox, 304 = Name, 305 = Phone, 306 = Email,
   //   372 = House Name (formula query).
   // Staff FID 93 (role) was deleted: House Leader = FID 71, authorized Staff =
-  // Active (FID 6) + Area Manager (FID 295).
+  // Active (FID 6) + All Access (FID 295).
   query(housename: string, staffID: string): Observable<any> {
     this.logger.debug('Querying staff access');
 
@@ -1470,10 +1470,10 @@ insertActivity(activityData: any): Observable<any> {
     const staffIdOf = (r: any) => this.normalizeFieldToString(r?.['102']).trim();
     const houseOf = (r: any) => this.normalizeFieldToString(r?.['372']).trim();
     const isHouseLeaderRecord = (r: any) => this.isQbFlagSet(r?.['71']);
-    const isAreaManagerRecord = (r: any) => !!r && (r['295'] === true || r['295']?.value === true || r['295'] === 'Yes');
+    const hasAllAccess = (r: any) => !!r && (r['295'] === true || r['295']?.value === true || r['295'] === 'Yes');
     const isActiveRecord = (r: any) => this.normalizeFieldToString(r?.['6']).trim().toLowerCase() === 'active';
 
-    // Single API call to get all active staff records with house and area manager info
+    // Single API call to get all active staff records with house and All Access info
     const body = {
       from: this.queryStaffTableId,
       select: [3, 6, 71, 102, 139, 225, 295, 304, 305, 306, 372],
@@ -1495,9 +1495,9 @@ insertActivity(activityData: any): Observable<any> {
           ? allStaffRecords.filter((r: any) => staffIdOf(r) === typedStaffID)
           : [];
 
-        // Authorized Staff: an Active credential record with the Area Manager
-        // flag (FID 295). A non-active record's flag grants nothing.
-        const authorizedStaffRecord = credentialRecords.find((r: any) => isAreaManagerRecord(r) && isActiveRecord(r)) || null;
+        // Authorized Staff: an Active credential record with All Access
+        // (FID 295) checked. A non-active record's flag grants nothing.
+        const authorizedStaffRecord = credentialRecords.find((r: any) => hasAllAccess(r) && isActiveRecord(r)) || null;
         const isAuthorizedStaff = !!authorizedStaffRecord;
         const ownHouseRecord = credentialRecords.find((r: any) => houseOf(r) === selectedHouse) || null;
 

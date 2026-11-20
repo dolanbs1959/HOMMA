@@ -77,8 +77,8 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   on new staff logins + resident logins.
 - `quickbaseService.currentStaffName` mirrors that pattern for the typed
   credential's name (staff field 304 of the requesting-user record) — differs
-  from the session's `HouseLeaderName` for area managers. It drives the HOM
-  Staff signature name on the Stipulated Agreement so an area manager's
+  from the session's `HouseLeaderName` for All Access staff. It drives the HOM
+  Staff signature name on the Stipulated Agreement so an All Access staff member's
   signature isn't attributed to the house's House Leader.
 - `participant-reviews` header pipes `last1on1Date` only when
   `hasValidLast1on1Date` is true — guards DatePipe against 'No Date'/null
@@ -105,8 +105,9 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   306 = email, 372 = house name, 71 = House Leader flag (House Leader detection only).
 - Authorization (FID 93 role deleted; no Role Assignments lookup):
   House Leader = Staff FID 71 = 1. Authorized Staff (`quickbaseService.isStaffSession`)
-  = credential has an Active (FID 6) record with Area Manager FID 295 — the
-  production any-house grant. Authorized Staff (incl. Staff who are also House
+  = credential has an Active (FID 6) record with FID 295 'All Access (HOMMA)'
+  checked (`hasAllAccess`) — the production any-house grant. FID 295 is a
+  checkbox, not an Area Manager role. Authorized Staff (incl. Staff who are also House
   Leaders) select any house, operating as its House Leader record, and keep all
   house-side functions. Everyone else gets only their own record for the
   selected house. `isHouseLeaderSession` = `sessionIsHouseLeader && !isStaffSession`.
@@ -119,6 +120,9 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   The cache is limited to {6.EX.'Active'}AND{292.EX.'Yes'}; a match grants the staff
   profile, participant search/management; no match = participant-only access.
   Time Clock still gated by Staff FID 359.
+- Participant FID 692 = the participant's House Leader **Staff Record ID** (code
+  evidence: `getResidents`/`getPendingArrivals` filter `{692.EX.<Staff FID 3>}`).
+  `resident-detail` falls back to it for Transport FID 42 — mapping unchanged.
 
 ### Still open
 - Correct FID for task house-name display (36 is unpopulated in new schema)
