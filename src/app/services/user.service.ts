@@ -86,62 +86,40 @@ export class UserService {
   }
 
   /**
-   * Check if a resident record ID belongs to a Senior Staff member
-   * Uses the cached activeStaff data from QuickbaseService
-   * Matches resident record ID against staff Related Participant field (fid 9)
-   * @param residentRecordId The resident record ID to check
+   * Check whether a participant email belongs to a Senior Staff member.
+   * Uses the cached activeStaff data from QuickbaseService, which only contains
+   * Active (Staff fid 6) Senior Staff (fid 292) records. Matches the participant
+   * email (Participant fid 177) against Staff Email (fid 306), both trimmed and
+   * lowercased. Grants no privileges itself; callers use the returned staff
+   * record ID for Senior Staff recognition and the Time Clock (fid 359) check.
+   * @param participantEmail The participant's email address
    * @returns The staff record ID if found, or 0 if not a Senior Staff
    */
-  checkIsSeniorStaff(residentRecordId: number): number {
-    this.logger.log(`🔍 checkIsSeniorStaff called with residentRecordId: ${residentRecordId} (type: ${typeof residentRecordId})`);
-
-    const cachedStaff = this.quickbaseService.activeStaff.value;
-    this.logger.log(`📋 Cached activeStaff data (raw):`, cachedStaff);
-
-    if (cachedStaff && Array.isArray(cachedStaff)) {
-      this.logger.log(`📊 Found ${cachedStaff.length} staff records in cache`);
-
-      // Debug: inspect each staff entry for relatedParticipantId types/values
-      for (let i = 0; i < cachedStaff.length; i++) {
-        const s = cachedStaff[i];
-        try {
-          this.logger.debug(`  staff[${i}] relatedParticipantId:`, s.relatedParticipantId, `(type: ${typeof s.relatedParticipantId})`, `staffRecordId: ${s.staffRecordId}`, `displayName: ${s.displayName}`);
-        } catch (e) {
-          this.logger.debug(`  staff[${i}] - failed to inspect`, e);
-        }
-      }
-
-      // First try strict equality (existing behavior), then fall back to numeric comparison
-      const matchStrict = cachedStaff.find((staff: any) => staff.relatedParticipantId && staff.relatedParticipantId === residentRecordId);
-      if (matchStrict) {
-        const resolvedId = (matchStrict.staffRecordId ?? matchStrict.userId) || 0;
-        this.logger.log(`✅ MATCH FOUND (strict): Resident ID ${residentRecordId} matches staff "${matchStrict.displayName}" (resolvedId: ${resolvedId})`);
-        return resolvedId;
-      }
-
-      // Try numeric coercion comparison to handle string/number mismatches
-      const matchNumeric = cachedStaff.find((staff: any) => {
-        try {
-          const left = Number(staff.relatedParticipantId);
-          const right = Number(residentRecordId);
-          return !Number.isNaN(left) && !Number.isNaN(right) && left === right;
-        } catch (e) {
-          return false;
-        }
-      });
-
-      if (matchNumeric) {
-        const resolvedId = (matchNumeric.staffRecordId ?? matchNumeric.userId) || 0;
-        this.logger.log(`✅ MATCH FOUND (numeric-coercion): Resident ID ${residentRecordId} matches staff "${matchNumeric.displayName}" (resolvedId: ${resolvedId})`);
-        return resolvedId;
-      }
-
-      this.logger.log(`❌ NO MATCH: Resident ID ${residentRecordId} not found in Senior Staff list (after strict and numeric checks)`);
+  checkIsSeniorStaff(participantEmail: string): number {
+    const email = this.quickbaseService.normalizeEmail(participantEmail);
+    if (!email) {
+      this.logger.log('checkIsSeniorStaff: no participant email provided - returning 0');
       return 0;
     }
 
-    this.logger.warn(`⚠️ No cached activeStaff data available - returning 0`);
-    return 0;
+    const cachedStaff = this.quickbaseService.activeStaff.value;
+    if (!cachedStaff || !Array.isArray(cachedStaff)) {
+      this.logger.warn('No cached activeStaff data available - returning 0');
+      return 0;
+    }
+
+    const matches = cachedStaff.filter((staff: any) => !!staff?.staffEmail && staff.staffEmail === email);
+    if (matches.length === 0) {
+      this.logger.log('checkIsSeniorStaff: no Senior Staff email match');
+      return 0;
+    }
+    if (matches.length > 1) {
+      this.logger.warn(`checkIsSeniorStaff: ${matches.length} Senior Staff records share this email; using the first`);
+    }
+
+    const resolvedId = Number(matches[0].staffRecordId ?? matches[0].userId) || 0;
+    this.logger.log(`checkIsSeniorStaff: matched staff "${matches[0].displayName}" (staffRecordId: ${resolvedId})`);
+    return resolvedId;
   }
 
   /**
@@ -153,8 +131,7 @@ export class UserService {
     this.userInfo = { houseName: '', staffId: '' };
     this.participantInfo = { email: '', recordId: 0, fullName: '', isStaff: false, staffRecordId: 0, timeClockEnabled: false };
     this.displayName = '';
-    try { this.quickbaseService.currentStaffRole = ''; } catch (e) {}
-    try { this.quickbaseService.currentStaffName = ''; } catch (e) {}
+    try { this.quickbaseService.clearStaffRoleState(); } catch (e) {}
     // Clear cached invoice payments on any login reset. Invoice payments are
     // house-specific; without this a participant's first payment view can use
     // stale data from a previous session, causing the listing to appear empty.

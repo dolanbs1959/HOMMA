@@ -280,12 +280,7 @@ ngOnInit() {
   onResidentLogin() {
     this.userService.resetAuthState(); // Clear any previous house leader or staff role state
     // Clear any stale staff-credential role so it can't leak into the resident session
-    this.quickbaseService.currentStaffRole = '';
-    this.quickbaseService.sessionStaffRole = '';
-    this.quickbaseService.currentStaffName = '';
-    try { localStorage.removeItem('currentStaffRole'); } catch (e) {}
-    try { localStorage.removeItem('sessionStaffRole'); } catch (e) {}
-    try { localStorage.removeItem('currentStaffName'); } catch (e) {}
+    this.quickbaseService.clearStaffRoleState();
     this.logger.log('=== RESIDENT LOGIN ATTEMPT ===');
     this.logger.log(`Email entered: "${this.email}"`);
     this.loadingService.show();
@@ -332,13 +327,14 @@ ngOnInit() {
             const participantFullName = resident.residentFullName?.value || 'Unknown';
             this.userService.setDisplayName(participantFullName);
             
-            // Check if this resident is a Senior Staff member (by matching record ID against staff Related Participant fid 9)
+            // Check if this resident is a Senior Staff member by matching the participant
+            // email (fid 177) against Staff Email (fid 306) of Active Senior Staff.
             // checkIsSeniorStaff returns the staff record ID if found, or 0 if not staff
-            this.logger.log(`Checking Senior Staff status for resident record ID: ${participantRecordId}`);
-            const staffRecordId = this.userService.checkIsSeniorStaff(participantRecordId);
+            const residentEmail = resident.residentEmail?.value ?? resident.residentEmail ?? participantEmail;
+            const staffRecordId = this.userService.checkIsSeniorStaff(residentEmail);
             const isStaff = staffRecordId > 0;
             const timeClockEnabled = isStaff && this.userService.checkTimeClockEnabled(staffRecordId);
-            this.logger.log(`checkIsSeniorStaff returned: ${staffRecordId} (type: ${typeof staffRecordId}) for participantRecordId: ${participantRecordId} -> isStaff: ${isStaff}`);
+            this.logger.log(`checkIsSeniorStaff returned: ${staffRecordId} for participantRecordId: ${participantRecordId} -> isStaff: ${isStaff}`);
             this.userService.setParticipantInfo(participantEmail, participantRecordId, participantFullName, isStaff, staffRecordId, timeClockEnabled);
             this.logger.log(`=== LOGIN SUCCESSFUL - Senior Staff: ${isStaff}, Staff Record ID: ${staffRecordId}, Time Clock Enabled: ${timeClockEnabled} ===`);
             

@@ -69,15 +69,14 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   (`taskAssignmentId` set) — never `location.back()`, which walks history to login.
   Independent reviews keep `location.back()`.
 - 1-on-1 shortcuts are hidden for House Leader sessions via the centralized
-  `quickbaseService.isHouseLeaderSession` getter, which reads `sessionStaffRole`
-  (the finalRecord's field-93 role — i.e., the record the session operates as)
-  falling back to `currentStaffRole` (the typed credential's role). The
-  distinction matters for area managers, whose credential role is 'Staff' but
-  whose session record is the house's House Leader record. `sessionStaffRole`
-  is persisted to localStorage at login, restored in the constructor, and
-  cleared on new staff logins + resident logins.
+  `quickbaseService.isHouseLeaderSession` getter, which reads `sessionIsHouseLeader`
+  (Staff FID 71 = 1 on the finalRecord — i.e., the record the session operates as).
+  The distinction matters for area managers, whose session record is the house's
+  House Leader record. `sessionIsHouseLeader` is persisted to localStorage at
+  login, restored in the constructor, and cleared via `clearStaffRoleState()`
+  on new staff logins + resident logins.
 - `quickbaseService.currentStaffName` mirrors that pattern for the typed
-  credential's name (staff field 10 of the requesting-user record) — differs
+  credential's name (staff field 304 of the requesting-user record) — differs
   from the session's `HouseLeaderName` for area managers. It drives the HOM
   Staff signature name on the Stipulated Agreement so an area manager's
   signature isn't attributed to the house's House Leader.
@@ -99,6 +98,22 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
   `staffPhoto || residentData.residentPhoto` — participant photo is the fallback
 - Only the senior-staff (participant-login) profile view uses this; the
   House Leader login flow displays no staff photo
+
+### Authentication after Staff → Participants relationship removal (2026-11)
+- Staff FIDs 9, 10, 55, 93, 223 were deleted. Login query selects
+  [3, 6, 71, 102, 139, 225, 295, 304, 305, 306, 372]: 304 = name, 305 = phone,
+  306 = email, 372 = house name, 71 = House Leader flag (House Leader detection only).
+- Roles: Role Assignments table `bs9ueb9md` (`environment.roleAssignmentsTableID`),
+  `{12.EX.<Staff FID 3>}`, active when FID 6 = 'Active', role name = FID 10.
+  Multiple roles kept in `quickbaseService.currentStaffRoles`;
+  `hasNonHouseLeaderRole` gates the staff-only 1-on-1 / participant actions.
+- Login payload: `HouseLeaderRecordId` = Staff Record ID (FID 3) — used by
+  Transport FID 42 and Communication FID 36. `HouseLeaderParticipantId` =
+  Participant Record ID resolved by Staff Email 306 ↔ Participant Email 177
+  (trim + lowercase, exactly one match) — used by Communication FID 26 only.
+- Senior Staff (participant login): `userService.checkIsSeniorStaff(email)` matches
+  the participant email against cached active Senior Staff (`staffEmail`, FID 306).
+  Time Clock still gated by Staff FID 359.
 
 ### Still open
 - Correct FID for task house-name display (36 is unpopulated in new schema)

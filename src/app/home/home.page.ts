@@ -20,7 +20,7 @@ export class HomePage implements OnInit {
   // House KPI data
   houseKPIs: any = null;
   isLoadingKPIs: boolean = false;
-  houseLeaderRecordId: string = ''; // Now retrieved directly from login query field 9
+  houseLeaderRecordId: string = ''; // Session House Leader's Staff Record ID (staff fid 3) from login query
 
   constructor(
     public quickbaseService: QuickbaseService,

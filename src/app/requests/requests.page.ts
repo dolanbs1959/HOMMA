@@ -14,7 +14,8 @@ export class RequestsPage implements OnInit {
   activeStaff: any[] = [];
   isSubmittingFeedback: boolean = false;
   feedbackMessage: string = '';
-  houseLeaderRecordId: string = '';
+  houseLeaderRecordId: string = ''; // Session House Leader's Staff Record ID (staff fid 3)
+  houseLeaderParticipantId: string = ''; // Session House Leader's Participant Record ID (email match)
 
   constructor(
     public quickbaseService: QuickbaseService,
@@ -32,6 +33,7 @@ export class RequestsPage implements OnInit {
   ngOnInit() {
     const qd = this.quickbaseService.queryData;
     this.houseLeaderRecordId = qd?.HouseLeaderRecordId?.value || '';
+    this.houseLeaderParticipantId = qd?.HouseLeaderParticipantId?.value || '';
     this.loadActiveStaff();
   }
 
@@ -120,31 +122,20 @@ export class RequestsPage implements OnInit {
         this.logger.warn('Error while resolving Database Administrator email', e);
       }
 
-      let houseLeaderStaffId: any = '';
-      try {
-        const svcList: any = (this.quickbaseService as any).activeStaff?.value || null;
-        if (Array.isArray(svcList)) {
-          const match = svcList.find((s: any) => {
-            const rel = (s.relatedParticipantId || '')?.toString();
-            return rel === (this.houseLeaderRecordId || '').toString();
-          });
-          if (match) {
-            houseLeaderStaffId = match.userId || '';
-          }
-        }
-      } catch (e) {
-        this.logger.warn('Error resolving House Leader Staff Record ID', e);
-      }
-
-      const communicationData = {
+      const communicationData: any = {
         6: { value: staffValueToSend },
         8: { value: messageWithType },
         22: { value: currentDate },
-        26: { value: this.houseLeaderRecordId || 'Unknown House Leader' },
-        36: { value: houseLeaderStaffId || '' },
+        36: { value: this.houseLeaderRecordId || '' }, // House Leader Staff Record ID
         35: { value: 'HOMMA' },
         9: { value: 'Open' },
       };
+      // fid 26 references Participant; only send a resolved Participant Record ID
+      if (this.houseLeaderParticipantId) {
+        communicationData[26] = { value: this.houseLeaderParticipantId };
+      } else {
+        this.logger.warn('House Leader Participant Record ID unresolved; omitting Communication fid 26');
+      }
 
       this.logger.debug('Submitting request/feedback');
 

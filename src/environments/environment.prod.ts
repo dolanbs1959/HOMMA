@@ -20,6 +20,7 @@ export const environment = {
   realm: 'bobfaulk.quickbase.com', //bobfaulk.quickbase.com
   appId: 'bjgvvyg79',//HOM app
   queryStaffTableId: 'bs8cmihpr', //Staff table
+  roleAssignmentsTableID: 'bs9ueb9md', // Role Assignments table (Staff -> Roles)
   queryResidentTableId: 'bjgvye6ni', //Participant table
   insertTableId: 'xxxxxx',//Insert records functions not yet defined.
   QUICKBASE_URL: 'https://api.quickbase.com/v1/records/query',

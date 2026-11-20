@@ -65,7 +65,7 @@ export class ResidentSearchComponent implements OnInit {
     this.HLphone = qd?.HLphone?.value || '';
 
     const isParticipantStaff = this.userService.isStaffUser();
-    const isHouseLeaderLoginStaff = !!this.quickbaseService.currentStaffRole && this.quickbaseService.currentStaffRole !== 'House Leader';
+    const isHouseLeaderLoginStaff = this.quickbaseService.hasNonHouseLeaderRole;
     this.canShowStipulated = isParticipantStaff || isHouseLeaderLoginStaff;
     // House Leaders reach 1-on-1 reviews through their assigned Task cards only
     this.isHouseLeader = this.quickbaseService.isHouseLeaderSession;
