@@ -103,24 +103,21 @@ AND {326.EX.'Incomplete'}`. Select: [3, 326, 32, 8, 36, 47, 15, 263].
 - Staff FIDs 9, 10, 55, 93, 223 were deleted. Login query selects
   [3, 6, 71, 102, 139, 225, 295, 304, 305, 306, 372]: 304 = name, 305 = phone,
   306 = email, 372 = house name, 71 = House Leader flag (House Leader detection only).
-- Roles: Role Assignments table `bs9ueb9md` (`environment.roleAssignmentsTableID`),
-  `{12.EX.<Staff FID 3>}`, active when FID 6 = 'Active', role name = FID 10.
-  Multiple roles kept in `quickbaseService.currentStaffRoles`.
-- Staff membership = an active Role Assignment named 'Staff'
-  (`quickbaseService.hasStaffRole` / `isStaffSession`), independent of FID 71.
-  Other or multiple roles grant nothing extra; lookup failure = not Staff.
-- House Leader Login: Staff (or area manager FID 295) may select any house and
-  operate as its House Leader record; everyone else only their own record for
-  the selected house. `isStaffSession` gates Stipulated Agreement / 1-on-1 actions.
+- Authorization (FID 93 role deleted; no Role Assignments lookup):
+  House Leader = Staff FID 71 = 1. Authorized Staff (`quickbaseService.isStaffSession`)
+  = credential has an Active (FID 6) record with Area Manager FID 295 — the
+  production any-house grant. Authorized Staff (incl. Staff who are also House
+  Leaders) select any house, operating as its House Leader record, and keep all
+  house-side functions. Everyone else gets only their own record for the
+  selected house. `isHouseLeaderSession` = `sessionIsHouseLeader && !isStaffSession`.
 - Login payload: `HouseLeaderRecordId` = Staff Record ID (FID 3) — used by
   Transport FID 42 and Communication FID 36. `HouseLeaderParticipantId` =
   Participant Record ID resolved by Staff Email 306 ↔ Participant Email 177
   (trim + lowercase, exactly one match) — used by Communication FID 26 only.
 - Senior Staff (participant login): `userService.checkIsSeniorStaff(email)` matches
   the participant email against cached active Senior Staff (`staffEmail`, FID 306).
-  `userService.resolveParticipantStaffAccess(email)` additionally requires an active
-  'Staff' Role Assignment for that Staff record before granting the staff profile,
-  Time Clock (FID 359) and participant search; otherwise participant-only access.
+  The cache is limited to {6.EX.'Active'}AND{292.EX.'Yes'}; a match grants the staff
+  profile, participant search/management; no match = participant-only access.
   Time Clock still gated by Staff FID 359.
 
 ### Still open

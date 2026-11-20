@@ -327,18 +327,17 @@ ngOnInit() {
             const participantFullName = resident.residentFullName?.value || 'Unknown';
             this.userService.setDisplayName(participantFullName);
             
-            // Staff privileges need an email match (fid 177 -> Staff fid 306) to an
-            // Active Senior Staff record AND an active "Staff" Role Assignment.
-            // Resolved below, before navigation, so an email match alone grants nothing.
+            // Check if this resident is a Senior Staff member by matching the participant
+            // email (fid 177) against Staff Email (fid 306) of Active Senior Staff.
+            // checkIsSeniorStaff returns the staff record ID if found, or 0 if not staff
             const residentEmail = resident.residentEmail?.value ?? resident.residentEmail ?? participantEmail;
-            this.userService.setParticipantInfo(participantEmail, participantRecordId, participantFullName, false, 0, false);
-            const staffAccess$ = this.userService.resolveParticipantStaffAccess(residentEmail).pipe(
-              tap(access => {
-                this.userService.setParticipantInfo(participantEmail, participantRecordId, participantFullName, access.isStaff, access.staffRecordId, access.timeClockEnabled);
-                this.logger.log(`=== LOGIN SUCCESSFUL - Staff: ${access.isStaff}, Staff Record ID: ${access.staffRecordId}, Time Clock Enabled: ${access.timeClockEnabled} ===`);
-              })
-            );
-
+            const staffRecordId = this.userService.checkIsSeniorStaff(residentEmail);
+            const isStaff = staffRecordId > 0;
+            const timeClockEnabled = isStaff && this.userService.checkTimeClockEnabled(staffRecordId);
+            this.logger.log(`checkIsSeniorStaff returned: ${staffRecordId} for participantRecordId: ${participantRecordId} -> isStaff: ${isStaff}`);
+            this.userService.setParticipantInfo(participantEmail, participantRecordId, participantFullName, isStaff, staffRecordId, timeClockEnabled);
+            this.logger.log(`=== LOGIN SUCCESSFUL - Senior Staff: ${isStaff}, Staff Record ID: ${staffRecordId}, Time Clock Enabled: ${timeClockEnabled} ===`);
+            
             // Track participant login in Google Analytics
             const participantId = `participant_${resident.residentIDnumber.value}`;
             const participantName = resident.residentName?.value || 'Unknown';
@@ -356,7 +355,7 @@ ngOnInit() {
   
                      // Call refreshAnnouncements() after successful login
           let announcementsData: any; // Declare announcementsData outside the subscription
-          staffAccess$.pipe(concatMap(() => this.quickbaseService.refreshAnnouncements())).subscribe(
+          this.quickbaseService.refreshAnnouncements().subscribe(
             data => {
               announcementsData = data; // Assign data to announcementsData
               this.logger.log('Announcements refreshed for resident');
