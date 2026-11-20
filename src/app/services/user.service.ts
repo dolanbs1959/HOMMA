@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { QuickbaseService } from './quickbase.service';
 import { LoggerService } from './logger.service';
 
@@ -120,6 +122,30 @@ export class UserService {
     const resolvedId = Number(matches[0].staffRecordId ?? matches[0].userId) || 0;
     this.logger.log(`checkIsSeniorStaff: matched staff "${matches[0].displayName}" (staffRecordId: ${resolvedId})`);
     return resolvedId;
+  }
+
+  /**
+   * Resolve Staff privileges for a participant login. Requires both an email
+   * match to an Active Senior Staff record (checkIsSeniorStaff) and an active
+   * "Staff" Role Assignment for that Staff record; an email match alone grants
+   * nothing. Time Clock additionally requires Staff fid 359.
+   */
+  resolveParticipantStaffAccess(participantEmail: string): Observable<{ isStaff: boolean; staffRecordId: number; timeClockEnabled: boolean }> {
+    const none = { isStaff: false, staffRecordId: 0, timeClockEnabled: false };
+    const staffRecordId = this.checkIsSeniorStaff(participantEmail);
+    if (!staffRecordId) {
+      return of(none);
+    }
+    return this.quickbaseService.getActiveStaffRoles([staffRecordId]).pipe(
+      map((roles: string[]) => {
+        if (!this.quickbaseService.hasStaffRole(roles)) {
+          this.logger.log(`Senior Staff match ${staffRecordId} has no active Staff role assignment - participant access only`);
+          return none;
+        }
+        return { isStaff: true, staffRecordId, timeClockEnabled: this.checkTimeClockEnabled(staffRecordId) };
+      }),
+      catchError(() => of(none))
+    );
   }
 
   /**

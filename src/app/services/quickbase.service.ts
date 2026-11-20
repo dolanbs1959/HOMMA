@@ -62,18 +62,27 @@ export class QuickbaseService {
   // signature attribution (e.g. Stipulated Agreement).
   currentStaffName: string = '';
 
-  // True when the authenticated session is operating as a House Leader.
-  // Centralized so every consumer uses the same verified comparison.
-  get isHouseLeaderSession(): boolean {
-    return this.sessionIsHouseLeader === true;
+  // Staff membership comes only from an active Role Assignment named "Staff"
+  // (Role Assignments FID 10). It is independent of House Leader status
+  // (Staff FID 71); holding other or multiple roles grants nothing extra.
+  static readonly STAFF_ROLE_NAME = 'staff';
+
+  hasStaffRole(roles: string[] | null | undefined): boolean {
+    return (roles || []).some(r => String(r ?? '').trim().toLowerCase() === QuickbaseService.STAFF_ROLE_NAME);
   }
 
-  // True when the typed credential holds at least one active role other than
-  // House Leader (e.g. Area Manager). Gates staff-only House Leader Login
-  // features such as the Stipulated Agreement. Fails closed when the Role
-  // Assignments lookup returned nothing.
-  get hasNonHouseLeaderRole(): boolean {
-    return (this.currentStaffRoles || []).some(r => !!r && r.trim().toLowerCase() !== 'house leader');
+  // True when the House Leader Login credential is a Staff member. Staff may
+  // select any house and use all house-side functions, even when they also
+  // hold a House Leader assignment. Fails closed if roles could not be loaded.
+  get isStaffSession(): boolean {
+    return this.hasStaffRole(this.currentStaffRoles);
+  }
+
+  // True for a House Leader-only session (session record has FID 71 = 1 and
+  // the credential is not Staff). Restricts House Leader-only users to their
+  // assigned functions (e.g. 1-on-1s only through Task cards).
+  get isHouseLeaderSession(): boolean {
+    return this.sessionIsHouseLeader === true && !this.isStaffSession;
   }
 
   // Reset all staff role/identity state captured at House Leader Login.
@@ -1486,147 +1495,102 @@ insertActivity(activityData: any): Observable<any> {
     };
 
     return this.callQuickbaseProxy('POST', 'query', body).pipe(
-      map((response: any) => {
-        this.logger.debug('Staff query response received');
-
-        if (!response.data || response.data.length === 0) {
-          this.logger.debug('No staff records found');
-          return { finalRecord: null, credentialRecords: [] };
-        }
-
-        const allStaffRecords = response.data;
-        this.logger.debug(`Cached ${allStaffRecords.length} staff records`);
+      switchMap((response: any) => {
+        const allStaffRecords: any[] = response?.data || [];
+        this.logger.debug(`Staff query returned ${allStaffRecords.length} records`);
 
         // All Staff records belonging to the typed credential
         const credentialRecords = typedStaffID
           ? allStaffRecords.filter((r: any) => staffIdOf(r) === typedStaffID)
           : [];
-
-        // Filter based on house and staff access logic
-        const matchingRecords = allStaffRecords.filter((record: any) => {
-          const recordStaffID = staffIdOf(record);
-
-          // Always include the area manager's own record
-          if (typedStaffID && recordStaffID === typedStaffID && isAreaManagerRecord(record)) {
-            this.logger.debug('Found area manager record');
-            return true;
-          }
-
-          if (houseOf(record) !== selectedHouse) {
-            return false;
-          }
-
-          // For house-specific records, include:
-          // 1. House Leader records for the requested house
-          // 2. Regular staff records that match the requesting staffID
-          return isHouseLeaderRecord(record) || (!!typedStaffID && recordStaffID === typedStaffID);
-        });
-
-        this.logger.debug(`Matching records found: ${matchingRecords.length}`);
-
-        // For area managers, prioritize house leader records, otherwise use their own record
-        let finalRecord = null;
-        if (matchingRecords.length > 0) {
-          const userRecord = credentialRecords[0];
-          const isUserAreaManager = credentialRecords.some((r: any) => isAreaManagerRecord(r));
-
-          if (isUserAreaManager) {
-            // Area manager: prefer house leader record for this house
-            const houseLeaderRecord = matchingRecords.find((r: any) => isHouseLeaderRecord(r) && houseOf(r) === selectedHouse);
-
-            if (houseLeaderRecord) {
-              finalRecord = houseLeaderRecord;
-              this.logger.debug('Area manager accessing house leader record');
-            } else {
-              // Fallback to any house leader record if no specific house match
-              const anyHouseLeader = matchingRecords.find((r: any) => isHouseLeaderRecord(r));
-              finalRecord = anyHouseLeader || userRecord;
-              this.logger.debug('Using fallback record');
-            }
-          } else {
-            // Regular staff: use their own record for this house
-            finalRecord = matchingRecords.find((r: any) => staffIdOf(r) === typedStaffID) || null;
-            this.logger.debug('Regular staff accessing own record');
-          }
-        }
-
-        if (finalRecord) {
-          // QuickBase records use field '3' as the record ID, ensure it's properly structured
-          if (!finalRecord.recordNumber && finalRecord['3']) {
-            finalRecord.recordNumber = finalRecord['3'];
-          } else if (!finalRecord.recordNumber && !finalRecord['3']) {
-            this.logger.error('Record missing field 3 (record ID)');
-            throw new Error('Invalid record structure - missing record ID in field 3');
-          }
-          this.logger.debug('Final record selected successfully');
-        }
-
-        // Capture the authenticated user's name (field 304) so signatures
-        // attribute the agreement to the person who logged in rather than
-        // the session's House Leader record.
-        const requestingUserRecord = credentialRecords.find((r: any) => houseOf(r) === selectedHouse) || credentialRecords[0];
-        this.currentStaffName = requestingUserRecord ? (this.normalizeFieldToString(requestingUserRecord['304']) || '') : '';
-        try { localStorage.setItem('currentStaffName', this.currentStaffName || ''); } catch (e) {}
-
-        // Session House Leader status comes from the record actually selected
-        // for this session (finalRecord). For area managers this is the house's
-        // House Leader record.
-        this.sessionIsHouseLeader = !!finalRecord && isHouseLeaderRecord(finalRecord);
-        try { localStorage.setItem('sessionIsHouseLeader', String(this.sessionIsHouseLeader)); } catch (e) {}
-
-        return { finalRecord, credentialRecords };
-      }),
-      switchMap(({ finalRecord, credentialRecords }: any) => {
-        if (!finalRecord) {
+        if (credentialRecords.length === 0) {
           this.logger.error('No matching records found');
           this.errorMessage.next('No authorization found for this staff ID and house combination.');
           return of(null);
         }
 
-        const recordNumber = finalRecord['3'];
-        if (recordNumber === undefined) {
-          this.logger.error('Record number not found in processed response');
-          this.errorMessage.next('This Staff ID is not active! Please re-enter and try again.');
-          return of(null);
-        }
-
-        const credentialRecordIds: number[] = (credentialRecords || [])
+        const credentialRecordIds: number[] = credentialRecords
           .map((r: any) => Number(r['3']?.value ?? r['3']))
           .filter((id: number) => Number.isFinite(id) && id > 0);
 
-        // Roles: active Role Assignments for the credential's Staff record(s).
-        // Communication FID 26 needs the House Leader's Participant record ID,
-        // resolved by matching Staff Email (306) to Participant Email (177).
-        return forkJoin({
-          roles: this.getActiveStaffRoles(credentialRecordIds),
-          participantId: this.getParticipantRecordIdByEmail(finalRecord['306'])
-        }).pipe(
-          map(({ roles, participantId }) => {
+        // Staff membership is resolved from Role Assignments before choosing
+        // the session record, independently of House Leader status (FID 71).
+        return this.getActiveStaffRoles(credentialRecordIds).pipe(
+          switchMap((roles: string[]) => {
+            const isStaff = this.hasStaffRole(roles);
+            const isAreaManager = credentialRecords.some((r: any) => isAreaManagerRecord(r));
+            const ownHouseRecord = credentialRecords.find((r: any) => houseOf(r) === selectedHouse) || null;
+
+            let finalRecord: any = null;
+            if (isStaff || isAreaManager) {
+              // Staff (including Staff who are also House Leaders) and area
+              // managers may select any house; the session operates as that
+              // house's House Leader record.
+              const houseLeaderRecord = allStaffRecords.find((r: any) => isHouseLeaderRecord(r) && houseOf(r) === selectedHouse);
+              finalRecord = houseLeaderRecord || ownHouseRecord || credentialRecords[0];
+              this.logger.debug(houseLeaderRecord ? 'Staff accessing house leader record' : 'Staff using own record');
+            } else {
+              // House Leader-only and other non-Staff users: only their own
+              // record for the selected house.
+              finalRecord = ownHouseRecord;
+            }
+
+            if (!finalRecord) {
+              this.logger.error('No matching records found');
+              this.errorMessage.next('No authorization found for this staff ID and house combination.');
+              return of(null);
+            }
+
+            const recordNumber = finalRecord['3'];
+            if (recordNumber === undefined) {
+              this.logger.error('Record missing field 3 (record ID)');
+              this.errorMessage.next('This Staff ID is not active! Please re-enter and try again.');
+              return of(null);
+            }
+            if (!finalRecord.recordNumber) {
+              finalRecord.recordNumber = recordNumber;
+            }
+
             this.currentStaffRoles = roles;
             try { localStorage.setItem('currentStaffRoles', JSON.stringify(roles)); } catch (e) {}
 
-            this.logger.debug('Processing staff record');
-            this.staffRecordID = recordNumber.value || recordNumber; // Store for other functions
+            // Name (field 304) of the person who logged in, for signature
+            // attribution, rather than the session's House Leader record.
+            const requestingUserRecord = ownHouseRecord || credentialRecords[0];
+            this.currentStaffName = this.normalizeFieldToString(requestingUserRecord['304']) || '';
+            try { localStorage.setItem('currentStaffName', this.currentStaffName || ''); } catch (e) {}
 
-            // Store values for service state (normalize alert fields to strings)
-            this.STAalert = this.normalizeFieldToString(finalRecord['225']) || '';
-            try { this._STAalert.next(this.STAalert); } catch (e) {}
-            this.Alert = this.normalizeFieldToString(finalRecord['139']) || '';
+            // House Leader status of the record the session operates as.
+            this.sessionIsHouseLeader = isHouseLeaderRecord(finalRecord);
+            try { localStorage.setItem('sessionIsHouseLeader', String(this.sessionIsHouseLeader)); } catch (e) {}
 
-            return {
-              'recordNumber': recordNumber,
-              'theHouseName': { value: houseOf(finalRecord) },
-              'HouseLeaderName': finalRecord['304'],
-              // Staff Record ID (FID 3) of the session's House Leader record;
-              // Transport FID 42 (Requested By) references Staff.
-              'HouseLeaderRecordId': recordNumber,
-              // Participant Record ID of the session's House Leader (email match);
-              // Communication FID 26 references Participant.
-              'HouseLeaderParticipantId': { value: participantId || '' },
-              'HLphone': finalRecord['305'],
-              'STAalert': finalRecord['225'],
-              'Alert': finalRecord['139']
-            };
+            // Communication FID 26 needs the House Leader's Participant record
+            // ID, resolved by matching Staff Email (306) to Participant Email (177).
+            return this.getParticipantRecordIdByEmail(finalRecord['306']).pipe(
+              map((participantId: number | null) => {
+                this.staffRecordID = recordNumber.value || recordNumber; // Store for other functions
+
+                // Store values for service state (normalize alert fields to strings)
+                this.STAalert = this.normalizeFieldToString(finalRecord['225']) || '';
+                try { this._STAalert.next(this.STAalert); } catch (e) {}
+                this.Alert = this.normalizeFieldToString(finalRecord['139']) || '';
+
+                return {
+                  'recordNumber': recordNumber,
+                  'theHouseName': { value: houseOf(finalRecord) },
+                  'HouseLeaderName': finalRecord['304'],
+                  // Staff Record ID (FID 3) of the session's House Leader record;
+                  // Transport FID 42 (Requested By) references Staff.
+                  'HouseLeaderRecordId': recordNumber,
+                  // Participant Record ID of the session's House Leader (email match);
+                  // Communication FID 26 references Participant.
+                  'HouseLeaderParticipantId': { value: participantId || '' },
+                  'HLphone': finalRecord['305'],
+                  'STAalert': finalRecord['225'],
+                  'Alert': finalRecord['139']
+                };
+              })
+            );
           })
         );
       }),
